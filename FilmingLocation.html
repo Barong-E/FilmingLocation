@@ -2,150 +2,87 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Filming Location</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>촬영지 상세 페이지</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #fff;
-      user-select: none;
+      padding: 24px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     h1 {
-      font-size: 36px;
+      margin-bottom: 12px;
+      font-size: 24px;
+      color: #222;
+    }
+
+    .scene-img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .info {
+      margin-bottom: 12px;
+    }
+
+    .label {
       font-weight: bold;
-      letter-spacing: 1px;
-      margin-bottom: 24px;
-      text-align: center;
+      color: #666;
     }
 
-    h1 .mint {
+    .value {
+      margin-left: 6px;
+    }
+
+    .highlight-first-letter {
       color: #00c896;
-    }
-
-    h1 .black {
-      color: #000;
-    }
-
-    .search-wrapper {
-      display: flex;
-      width: 90vw;
-      max-width: 700px;
-    }
-
-    .search-input {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #dfe1e5;
-      border-radius: 24px 0 0 24px;
-      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
-      outline: none;
-      transition: width 0.2s ease;
-    }
-
-    .search-button button {
-      padding: 12px 20px;
-      font-size: 14px;
-      background-color: #00c896;
-      color: white;
-      border: 1px solid #00c896;
-      border-left: none;
-      border-radius: 0 24px 24px 0;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .search-button button:hover {
-      background-color: #00b184;
-    }
-
-    @media (min-width: 1024px) {
-      h1 {
-        font-size: 52px;
-      }
-
-      .search-wrapper {
-        max-width: 900px;
-      }
-
-      .search-input {
-        font-size: 18px;
-      }
-
-      .search-button button {
-        font-size: 16px;
-      }
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
-  <h1 id="title">
-    <span class="mint">F</span><span class="black">ilming </span>
-    <span class="mint">L</span><span class="black">ocation</span>
-  </h1>
+  <div class="container">
+    <h1 id="title">단밤포차</h1>
 
-  <div class="search-wrapper">
-    <input type="text" class="search-input" placeholder="작품 혹은 배우를 검색하세요" id="searchInput" />
-    <div class="search-button">
-      <button id="searchBtn">FL 검색</button>
-    </div>
+    <img src="images/ItaewonClass_danbampocha.png" alt="촬영지 장면" class="scene-img" />
+
+    <div class="info"><span class="label">작품명:</span><span class="value" id="work-name">이태원 클라쓰</span></div>
+    <div class="info"><span class="label">종류:</span><span class="value">드라마</span></div>
+    <div class="info"><span class="label">등장인물:</span><span class="value">박서준 (박새로이), 김다미 (조이서)</span></div>
+    <div class="info"><span class="label">촬영지:</span><span class="value" id="location-name">단밤포차</span></div>
+    <div class="info"><span class="label">방영시기:</span><span class="value">2020년 1월 ~ 3월</span></div>
   </div>
 
   <script>
-    const input = document.getElementById('searchInput');
-    const button = document.getElementById('searchBtn');
-    const title = document.getElementById('title');
+    // 작품명과 촬영지 이름을 타이틀에 동기화
+    window.onload = function() {
+      const workName = document.getElementById('work-name').textContent;
+      const locationName = document.getElementById('location-name').textContent;
+      document.title = `${workName} - ${locationName}`;
 
-    let originalWidth;
+      // 장소명의 첫 글자에 색상 적용
+      const locationElement = document.getElementById('location-name');
+      const firstLetter = locationName.charAt(0);
+      const restOfString = locationName.slice(1);
 
-    function updateSearchInputWidth() {
-      const wrapperWidth = document.querySelector('.search-wrapper').offsetWidth;
-      const buttonWidth = button.offsetWidth;
-      const inputWidth = wrapperWidth - buttonWidth;
-      input.style.width = inputWidth + 'px';
-      originalWidth = inputWidth;
-    }
-
-    window.addEventListener('load', updateSearchInputWidth);
-    window.addEventListener('resize', updateSearchInputWidth);
-
-    input.addEventListener('focus', () => {
-      input.style.transition = 'width 0.2s ease';
-    });
-
-    input.addEventListener('blur', () => {
-      input.style.width = originalWidth + 'px';
-    });
-
-    document.body.addEventListener('click', (e) => {
-      if (e.target !== input) {
-        input.blur();
-      }
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        button.click(); // 검색 기능은 추후 구현
-      }
-    });
-
-    button.addEventListener('click', () => {
-      // 검색 기능은 여기에 추가
-    });
+      // 장소명 텍스트를 첫 글자와 나머지 부분으로 나누어 스타일 적용
+      locationElement.innerHTML = `<span class="highlight-first-letter">${firstLetter}</span>${restOfString}`;
+    };
   </script>
 
 </body>
