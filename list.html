@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filming Locations</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 40px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .location-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      overflow: hidden;
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .location-img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .location-info {
+      padding: 12px;
+      flex: 1;
+    }
+
+    .location-info h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .location-info .type {
+      font-size: 14px;
+      color: #666;
+      margin-left: 6px;
+    }
+
+    .location-info p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .coordinates-link {
+      color: #00c896;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .coordinates-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .location-card {
+        max-width: 100%;
+      }
+
+      .location-info {
+        padding: 10px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>Filming Locations</h1>
+  <div id="locationList" class="card-wrapper"></div>
+
+  <script>
+    const filmingLocations = [
+      {
+        imageUrl: "https://example.com/itaewon.jpg",
+        location: "단밤포차 외관",
+        title: "이태원 클라쓰",
+        type: "드라마",
+        characters: "박서준 (박새로이), 김다미 (조이서)",
+        address: "서울특별시 마포구 포은로8길 4",
+        coordinates: { lat: 37.5495, lng: 126.9196 }
+      },
+      {
+        imageUrl: "https://example.com/goblin.jpg",
+        location: "첫눈을 맞던 거리",
+        title: "도깨비",
+        type: "드라마",
+        characters: "김고은 (지은탁), 공유 (도깨비)",
+        address: "퀘벡 시티, 캐나다",
+        coordinates: { lat: 46.8139, lng: -71.2082 }
+      },
+      {
+        imageUrl: "https://example.com/vincenzo.jpg",
+        location: "금가프라자",
+        title: "빈센조",
+        type: "드라마",
+        characters: "송중기 (빈센조), 전여빈 (홍차영)",
+        address: "서울특별시 마포구 독막로28길 10",
+        coordinates: { lat: 37.5472, lng: 126.9241 }
+      },
+      {
+        imageUrl: "https://example.com/parasite.jpg",
+        location: "박 사장 집",
+        title: "기생충",
+        type: "영화",
+        characters: "송강호 (기택), 이정은 (문광) ",
+        address: "서울특별시 마포구 성산동",
+        coordinates: { lat: 37.5638, lng: 126.9102 }
+      },
+      {
+        imageUrl: "https://example.com/myname.jpg",
+        location: "복수를 결심한 골목",
+        title: "마이 네임",
+        type: "드라마",
+        characters: "한소희 (지우), 박희순 (장기훈)",
+        address: "부산광역시 영도구 절영로 192",
+        coordinates: { lat: 35.0889, lng: 129.0681 }
+      },
+      {
+        imageUrl: "https://example.com/2521.jpg",
+        location: "버스정류장",
+        title: "스물다섯 스물하나",
+        type: "드라마",
+        characters: "김태리 (희도), 남주혁 (이진)",
+        address: "충청남도 논산시 연무읍 황화정리",
+        coordinates: { lat: 36.1317, lng: 127.1032 }
+      },
+      {
+        imageUrl: "https://example.com/kingdom.jpg",
+        location: "궁궐",
+        title: "킹덤",
+        type: "드라마",
+        characters: "주지훈 (이창), 배두나 (송가은)",
+        address: "전라북도 전주시 완산구 태조로 44",
+        coordinates: { lat: 35.8142, lng: 127.1504 }
+      },
+      {
+        imageUrl: "https://example.com/startup.jpg",
+        location: "샌드박스 건물",
+        title: "스타트업",
+        type: "드라마",
+        characters: "배수지 (서달미), 남주혁 (남도산)",
+        address: "경기도 성남시 분당구 판교로 255",
+        coordinates: { lat: 37.4010, lng: 127.1082 }
+      },
+      {
+        imageUrl: "https://example.com/extraordinary.jpg",
+        location: "로펌 외관",
+        title: "이상한 변호사 우영우",
+        type: "드라마",
+        characters: "박은빈 (우영우), 강태오 (이준호)",
+        address: "서울특별시 강남구 테헤란로 152",
+        coordinates: { lat: 37.4991, lng: 127.0364 }
+      },
+      {
+        imageUrl: "https://example.com/musicvideo-bts.jpg",
+        location: "폐역",
+        title: "방탄소년단 - 봄날",
+        type: "뮤직비디오",
+        characters: "방탄소년단 (BTS)",
+        address: "강원도 정선군 정선읍 아리랑시장길 20 (구. 정선선 정암역)",
+        coordinates: { lat: 37.3785, lng: 128.7567 }
+      }
+    ];
+
+    const container = document.getElementById("locationList");
+
+    filmingLocations.forEach((location) => {
+      const card = document.createElement("div");
+      card.className = "location-card";
+      card.innerHTML = `
+        <img src="${location.imageUrl}" alt="장면 이미지" class="location-img">
+        <div class="location-info">
+          <h2>${location.title} (${location.type})</h2>
+          <p><strong>촬영지:</strong> ${location.location}</p>
+          <p><strong>등장인물:</strong> ${location.characters}</p>
+          <p><strong>주소:</strong> ${location.address}</p>
+          <p><strong>좌표:</strong> <a href="https://www.google.com/maps?q=${location.coordinates.lat},${location.coordinates.lng}" target="_blank" class="coordinates-link">${location.coordinates.lat}, ${location.coordinates.lng}</a></p>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  </script>
+
+</body>
+</html>
