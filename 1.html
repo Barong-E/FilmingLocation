@@ -53,12 +53,18 @@
       font-weight: bold;
     }
 
-    /* 지도 스타일 */
     #map {
       width: 100%;
       height: 360px;
       border-radius: 12px;
       margin-top: 24px;
+    }
+
+    /* 주소 텍스트에만 링크 스타일 적용 */
+    .address-link {
+      color: #00c896;
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -72,10 +78,12 @@
     <div class="info"><span class="label">작품명:</span><span class="value" id="work-name">이태원 클라쓰</span></div>
     <div class="info"><span class="label">종류:</span><span class="value">드라마</span></div>
     <div class="info"><span class="label">등장인물:</span><span class="value">박서준 (박새로이), 김다미 (조이서)</span></div>
-    <div class="info"><span class="label">촬영지:</span><span class="value">서울특별시 마포구 포은로8길 4</span></div>
+    <div class="info">
+      <span class="label">촬영지:</span>
+      <span class="value address-link" id="address">서울특별시 용산구 녹사평대로40길 57</span>
+    </div>
     <div class="info"><span class="label">방영시기:</span><span class="value">2020년 1월 ~ 3월</span></div>
 
-    <!-- 지도 들어갈 곳 -->
     <div id="map"></div>
   </div>
 
@@ -96,22 +104,50 @@
       }
     };
 
-    // ✅ 지도 초기화 함수 (callback으로 실행됨)
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 37.5485, lng: 126.9527 },  // 단밤포차 좌표
         zoom: 16,
       });
 
-      new google.maps.Marker({
-        position: { lat: 37.5485, lng: 126.9527 },
-        map: map,
-        title: "단밤포차"
+      const geocoder = new google.maps.Geocoder();
+      const address = document.getElementById("address")?.textContent?.trim();
+
+      if (!address) {
+        alert("주소 정보가 없습니다.");
+        return;
+      }
+
+      geocoder.geocode({ address: address }, (results, status) => {
+        if (status === "OK") {
+          const location = results[0].geometry.location;
+          map.setCenter(location);
+
+          const marker = new google.maps.Marker({
+            map: map,
+            position: location,
+            title: address
+          });
+
+          // 마커 클릭 시 지도 중심을 해당 위치로 이동
+          marker.addListener("click", function() {
+            map.setCenter(location);  // 지도 중심을 마커 위치로 이동
+          });
+
+          // 주소 클릭 시 Google Maps 앱 열기
+          const addressElement = document.getElementById("address");
+          addressElement.addEventListener("click", function() {
+            const googleMapsUrl = `https://www.google.com/maps?q=${location.lat()},${location.lng()}`;
+            window.open(googleMapsUrl, "_blank");  // 새 탭으로 Google Maps 열기
+          });
+
+        } else {
+          alert("주소를 찾을 수 없습니다: " + status);
+        }
       });
     }
   </script>
 
-  <!-- ✅ API 키 사용 -->
+  <!-- API 키는 본인 걸로 유지해주세요 -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdpBZLSRE7mhgWNFPEivCd2gnX_-2h4Eo&callback=initMap" async defer></script>
 </body>
 </html>
