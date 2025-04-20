@@ -173,7 +173,7 @@
       const icon = document.getElementById("toggle-icon");
 
       if (workName) {
-        document.title = ${workName}_단밤포차;
+        document.title = `${workName}_단밤포차`;
       }
 
       toggleWork.addEventListener("click", () => {
@@ -213,7 +213,7 @@
 
           const addressElement = document.getElementById("address");
           addressElement.addEventListener("click", function () {
-            const googleMapsUrl = https://www.google.com/maps?q=${location.lat()},${location.lng()};
+            const googleMapsUrl = `https://www.google.com/maps?q=${location.lat()},${location.lng()}`;
             window.open(googleMapsUrl, "_blank");
           });
 
