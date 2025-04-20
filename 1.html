@@ -7,19 +7,43 @@
   <style>
     body {
       margin: 0;
-      padding: 24px;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
+      background-color: white;
       color: #333;
+      font-size: 16px;
     }
 
     .container {
+      width: 100%;
       max-width: 720px;
       margin: 0 auto;
-      background-color: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .green {
+      color: #00c896;
+    }
+
+    .info {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #666;
+    }
+
+    .value {
+      margin-left: 6px;
     }
 
     h1 {
@@ -35,17 +59,9 @@
       margin-bottom: 20px;
     }
 
-    .info {
-      margin-bottom: 12px;
-    }
-
-    .label {
-      font-weight: bold;
-      color: #666;
-    }
-
-    .value {
-      margin-left: 6px;
+    .value-line-break {
+      display: block;
+      margin-top: 1px;
     }
 
     .highlight-first-letter {
@@ -60,30 +76,91 @@
       margin-top: 24px;
     }
 
-    /* 주소 텍스트에만 링크 스타일 적용 */
     .address-link {
       color: #00c896;
       text-decoration: underline;
       cursor: pointer;
+    }
+
+    .work-toggle {
+      cursor: pointer;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      display: block;
+      line-height: 1.5;
+    }
+
+    .work-toggle:hover {
+      background-color: transparent;
+    }
+
+    .arrow {
+      display: inline-block;
+      vertical-align: middle;
+      transition: transform 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .sub-info {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      padding-left: 12px;
+    }
+
+    .sub-info.open {
+      max-height: 1000px;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1 id="location-title">단밤포차</h1>
 
+    <!-- FiLo 로고 -->
+    <div class="logo"><span class="green">F</span>i<span class="green">L</span>o</div>
+
+    <!-- 장면 이미지 -->
     <img src="images/ItaewonClass_danbampocha.png" alt="촬영지 장면" class="scene-img" />
 
-    <div class="info"><span class="label">작품명:</span><span class="value" id="work-name">이태원 클라쓰</span></div>
-    <div class="info"><span class="label">종류:</span><span class="value">드라마</span></div>
-    <div class="info"><span class="label">등장인물:</span><span class="value">박서준 (박새로이), 김다미 (조이서)</span></div>
+    <!-- 장소명 -->
+    <div class="info">
+      <span class="label">장소명:</span>
+      <span class="value">단밤포차</span>
+    </div>
+
+    <!-- 작품명 (토글 가능) -->
+    <div class="info">
+      <div class="work-toggle" id="toggle-work">
+        <span class="label">작품명:</span>
+        <span class="value" id="work-name">이태원 클라쓰</span>
+        <svg class="arrow" id="toggle-icon" width="12" height="12" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="sub-info" id="work-sub-info">
+        <div><span class="label">종류:</span><span class="value">드라마</span></div>
+        <div><span class="label">공개일:</span><span class="value">2020.01.31.</span></div>
+        <div><span class="label">소개:</span><span class="value value-line-break">불합리한 세상 속, 고집과 객기로 뭉친 청춘들의 '힙'한 반란이 시작된다. 세계를 압축해 놓은 듯한 이태원. 이 작은 거리, 각자의 가치관으로 자유를 쫓는 그들의 창업 신화 &lt;이태원 클라쓰&gt;</span></div>
+        <div><span class="label">등장인물:</span><span class="value value-line-break">박서준(박새로이), 김다미(조이서), 유재명(장대희), 권나라(오수아), 안보현(장근원), 김동희(장근수), 류경수(최승권), 이주영(마현이), 이다윗(이호진), 크리스 라이언(김토니), 손현주(박성열), 윤경호(오병헌), 김여진(조정민), 원현준(김희훈), 최유리(오혜원)</span></div>
+      </div>
+    </div>
+
+    <!-- 촬영지 -->
     <div class="info">
       <span class="label">촬영지:</span>
       <span class="value address-link" id="address">서울특별시 용산구 녹사평대로40길 57</span>
     </div>
-    <div class="info"><span class="label">방영시기:</span><span class="value">2020년 1월 ~ 3월</span></div>
 
+    <!-- 구글 지도 -->
     <div id="map"></div>
   </div>
 
@@ -91,17 +168,19 @@
     window.onload = function () {
       const workName = document.getElementById('work-name')?.textContent?.trim();
       const locationTitleElement = document.getElementById('location-title');
-      const locationName = locationTitleElement?.textContent?.trim();
+      const toggleWork = document.getElementById("toggle-work");
+      const subInfo = document.getElementById("work-sub-info");
+      const icon = document.getElementById("toggle-icon");
 
-      if (workName && locationName) {
-        document.title = `${workName}_${locationName}`;
+      if (workName) {
+        document.title = ${workName}_단밤포차;
       }
 
-      if (locationName) {
-        const firstChar = locationName.charAt(0);
-        const rest = locationName.slice(1);
-        locationTitleElement.innerHTML = `<span class="highlight-first-letter">${firstChar}</span>${rest}`;
-      }
+      toggleWork.addEventListener("click", () => {
+        const isOpen = subInfo.classList.contains("open");
+        subInfo.classList.toggle("open", !isOpen);
+        icon.classList.toggle("open", !isOpen);
+      });
     };
 
     function initMap() {
@@ -128,16 +207,14 @@
             title: address
           });
 
-          // 마커 클릭 시 지도 중심을 해당 위치로 이동
-          marker.addListener("click", function() {
-            map.setCenter(location);  // 지도 중심을 마커 위치로 이동
+          marker.addListener("click", function () {
+            map.setCenter(location);
           });
 
-          // 주소 클릭 시 Google Maps 앱 열기
           const addressElement = document.getElementById("address");
-          addressElement.addEventListener("click", function() {
-            const googleMapsUrl = `https://www.google.com/maps?q=${location.lat()},${location.lng()}`;
-            window.open(googleMapsUrl, "_blank");  // 새 탭으로 Google Maps 열기
+          addressElement.addEventListener("click", function () {
+            const googleMapsUrl = https://www.google.com/maps?q=${location.lat()},${location.lng()};
+            window.open(googleMapsUrl, "_blank");
           });
 
         } else {
@@ -147,7 +224,6 @@
     }
   </script>
 
-  <!-- API 키는 본인 걸로 유지해주세요 -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAdpBZLSRE7mhgWNFPEivCd2gnX_-2h4Eo&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
 </body>
 </html>
