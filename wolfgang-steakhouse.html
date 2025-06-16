@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>촬영지 상세 페이지</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: white;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .green {
+      color: #00c896;
+    }
+
+    .info {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #666;
+    }
+
+    .value {
+      margin-left: 6px;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: 24px;
+      color: #222;
+    }
+
+    .scene-img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .value-line-break {
+      display: block;
+      margin-top: 1px;
+    }
+
+    .highlight-first-letter {
+      color: #00c896;
+      font-weight: bold;
+    }
+
+    .address-link {
+      color: #00c896;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .work-toggle {
+      cursor: pointer;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      display: block;
+      line-height: 1.5;
+    }
+
+    .work-toggle:hover {
+      background-color: transparent;
+    }
+
+    .arrow {
+      display: inline-block;
+      vertical-align: middle;
+      transition: transform 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .sub-info {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      padding-left: 12px;
+    }
+
+    .sub-info.open {
+      max-height: 1000px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- FiLo 로고 -->
+    <div class="logo"><span class="green">F</span>i<span class="green">L</span>o</div>
+
+    <!-- 장면 이미지 -->
+    <img src="images/Wolfgang’s Steakhouse.png" alt="촬영지 장면" class="scene-img" />
+
+    <!-- 장소명 -->
+    <div class="info">
+      <span class="label">장소명:</span>
+      <span class="value">울프강 스테이크하우스</span>
+    </div>
+
+    <!-- 작품명 (토글 가능) -->
+    <div class="info">
+      <div class="work-toggle" id="toggle-work">
+        <span class="label">작품명:</span>
+        <span class="value" id="work-name">사랑의 불시착</span>
+        <svg class="arrow" id="toggle-icon" width="12" height="12" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="sub-info" id="work-sub-info">
+        <div><span class="label">종류:</span><span class="value">드라마</span></div>
+        <div><span class="label">공개일:</span><span class="value">2019.12.14.</span></div>
+        <div><span class="label">소개:</span><span class="value value-line-break">어느 날 돌풍과 함께 패러글라이딩 사고로 북한에 불시착한 재벌 상속녀 윤세리와 그녀를 숨기고 지키다 사랑하게 되는 특급 장교 리정혁의 절대 극비 러브스토리를 그린 드라마</span></div>
+        <div><span class="label">등장인물:</span><span class="value value-line-break">현빈(리정혁), 손예진(윤세리), 서지혜(서단), 김정현(구승준), 전국환(리충렬), 정애리(김윤희), 하석진(리무혁), 양경원(표치수), 이신영(박광범), 유수빈(김주먹), 탕준상(금은동), 남경읍(윤증평), 방은진(한정연), 최대훈(윤세준), 황우슬혜(도혜지), 박형수(윤세형), 윤지민(고상아), 고규필(홍창식), 임철수(박수찬), 장혜진(고명은), 박명훈(고명석), 홍우진(천사장), 윤상훈(오과장), 김선영(나월숙), 김정난(마영애), 장소연(현명순), 차청화(양옥금), 오만석(조철강), 김영민(정만복), 박성웅(택시기사), 정경호(차상우), 김수현(동구), 최지우(최지우)</span></div>
+      </div>
+    </div>
+
+    <!-- 촬영지 -->
+    <div class="info">
+      <span class="label">촬영지:</span>
+      <a
+        class="value address-link"
+        id="address"
+        href="https://maps.app.goo.gl/dZfVKJ4z2KdJDG8K6"
+        target="_blank"
+      >
+        서울특별시 강남구 선릉로152길 21
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function () {
+      const workName = document.getElementById('work-name')?.textContent?.trim();
+      const toggleWork = document.getElementById("toggle-work");
+      const subInfo = document.getElementById("work-sub-info");
+      const icon = document.getElementById("toggle-icon");
+
+      if (workName) {
+        document.title = `${workName}_울프강 스테이크하우스`;
+      }
+
+      toggleWork.addEventListener("click", () => {
+        const isOpen = subInfo.classList.contains("open");
+        subInfo.classList.toggle("open", !isOpen);
+        icon.classList.toggle("open", !isOpen);
+      });
+    };
+  </script>
+</body>
+</html>

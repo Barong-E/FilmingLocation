@@ -1,0 +1,138 @@
+/* ── 공통 스타일 ── */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: white;
+  color: #333;
+  font-size: 16px;
+}
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+.green {
+  color: #00c896;
+}
+
+/* ── 리스트 페이지 스타일 ── */
+.place-card {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+.place-img {
+  flex-shrink: 0;
+  width: 142px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+.place-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.place-name,
+.work-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: ellipsis;
+}
+.place-address {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.place-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.work-name {
+  font-size: 14px;
+  color: #00c896;
+  margin-bottom: 4px;
+}
+.place-address {
+  font-size: 13px;
+  color: #666;
+}
+
+/* ── 상세페이지 스타일 ── */
+h1#detail-name {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #222;
+}
+.scene-img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.info {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.label {
+  font-weight: bold;
+  color: #666;
+}
+.value {
+  margin-left: 6px;
+}
+.value-line-break {
+  display: block;
+  margin-top: 1px;
+}
+.address-link {
+  color: #00c896;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.work-toggle {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  line-height: 1.5;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.arrow {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+}
+.arrow.open {
+  transform: rotate(180deg);
+}
+.sub-info {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.4s ease;
+  padding-left: 12px;
+}
+.sub-info.open {
+  max-height: 1000px;
+  margin-top: 8px;
+}

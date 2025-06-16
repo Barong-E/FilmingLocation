@@ -1,152 +1,19 @@
-<!DOCTYPE html>
-<html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Filming Location</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FiLo - 촬영지 리스트</title>
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background-color: #fff;
-      user-select: none;
-    }
-
-    h1 {
-      font-size: 36px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      margin-bottom: 24px;
-      text-align: center;
-    }
-
-    h1 .mint {
-      color: #00c896;
-    }
-
-    h1 .black {
-      color: #000;
-    }
-
-    .search-wrapper {
-      display: flex;
-      width: 90vw;
-      max-width: 700px;
-    }
-
-    .search-input {
-      flex: 1;
-      padding: 12px 16px;
-      font-size: 16px;
-      border: 1px solid #dfe1e5;
-      border-radius: 24px 0 0 24px;
-      box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
-      outline: none;
-      transition: width 0.2s ease;
-    }
-
-    .search-button button {
-      padding: 12px 20px;
-      font-size: 14px;
-      background-color: #00c896;
-      color: white;
-      border: 1px solid #00c896;
-      border-left: none;
-      border-radius: 0 24px 24px 0;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .search-button button:hover {
-      background-color: #00b184;
-    }
-
-    @media (min-width: 1024px) {
-      h1 {
-        font-size: 52px;
-      }
-
-      .search-wrapper {
-        max-width: 900px;
-      }
-
-      .search-input {
-        font-size: 18px;
-      }
-
-      .search-button button {
-        font-size: 16px;
-      }
-    }
-  </style>
+  <!-- 외부 CSS 불러오기 -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <div class="container">
+    <div class="logo"><span class="green">F</span>i<span class="green">L</span>o</div>
 
-  <h1 id="title">
-    <span class="mint">F</span><span class="black">ilming </span>
-    <span class="mint">L</span><span class="black">ocation</span>
-  </h1>
-
-  <div class="search-wrapper">
-    <input type="text" class="search-input" placeholder="작품 혹은 배우를 검색하세요" id="searchInput" />
-    <div class="search-button">
-      <button id="searchBtn">FL 검색</button>
-    </div>
+    <!-- 여기에 자동으로 카드가 들어갑니다 -->
+    <div id="place-list"></div>
   </div>
 
-  <script>
-    const input = document.getElementById('searchInput');
-    const button = document.getElementById('searchBtn');
-    const title = document.getElementById('title');
-
-    let originalWidth;
-
-    function updateSearchInputWidth() {
-      const wrapperWidth = document.querySelector('.search-wrapper').offsetWidth;
-      const buttonWidth = button.offsetWidth;
-      const inputWidth = wrapperWidth - buttonWidth;
-      input.style.width = inputWidth + 'px';
-      originalWidth = inputWidth;
-    }
-
-    window.addEventListener('load', updateSearchInputWidth);
-    window.addEventListener('resize', updateSearchInputWidth);
-
-    input.addEventListener('focus', () => {
-      input.style.transition = 'width 0.2s ease';
-    });
-
-    input.addEventListener('blur', () => {
-      input.style.width = originalWidth + 'px';
-    });
-
-    document.body.addEventListener('click', (e) => {
-      if (e.target !== input) {
-        input.blur();
-      }
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        button.click(); // 검색 기능은 추후 구현
-      }
-    });
-
-    button.addEventListener('click', () => {
-      // 검색 기능은 여기에 추가
-    });
-  </script>
-
+  <!-- JS 연결 -->
+  <script src="js/render-places.js"></script>
 </body>
-</html>

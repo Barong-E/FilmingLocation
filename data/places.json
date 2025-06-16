@@ -1,0 +1,34 @@
+[
+  {
+    "id": "danbampocha",
+    "name": "단밤포차",
+    "workId": "itaewon-class",
+    "address": "서울특별시 용산구 녹사평대로40길 57",
+    "image": "images/ItaewonClass_danbampocha.png",
+    "mapUrl": "https://maps.app.goo.gl/ASauLxhLVMSXjsKA6"
+  },
+  {
+    "id": "g-guesthouse",
+    "name": "보광고시원/G게스트하우스",
+    "workId": "itaewon-class",
+    "address": "서울특별시 용산구 보광로60길 14-38",
+    "image": "images/G Guesthouse Itaewon.png",
+    "mapUrl": "https://maps.app.goo.gl/EvHELVkWxZ9wb7b16"
+  },
+  {
+    "id": "wolfgang-steakhouse",
+    "name": "울프강 스테이크하우스",
+    "workId": "crash-landing-on-you",
+    "address": "서울특별시 강남구 선릉로152길 21",
+    "image": "images/Wolfgang’s Steakhouse.png",
+    "mapUrl": "https://maps.app.goo.gl/dZfVKJ4z2KdJDG8K6"
+  },
+  {
+    "id": "buam7",
+    "name": "부암동7번지",
+    "workId": "crash-landing-on-you",
+    "address": "서울특별시 종로구 북악산로 147",
+    "image": "images/Buam7.png",
+    "mapUrl": "https://maps.app.goo.gl/fPLXvseziiHfvQaB8"
+  }
+]
