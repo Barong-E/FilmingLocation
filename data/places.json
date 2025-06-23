@@ -166,7 +166,7 @@
     "real_name": "돼지슈퍼",
     "fictional_name": "우리슈퍼",
     "address": "서울특별시 마포구 아현동 707",
-    "image": "/images/dwaeji-super.jpg",
+    "image": "images/dwaeji-super.jpg",
     "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/EbEmTB4iJTVGKvCM9"
   },
@@ -175,7 +175,7 @@
     "real_name": "자하문터널 계단",
     "fictional_name": null,
     "address": "서울특별시 종로구 창의문로 151",
-    "image": "/images/jahamun-tunnel-stairs.jpg",
+    "image": "images/jahamun-tunnel-stairs.jpg",
     "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/6p5fgLfbFHWJ7oYr6"
   },
@@ -184,7 +184,7 @@
     "real_name": "",
     "fictional_name": "기택 동네 계단",
     "address": "서울특별시 마포구 손기정로6길",
-    "image": "/images/kitaek-neighborhood-stairs.jpg",
+    "image": "images/kitaek-neighborhood-stairs.jpg",
     "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
   },
@@ -193,7 +193,7 @@
     "real_name": "스카이피자",
     "fictional_name": "피자시대",
     "address": "서울특별시 동작구 노량진로6길 86 1층",
-    "image": "/images/sky-pizza.jpg",
+    "image": "images/sky-pizza.jpg",
     "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
   }
