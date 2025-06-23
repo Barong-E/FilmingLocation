@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FiLo — 장소 상세</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container" id="detail">
+    <!-- FiLo 로고 -->
+    <div class="logo">
+      <span class="green">F</span>i<span class="green">L</span>o
+    </div>
+
+    <!-- 장면 이미지 -->
+    <img id="detail-img" class="scene-img" src="" alt="" />
+
+    <!-- 장소명 -->
+    <div class="info">
+      <span class="label">장소명:</span>
+      <span class="value" id="detail-name"></span>
+    </div>
+
+    <!-- 작품명 (토글 가능) -->
+    <div class="info">
+      <div class="work-toggle" id="toggle-work">
+        <span class="label">작품명:</span>
+        <span class="value" id="detail-work"></span>
+        <svg class="arrow" id="toggle-icon" width="12" height="12" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"
+                    fill="none" stroke="#333" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="sub-info" id="work-sub-info">
+        <div>
+          <span class="label">종류:</span>
+          <span class="value" id="detail-type"></span>
+        </div>
+        <div>
+          <span class="label">공개일:</span>
+          <span class="value" id="detail-release"></span>
+        </div>
+        <div>
+          <span class="label">소개:</span>
+          <span class="value value-line-break" id="detail-description"></span>
+        </div>
+        <div>
+          <span class="label">등장인물:</span>
+          <span class="value value-line-break" id="detail-characters"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 촬영지 주소 -->
+    <div class="info">
+      <span class="label">촬영지:</span>
+      <a 
+        id="detail-address" 
+        class="value address-link" 
+        href="" 
+        target="_blank" 
+        rel="noopener noreferrer"
+      >
+        <!-- text -->
+      </a>
+    </div>
+  </div>
+
+  <!-- detail.js를 모듈 방식으로 불러오기 -->
+  <script type="module" src="js/detail.js"></script>
+
+  <!-- 토글 스크립트 (기존처럼 유지 가능) -->
+  <script defer>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('toggle-work');
+      const sub = document.getElementById('work-sub-info');
+      const icon = document.getElementById('toggle-icon');
+      toggle.addEventListener('click', () => {
+        const open = sub.classList.toggle('open');
+        icon.classList.toggle('open', open);
+      });
+    });
+  </script>
+</body>
+</html>

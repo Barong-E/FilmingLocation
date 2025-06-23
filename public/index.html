@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FiLo - 촬영지 리스트</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="logo"><span class="green">F</span>i<span class="green">L</span>o</div>
+    
+    <div class="search-bar">
+      <input 
+        type="text"
+        id="search-input"
+        placeholder="장소명, 작품명, 주소로 검색"
+        autocomplete="off"
+      />
+      <!-- 자동완성 추천리스트 -->
+      <ul id="suggestion-list"></ul>
+    </div>
+    
+    <div id="place-list"></div>
+  </div>
+
+  <!-- 자바스크립트: 모듈 방식으로 불러오기 -->
+  <script type="module" src="js/render-places.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+[
+  {
+    "id": "danbampocha",
+    "real_name": "단밤포차",
+    "fictional_name": null,
+    "workId": "itaewon-class",
+    "address": "서울특별시 용산구 녹사평대로40길 57",
+    "image": "images/ItaewonClass_danbampocha.png",
+    "mapUrl": "https://maps.app.goo.gl/ASauLxhLVMSXjsKA6"
+  },
+  {
+    "id": "g-guesthouse",
+    "real_name": "G게스트하우스",
+    "fictional_name": "보광고시원",
+    "workId": "itaewon-class",
+    "address": "서울특별시 용산구 보광로60길 14-38",
+    "image": "images/G Guesthouse Itaewon.png",
+    "mapUrl": "https://maps.app.goo.gl/EvHELVkWxZ9wb7b16"
+  },
+  {
+    "id": "wolfgang-steakhouse",
+    "real_name": "울프강 스테이크하우스",
+    "fictional_name": null,
+    "workId": "crash-landing-on-you",
+    "address": "서울특별시 강남구 선릉로152길 21",
+    "image": "images/Wolfgang’s Steakhouse.png",
+    "mapUrl": "https://maps.app.goo.gl/dZfVKJ4z2KdJDG8K6"
+  },
+  {
+    "id": "buam7",
+    "real_name": "부암동7번지",
+    "fictional_name": null,
+    "workId": "crash-landing-on-you",
+    "address": "서울특별시 종로구 북악산로 147",
+    "image": "images/Buam7.png",
+    "mapUrl": "https://maps.app.goo.gl/fPLXvseziiHfvQaB8"
+  },
+  {
+    "id": "danbam-2",
+    "real_name": "어반클리프",
+    "fictional_name": "단밤2호점",
+    "address": "서울특별시 용산구 신흥로20길 43",
+    "image": "images/danbam-2.jpg",
+    "workId": "itaewon-class",
+    "mapUrl": "https://maps.app.goo.gl/xKRfJ7ffyPCF62U19"
+  },
+  {
+    "id": "noksapyeong-bridge",
+    "real_name": "녹사평육교",
+    "fictional_name": null,
+    "address": "서울특별시 용산구 용산동4가 4",
+    "image": "images/noksapyeong-bridge.jpg",
+    "workId": "itaewon-class",
+    "mapUrl": "https://maps.app.goo.gl/eXBSKTHzxBnHp63e6"
+  },
+  {
+    "id": "jangga-pocha",
+    "real_name": "만만코코로 홍대점",
+    "fictional_name": "장가포차",
+    "address": "서울특별시 마포구 서교동 양화로16길 34",
+    "image": "images/jangga-pocha.jpg",
+    "workId": "itaewon-class",
+    "mapUrl": "https://maps.app.goo.gl/4xxxFA4uD4E2K3bQ6"
+  },
+  {
+    "id": "hantangang-sky-bridge",
+    "real_name": "포천 한탄강 하늘다리",
+    "fictional_name": null,
+    "address": "경기도 포천시 영북면 비둘기낭길 207",
+    "image": "images/hantangang-sky-bridge.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/3pnDY7XwXMPzwJFg8"
+  },
+  {
+    "id": "acredo-cheongdam",
+    "real_name": "아크레도 청담점",
+    "fictional_name": null,
+    "address": "서울특별시 강남구 도산대로 420 청담스퀘어 B1",
+    "image": "images/acredo-cheongdam.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/4Pb1bt4cFYF5K3Go8"
+  },
+  {
+    "id": "seonnyeo-bawi-beach",
+    "real_name": "선녀바위해수욕장",
+    "fictional_name": null,
+    "address": "인천광역시 중구 용유동 선녀바위로 60",
+    "image": "images/seonnyeo-bawi-beach.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/6NzLUQwtTwxRuvUG7"
+  },
+  {
+    "id": "moda-department-store-bupyeong",
+    "real_name": "모다백화점 부평점",
+    "fictional_name": "평양 제일 백화점",
+    "address": "인천광역시 부평구 부평문화로 35",
+    "image": "images/moda-department-store-bupyeong.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/BjkGux4TUAXneRBc7"
+  },
+  {
+    "id": "sangdong-lake-park",
+    "real_name": "상동호수공원",
+    "fictional_name": null,
+    "address": "경기도 부천시 조마루로 15",
+    "image": "images/sangdong-lake-park.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/U46eLnv73NrVCwWu8"
+  },
+  {
+    "id": "bundang-mcoreitz",
+    "real_name": "분당 엠코헤리츠",
+    "fictional_name": null,
+    "address": "경기도 성남시 분당구 정자동 22",
+    "image": "images/bundang-mcoreitz.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/DnktRjvLwokfYDc77"
+  },
+  {
+    "id": "seolbong-park",
+    "real_name": "설봉공원",
+    "fictional_name": null,
+    "address": "경기도 이천시 경충대로2697번길 307-53",
+    "image": "images/seolbong-park.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/FDLCHSm8aSoPtFPg7"
+  },
+  {
+    "id": "byeolmaro-observatory",
+    "real_name": "별마로천문대",
+    "fictional_name": null,
+    "address": "강원도 영월군 영월읍 천문대길 397",
+    "image": "images/byeolmaro-observatory.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/EKj7d9yUbYyoctYm7"
+  },
+  {
+    "id": "tangumho-rowing",
+    "real_name": "탄금호 국제조정경기장",
+    "fictional_name": null,
+    "address": "충청북도 충주시 중앙탑면 탄금호로 27",
+    "image": "images/tangumho-rowing.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/R7uxAtyunRm2z4Rm7"
+  },
+  {
+    "id": "binaeseom",
+    "real_name": "비내섬",
+    "fictional_name": null,
+    "address": "충청북도 충주시 중앙탑면 장천리 3",
+    "image": "images/binaeseom.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/KvHqCKHYKq83n2vX9"
+  },
+  {
+    "id": "binhaewon",
+    "real_name": "빈해원",
+    "fictional_name": null,
+    "address": "강원도 강릉시 창해로14번길 20",
+    "image": "images/binhaewon.jpg",
+    "workId": "crash-landing-on-you",
+    "mapUrl": "https://maps.app.goo.gl/oZZEBknDCk2x7HnC8"
+  },
+  {
+    "id": "dwaeji-super",
+    "real_name": "돼지슈퍼",
+    "fictional_name": "우리슈퍼",
+    "address": "서울특별시 마포구 아현동 707",
+    "image": "/images/dwaeji-super.jpg",
+    "workId": "parasite",
+    "mapUrl": "https://maps.app.goo.gl/EbEmTB4iJTVGKvCM9"
+  },
+  {
+    "id": "jahamun-tunnel-stairs",
+    "real_name": "자하문터널 계단",
+    "fictional_name": null,
+    "address": "서울특별시 종로구 창의문로 151",
+    "image": "/images/jahamun-tunnel-stairs.jpg",
+    "workId": "parasite",
+    "mapUrl": "https://maps.app.goo.gl/6p5fgLfbFHWJ7oYr6"
+  },
+  {
+    "id": "kitaek-neighborhood-stairs",
+    "real_name": "",
+    "fictional_name": "기택 동네 계단",
+    "address": "서울특별시 마포구 손기정로6길",
+    "image": "/images/kitaek-neighborhood-stairs.jpg",
+    "workId": "parasite",
+    "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
+  },
+  {
+    "id": "sky-pizza",
+    "real_name": "스카이피자",
+    "fictional_name": "피자시대",
+    "address": "서울특별시 동작구 노량진로6길 86 1층",
+    "image": "/images/sky-pizza.jpg",
+    "workId": "parasite",
+    "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
+  }
+]

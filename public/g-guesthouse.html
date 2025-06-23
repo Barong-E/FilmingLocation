@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>촬영지 상세 페이지</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: white;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .green {
+      color: #00c896;
+    }
+
+    .info {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #666;
+    }
+
+    .value {
+      margin-left: 6px;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: 24px;
+      color: #222;
+    }
+
+    .scene-img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .value-line-break {
+      display: block;
+      margin-top: 1px;
+    }
+
+    .highlight-first-letter {
+      color: #00c896;
+      font-weight: bold;
+    }
+
+    .address-link {
+      color: #00c896;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .work-toggle {
+      cursor: pointer;
+      margin: 0;
+      padding: 0;
+      background-color: transparent;
+      border: none;
+      display: block;
+      line-height: 1.5;
+    }
+
+    .work-toggle:hover {
+      background-color: transparent;
+    }
+
+    .arrow {
+      display: inline-block;
+      vertical-align: middle;
+      transition: transform 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .sub-info {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.4s ease;
+      padding-left: 12px;
+    }
+
+    .sub-info.open {
+      max-height: 1000px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- FiLo 로고 -->
+    <div class="logo"><span class="green">F</span>i<span class="green">L</span>o</div>
+
+    <!-- 장면 이미지 -->
+    <img src="images/G Guesthouse Itaewon.png" alt="촬영지 장면" class="scene-img" />
+
+    <!-- 장소명 -->
+    <div class="info">
+      <span class="label">장소명:</span>
+      <span class="value">보광고시원/G게스트하우스</span>
+    </div>
+
+    <!-- 작품명 (토글 가능) -->
+    <div class="info">
+      <div class="work-toggle" id="toggle-work">
+        <span class="label">작품명:</span>
+        <span class="value" id="work-name">이태원 클라쓰</span>
+        <svg class="arrow" id="toggle-icon" width="12" height="12" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="sub-info" id="work-sub-info">
+        <div><span class="label">종류:</span><span class="value">드라마</span></div>
+        <div><span class="label">공개일:</span><span class="value">2020.01.31.</span></div>
+        <div><span class="label">소개:</span><span class="value value-line-break">불합리한 세상 속, 고집과 객기로 뭉친 청춘들의 '힙'한 반란이 시작된다. 세계를 압축해 놓은 듯한 이태원. 이 작은 거리, 각자의 가치관으로 자유를 쫓는 그들의 창업 신화 &lt;이태원 클라쓰&gt;</span></div>
+        <div><span class="label">등장인물:</span><span class="value value-line-break">박서준(박새로이), 김다미(조이서), 유재명(장대희), 권나라(오수아), 안보현(장근원), 김동희(장근수), 류경수(최승권), 이주영(마현이), 이다윗(이호진), 크리스 라이언(김토니), 손현주(박성열), 윤경호(오병헌), 김여진(조정민), 원현준(김희훈), 최유리(오혜원)</span></div>
+      </div>
+    </div>
+
+    <!-- 촬영지 -->
+    <div class="info">
+      <span class="label">촬영지:</span>
+      <a
+        class="value address-link"
+        id="address"
+        href="https://maps.app.goo.gl/EvHELVkWxZ9wb7b16"
+        target="_blank"
+      >
+        서울특별시 용산구 보광로60길 14-38
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    window.onload = function () {
+      const workName = document.getElementById('work-name')?.textContent?.trim();
+      const toggleWork = document.getElementById("toggle-work");
+      const subInfo = document.getElementById("work-sub-info");
+      const icon = document.getElementById("toggle-icon");
+
+      if (workName) {
+        document.title = `${workName}_보광고시원/G게스트하우스`;
+      }
+
+      toggleWork.addEventListener("click", () => {
+        const isOpen = subInfo.classList.contains("open");
+        subInfo.classList.toggle("open", !isOpen);
+        icon.classList.toggle("open", !isOpen);
+      });
+    };
+  </script>
+</body>
+</html>
