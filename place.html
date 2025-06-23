@@ -16,7 +16,7 @@
     <!-- 장면 이미지 -->
     <img id="detail-img" class="scene-img" src="" alt="" />
 
-    <!-- 장소명 (원래처럼) -->
+    <!-- 장소명 -->
     <div class="info">
       <span class="label">장소명:</span>
       <span class="value" id="detail-name"></span>
@@ -68,9 +68,10 @@
     </div>
   </div>
 
-  <!-- 외부 JS -->
-  <script defer src="js/detail.js"></script>
-  <!-- 토글 스크립트 -->
+  <!-- detail.js를 모듈 방식으로 불러오기 -->
+  <script type="module" src="js/detail.js"></script>
+
+  <!-- 토글 스크립트 (기존처럼 유지 가능) -->
   <script defer>
     document.addEventListener('DOMContentLoaded', () => {
       const toggle = document.getElementById('toggle-work');

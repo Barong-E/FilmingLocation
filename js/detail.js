@@ -1,10 +1,8 @@
-// public/js/detail.js
+import { formatPlaceName } from './utils.js';
 
-// 1) URL 파라미터에서 ID 추출
 const params = new URLSearchParams(window.location.search);
 const placeId = params.get('id');
 
-// 2) JSON 불러오기
 Promise.all([
   fetch('data/places.json').then(r => r.json()),
   fetch('data/works.json').then(r => r.json())
@@ -14,21 +12,19 @@ Promise.all([
   if (!place) throw new Error('해당 장소를 찾을 수 없습니다.');
   const work = works.find(w => w.id === place.workId);
 
-  // 문서 제목을 동적으로 변경
-  if (work && place.name) {
-    document.title = `${work.title}_${place.name}`;
+  const displayName = formatPlaceName(place.real_name, place.fictional_name);
+
+  if (work && displayName) {
+    document.title = `${work.title}_${displayName}`;
   }
 
-  // 이미지 & alt 설정
   const imgEl = document.getElementById('detail-img');
   imgEl.src = place.image;
-  imgEl.alt = place.name;
+  imgEl.alt = displayName;
 
-  // 장소명, 작품명 반영
-  document.getElementById('detail-name').textContent = place.name;
+  document.getElementById('detail-name').textContent = displayName;
   document.getElementById('detail-work').textContent = work ? work.title : '알 수 없음';
 
-  // 상세 정보 채우기
   if (work) {
     document.getElementById('detail-type').textContent = work.type;
     document.getElementById('detail-release').textContent = work.releaseDate;
@@ -36,7 +32,6 @@ Promise.all([
     document.getElementById('detail-characters').textContent = work.characters.join(', ');
   }
 
-  // 주소 링크 설정
   const addrEl = document.getElementById('detail-address');
   addrEl.textContent = place.address;
   addrEl.href = place.mapUrl || '#';
