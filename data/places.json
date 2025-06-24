@@ -109,12 +109,12 @@
   },
   {
     "id": "bundang-mcoreitz",
-    "real_name": "분당 엠코헤리츠",
+    "real_name": "정자역엠코헤리츠",
     "fictional_name": null,
-    "address": "경기도 성남시 분당구 정자동 22",
+    "address": "경기 성남시 분당구 정자일로 132",
     "image": "images/bundang-mcoreitz.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/DnktRjvLwokfYDc77"
+    "mapUrl": "https://maps.app.goo.gl/9abtoVVB7UJY4mjx9"
   },
   {
     "id": "seolbong-park",
@@ -123,7 +123,7 @@
     "address": "경기도 이천시 경충대로2697번길 307-53",
     "image": "images/seolbong-park.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/FDLCHSm8aSoPtFPg7"
+    "mapUrl": "https://maps.app.goo.gl/k83bYz5dmd9t3b6i6"
   },
   {
     "id": "byeolmaro-observatory",
@@ -132,34 +132,34 @@
     "address": "강원도 영월군 영월읍 천문대길 397",
     "image": "images/byeolmaro-observatory.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/EKj7d9yUbYyoctYm7"
+    "mapUrl": "https://maps.app.goo.gl/hsQ6bSsQStnzNpb77"
   },
   {
     "id": "tangumho-rowing",
     "real_name": "탄금호 국제조정경기장",
     "fictional_name": null,
-    "address": "충청북도 충주시 중앙탑면 탄금호로 27",
+    "address": "충청북도 충주시 중앙탑면 중앙탑길 150",
     "image": "images/tangumho-rowing.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/R7uxAtyunRm2z4Rm7"
+    "mapUrl": "https://maps.app.goo.gl/miCXhjC7fcVK6JsD8"
   },
   {
     "id": "binaeseom",
     "real_name": "비내섬",
     "fictional_name": null,
-    "address": "충청북도 충주시 중앙탑면 장천리 3",
+    "address": "충청북도 충주시 앙성면 조천리 412",
     "image": "images/binaeseom.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/KvHqCKHYKq83n2vX9"
+    "mapUrl": "https://maps.app.goo.gl/uPD8yqNCdrsVAXrVA"
   },
   {
     "id": "binhaewon",
     "real_name": "빈해원",
     "fictional_name": null,
-    "address": "강원도 강릉시 창해로14번길 20",
+    "address": "전북특별자치도 군산시 동령길 57",
     "image": "images/binhaewon.jpg",
     "workId": "crash-landing-on-you",
-    "mapUrl": "https://maps.app.goo.gl/oZZEBknDCk2x7HnC8"
+    "mapUrl": "https://maps.app.goo.gl/sPSbgpvodhgBCHHs8"
   },
   {
     "id": "dwaeji-super",
@@ -195,6 +195,24 @@
     "address": "서울특별시 동작구 노량진로6길 86 1층",
     "image": "images/sky-pizza.jpg",
     "workId": "parasite",
-    "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
+    "mapUrl": "https://maps.app.goo.gl/17obvGjbcYbXLY179"
+  },
+  {
+    "id": "bts-bus-stop",
+    "real_name": "BTS 버스정류장",
+    "fictional_name": null,
+    "address": "강원특별자치도 강릉시 주문진읍 향호리 8-55",
+    "image": "images/bts-bus-stop.jpg",
+    "workId": "you-never-walk-alone",
+    "mapUrl": "https://maps.app.goo.gl/UrZFcg3vFjfCk2Hh9"
+  },
+  {
+    "id": "illyeong-station",
+    "real_name": "일영역",
+    "fictional_name": null,
+    "address": "경기 양주시 장흥면 일영로647번길 25",
+    "image": "images/illyeong-station.jpg",
+    "workId": "spring-day",
+    "mapUrl": "https://maps.app.goo.gl/tGPkWba3HA5DWoKX9"
   }
 ]

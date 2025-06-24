@@ -12,11 +12,22 @@ body {
   padding: 16px;
   box-sizing: border-box;
 }
+
+/* ── 로고 스타일 수정 ── */
 .logo {
+  display: block;         /* a 태그를 블록처럼 동작하도록 변경 */
   font-size: 20px;
   font-weight: bold;
   margin-bottom: 16px;
+  text-decoration: none;  /* 언더라인 제거 */
+  color: inherit;         /* 색상 유지 */
 }
+.logo:hover,
+.logo:focus {
+  text-decoration: none;
+  color: inherit;
+}
+
 .green {
   color: #00c896;
 }
@@ -137,8 +148,7 @@ h1#detail-name {
   margin-top: 8px;
 }
 
-/* 검색창 스타일 */
-/* 기존 검색창 스타일 유지 */
+/* ── 검색창 스타일 ── */
 .search-bar {
   margin-bottom: 16px;
   width: 100%;

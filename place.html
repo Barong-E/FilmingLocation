@@ -8,10 +8,10 @@
 </head>
 <body>
   <div class="container" id="detail">
-    <!-- FiLo 로고 -->
-    <div class="logo">
+    <!-- FiLo 로고 (클릭 시 index.html 이동) -->
+    <a href="index.html" class="logo">
       <span class="green">F</span>i<span class="green">L</span>o
-    </div>
+    </a>
 
     <!-- 장면 이미지 -->
     <img id="detail-img" class="scene-img" src="" alt="" />
@@ -34,44 +34,26 @@
         </svg>
       </div>
       <div class="sub-info" id="work-sub-info">
-        <div>
-          <span class="label">종류:</span>
-          <span class="value" id="detail-type"></span>
-        </div>
-        <div>
-          <span class="label">공개일:</span>
-          <span class="value" id="detail-release"></span>
-        </div>
-        <div>
-          <span class="label">소개:</span>
-          <span class="value value-line-break" id="detail-description"></span>
-        </div>
-        <div>
-          <span class="label">등장인물:</span>
-          <span class="value value-line-break" id="detail-characters"></span>
-        </div>
+        <div><span class="label">종류:</span><span class="value" id="detail-type"></span></div>
+        <div><span class="label">공개일:</span><span class="value" id="detail-release"></span></div>
+        <div><span class="label">소개:</span><span class="value value-line-break" id="detail-description"></span></div>
+        <div><span class="label">등장인물:</span><span class="value value-line-break" id="detail-characters"></span></div>
       </div>
     </div>
 
     <!-- 촬영지 주소 -->
     <div class="info">
       <span class="label">촬영지:</span>
-      <a 
-        id="detail-address" 
-        class="value address-link" 
-        href="" 
-        target="_blank" 
-        rel="noopener noreferrer"
-      >
-        <!-- text -->
+      <a id="detail-address" class="value address-link" href="" target="_blank" rel="noopener noreferrer">
+        <!-- 텍스트는 JS에서 채워짐 -->
       </a>
     </div>
   </div>
 
-  <!-- detail.js를 모듈 방식으로 불러오기 -->
+  <!-- detail.js (모듈 방식) -->
   <script type="module" src="js/detail.js"></script>
 
-  <!-- 토글 스크립트 (기존처럼 유지 가능) -->
+  <!-- 작품 정보 토글 스크립트 유지 -->
   <script defer>
     document.addEventListener('DOMContentLoaded', () => {
       const toggle = document.getElementById('toggle-work');
