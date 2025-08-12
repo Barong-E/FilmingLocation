@@ -1,0 +1,24 @@
+[
+  {
+    "id": "park-seo-joon",
+    "name": "박서준",
+    "image": "/images/profiles/6880fec50bc291ef80ac3aff.jpg",
+    "job": "배우",
+    "birthDate": "1988-12-16",
+    "birthPlace": "서울특별시",
+    "awards": [
+      "백상예술대상 TV부문 최우수연기상 (예: 연도)",
+      "KBS 연기대상 우수상 (예: 연도)"
+    ],
+    "education": [
+      "서울예술대학교 영화과"
+    ],
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 드라마와 영화에서 다양한 캐릭터로 활약.",
+    "workId": "itaewon-class",
+    "heightCm": 182,
+    "weightKg": 76
+  }
+]
+
+

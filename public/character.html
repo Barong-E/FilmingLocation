@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FiLo — 등장인물 상세</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+  <div class="container" id="character-detail">
+    <div class="character-hero">
+      <img id="ch-image" class="character-photo" alt="" />
+      <div class="character-summary">
+        <h2 id="ch-name" class="character-name"></h2>
+        <div class="character-meta">
+          <div id="ch-nation-job" class="meta-line"></div>
+          <div id="ch-birthdate" class="meta-line"></div>
+          <div id="ch-age" class="meta-line"></div>
+          <div id="ch-birthplace" class="meta-line"></div>
+          <div id="ch-physique" class="meta-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="character-details">
+      <div class="detail-row" id="row-education">
+        <div class="detail-label">학력</div>
+        <div id="edu-value" class="detail-value"></div>
+      </div>
+      <div class="detail-row" id="row-awards">
+        <div class="detail-label">수상</div>
+        <div id="awards-value" class="detail-value"></div>
+      </div>
+      <div class="detail-row" id="row-description">
+        <div class="detail-label">설명</div>
+        <div id="desc-value" class="detail-value"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="comments">
+    <h3>댓글</h3>
+    <div id="comment-list" style="padding: 0 12px;"></div>
+    <form id="comment-form" style="display:none; padding: 0 12px;">
+      <textarea id="comment-input" rows="3" placeholder="댓글을 남겨보세요..." required></textarea>
+      <div class="comment-counter"><span id="comment-count">0</span>/<span id="comment-limit">1000</span></div>
+      <button type="submit">등록</button>
+    </form>
+  </div>
+
+  <script type="module" src="js/character-detail.js"></script>
+</body>
+</html>
+
+

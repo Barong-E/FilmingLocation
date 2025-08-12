@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Filming Location — 마이페이지</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- cropperjs 스타일 & JS (CDN) -->
+  <link  href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
+</head>
+<body>
+  <div class="container mypage-container">
+    <!-- 제목: 나의 Filo (Filo만 로고 스타일) -->
+    <h1 class="mypage-title">
+      나의
+        <a href="/" class="logo-inline" style="text-decoration:none;">
+            F<span class="mint">i</span>L<span class="mint">o</span>
+        </a>
+    </h1>
+    <div class="profile-main-row">
+      <!-- 프로필 사진(클릭시 업로드) -->
+      <div id="profile-avatar" class="profile-avatar" title="프로필 사진 변경"></div>
+      <input type="file" id="avatar-input" accept="image/*" style="display:none;" />
+      <!-- 닉네임 / 이메일 -->
+      <div class="profile-info-col">
+        <div class="profile-nickname-row">
+          <span id="user-nickname" class="profile-nickname">닉네임</span>
+          <button id="btn-edit-nickname" class="btn btn-edit-nick">수정</button>
+          <input id="input-nickname" class="input-nickname" type="text" style="display:none;" maxlength="24">
+          <button id="btn-save-nickname" class="btn btn-main" style="display:none;">저장</button>
+        </div>
+        <div class="profile-email-row">
+          <span id="user-email" class="profile-email">이메일주소</span>
+        </div>
+      </div>
+    </div>
+    <!-- 로그아웃 버튼(맨 아래, 흐릿하게) -->
+    <div class="profile-logout-row">
+      <button id="btn-logout" class="btn btn-logout">로그아웃</button>
+    </div>
+  </div>
+  <script type="module" src="js/mypage.js"></script>
+  <!-- 프로필 사진 업로드/크롭용 모달 -->
+  <div id="cropper-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+   <div style="background:#fff; padding:24px 16px; border-radius:18px; max-width:95vw; margin:auto; display:flex; flex-direction:column; align-items:center;">
+     <img id="cropper-image" style="max-width:280px; max-height:280px; border-radius:12px; margin-bottom:18px;">
+     <div style="display:flex; gap:10px;">
+       <button id="btn-crop-ok" style="padding:8px 24px; border-radius:8px; background:#1db489; color:#fff; border:none; font-size:16px;">이렇게 자르기</button>
+        <button id="btn-crop-cancel" style="padding:8px 24px; border-radius:8px; background:#eee; color:#111; border:none; font-size:16px;">취소</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

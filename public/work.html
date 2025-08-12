@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FiLo — 작품 상세</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+  <div class="container" id="work-detail">
+    <h2 id="work-title"></h2>
+    <div class="info"><span class="label">종류:</span> <span class="value" id="work-type"></span></div>
+    <div class="info"><span class="label">공개일:</span> <span class="value" id="work-release"></span></div>
+    <div class="info"><span class="label">소개:</span> <span class="value value-line-break" id="work-desc"></span></div>
+    <div class="info"><span class="label">등장인물:</span> <span class="value value-line-break" id="work-chars"></span></div>
+  </div>
+
+  <div class="comments">
+    <h3>댓글</h3>
+    <div id="comment-list" style="padding: 0 12px;"></div>
+    <form id="comment-form" style="display:none; padding: 0 12px;">
+      <textarea id="comment-input" rows="3" placeholder="댓글을 남겨보세요..." required></textarea>
+      <div class="comment-counter"><span id="comment-count">0</span>/<span id="comment-limit">1000</span></div>
+      <button type="submit">등록</button>
+    </form>
+  </div>
+
+  <script type="module" src="js/work-detail.js"></script>
+</body>
+</html>
+
+
+
+
+

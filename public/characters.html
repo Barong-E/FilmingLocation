@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FiLo — 등장인물 리스트</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="header"></div>
+  <div class="container">
+    <div id="character-list"></div>
+  </div>
+  <script type="module" src="js/characters.js"></script>
+  <script type="module">
+    import { loadHeader, setupHeaderSearch } from './js/header-loader.js';
+    loadHeader().then(setupHeaderSearch);
+  </script>
+</body>
+</html>
+
+
