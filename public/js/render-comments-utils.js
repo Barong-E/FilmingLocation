@@ -7,9 +7,13 @@ export async function fetchComments(target, entityId) {
 }
 
 export async function postComment(target, entityId, content) {
+  const token = localStorage.getItem('token'); // 로컬 스토리지에서 토큰 가져오기
   const res = await fetch(`/api/${target}/${entityId}/comments`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` // 헤더에 토큰 추가
+    },
     credentials: 'include',
     body: JSON.stringify({ content })
   });
@@ -18,8 +22,10 @@ export async function postComment(target, entityId, content) {
 }
 
 export async function deleteComment(target, entityId, commentId) {
+  const token = localStorage.getItem('token');
   const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
     method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
     credentials: 'include'
   });
   if (!res.ok) throw new Error('댓글 삭제 중 오류 발생');
@@ -27,9 +33,13 @@ export async function deleteComment(target, entityId, commentId) {
 }
 
 export async function editComment(target, entityId, commentId, content) {
+  const token = localStorage.getItem('token');
   const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    },
     credentials: 'include',
     body: JSON.stringify({ content })
   });

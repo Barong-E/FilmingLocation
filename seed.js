@@ -21,10 +21,10 @@ async function seed() {
     });
     console.log('🔗 MongoDB 연결(Seeding) 성공');
 
-    // 3) 기존 데이터 삭제
-    await Place.deleteMany();
-    await Work.deleteMany();
-    await Character.deleteMany();
+    // 3) 기존 데이터 삭제 -> 안전한 방식으로 변경 (주석 처리)
+    // await Place.deleteMany();
+    // await Work.deleteMany();
+    // await Character.deleteMany();
 
     // 4) JSON 파일 읽기
     const placesData     = JSON.parse(await fs.readFile('data/places.json', 'utf-8'));
@@ -44,12 +44,19 @@ async function seed() {
       });
     }
 
-    // 5) 데이터베이스에 삽입
-    await Place.insertMany(placesData);
-    await Work.insertMany(worksData);
-    if (Array.isArray(charactersData) && charactersData.length) {
-      await Character.insertMany(charactersData);
+    // 5) 데이터베이스에 안전하게 삽입/업데이트 (Upsert)
+    for (const place of placesData) {
+      await Place.updateOne({ id: place.id }, place, { upsert: true });
     }
+    for (const work of worksData) {
+      await Work.updateOne({ id: work.id }, work, { upsert: true });
+    }
+    if (Array.isArray(charactersData) && charactersData.length) {
+      for (const character of charactersData) {
+        await Character.updateOne({ id: character.id }, character, { upsert: true });
+      }
+    }
+    
     console.log('✅ 데이터베이스에 입력 완료');
   } catch (error) {
     console.error('❌ Seeding 에러:', error);
