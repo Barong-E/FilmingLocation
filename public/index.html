@@ -25,20 +25,13 @@
 
   <script type="module">
     import { loadHeader, setupHeaderSearch } from './js/header-loader.js';
-    import { renderPlaces, renderProfileArea, checkAuth } from './js/render-places.js';
-    import './js/search.js'; // search.js 다시 import
+    import { renderProfileArea, checkAuth } from './js/render-places.js';
 
     loadHeader().then(() => {
-      setupHeaderSearch(); // ← 검색창 이벤트 셋업 추가
+      setupHeaderSearch(); // 헤더 로드 후 검색 기능 초기화 (데이터 로딩 포함)
       renderProfileArea();
       checkAuth();
     });
-
-    fetch('./data/places.json')
-      .then(res => res.json())
-      .then(places => {
-        renderPlaces(places);
-      });
   </script>
 </body>
 

@@ -13,8 +13,8 @@ export function renderPlaces(places) {
   }
   container.innerHTML = '';
   places.forEach(place => {
-    const work = allWorks.find(w => w.id === place.workId) || {};
-    const workTitle = work.title || '알 수 없음';
+    // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
+    const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
     const card = document.createElement('a');
     card.href = `place.html?id=${place.id}`;
     card.className = 'place-card';

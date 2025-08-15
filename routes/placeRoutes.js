@@ -31,8 +31,28 @@ router.get('/', async (req, res) => {
       };
     }
 
-    const places = await Place.find(filter);
-    return res.json(places);
+    // const places = await Place.find(filter); // 기존 find() 로직 대신 aggregation 사용
+    
+    // Aggregation 파이프라인: places 컬렉션에 work 정보 Join
+    const placesWithWorks = await Place.aggregate([
+      { $match: filter }, // 검색어가 있으면 필터링 적용
+      {
+        $lookup: {
+          from: 'works', // Join할 컬렉션 (Work 모델 -> works)
+          localField: 'workId', // Place 컬렉션의 필드
+          foreignField: 'id',   // works 컬렉션의 필드
+          as: 'workInfo'      // Join된 정보가 저장될 필드 이름
+        }
+      },
+      {
+        $unwind: { // workInfo 배열을 객체로 변환
+          path: '$workInfo',
+          preserveNullAndEmptyArrays: true // work 정보가 없는 장소도 결과에 포함
+        }
+      }
+    ]);
+
+    return res.json(placesWithWorks);
   } catch (error) {
     console.error('Error fetching places:', error);
     return res.status(500).json({ message: '장소를 불러오는 중 오류 발생' });

@@ -1,6 +1,6 @@
 // public/js/header-loader.js
 import { renderProfileArea, checkAuth } from './render-places.js';
-// import { updateList } from './search.js'; // 사용하지 않음
+import { initializeSearch } from './search.js'; // search.js의 초기화 함수 import
 
 // 전역 변수로 중복 실행 방지
 let isHeaderSearchInitialized = false;
@@ -14,18 +14,12 @@ export async function loadHeader() {
     });
   // 헤더가 로드된 후, 프로필 영역 렌더링
   await renderProfileArea();
-
-  // 헤더가 있는 모든 페이지에서 검색 기능 초기화 보장
-  try {
-    const mod = await import('./search.js');
-    if (mod && typeof mod.initializeSearch === 'function') {
-      mod.initializeSearch();
-    }
-  } catch (_) {}
 }
 
 // 헤더 내 검색창 토글 이벤트
 export function setupHeaderSearch() {
+  initializeSearch(); // search.js의 데이터 로딩 및 이벤트 설정 시작
+
   // 중복 실행 방지
   if (isHeaderSearchInitialized) {
     console.log('[header-loader] 이미 초기화됨, 중복 실행 방지');

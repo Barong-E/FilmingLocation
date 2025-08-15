@@ -64,18 +64,24 @@ function initializeSearch() {
   }
 
   // 데이터 로드
-  Promise.all([
-    fetch('/api/works').then(res => res.json()),
-    fetch('/api/places').then(res => res.json())
-  ])
-    .then(([works, places]) => {
-      setWorks(works);
-      allPlaces = places;
+  // Promise.all([
+  //   fetch('/api/works').then(res => res.json()),
+  //   fetch('/api/places').then(res => res.json())
+  // ])
+  //   .then(([works, places]) => {
+  //     setWorks(works);
+  //     allPlaces = places;
+  fetch('/api/places') // places 데이터만 가져오면 됨
+    .then(res => res.json())
+    .then(places => {
+      allPlaces = places; // 작품 정보가 이미 포함되어 있음
 
       // 작품명 기준 정렬
       allPlaces.sort((a, b) => {
-        const titleA = works.find(w => w.id === a.workId)?.title || '';
-        const titleB = works.find(w => w.id === b.workId)?.title || '';
+        // const titleA = works.find(w => w.id === a.workId)?.title || '';
+        // const titleB = works.find(w => w.id === b.workId)?.title || '';
+        const titleA = a.workInfo?.title || '';
+        const titleB = b.workInfo?.title || '';
         return titleA.localeCompare(titleB);
       });
 
@@ -85,13 +91,6 @@ function initializeSearch() {
       console.log('[search.js] 데이터 로드 + 이벤트 연결 완료');
     })
     .catch(err => console.error('데이터 로드 실패', err));
-}
-
-// DOM이 준비되면 초기화 (한 번만 실행)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeSearch);
-} else {
-  initializeSearch();
 }
 
 // 2️⃣ 검색 이벤트 연결
@@ -107,7 +106,7 @@ function attachSearchEvents(input, suggList) {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       showSuggestions(input.value.trim().toLowerCase(), suggList, input);
-      updateList(input);
+      // updateList(input); // index 페이지에서는 실시간 필터링을 하지 않음
     }, 100);
   });
 
