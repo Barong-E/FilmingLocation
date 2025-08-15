@@ -12,7 +12,6 @@ const CharacterSchema = new mongoose.Schema({
   education:    { type: [String], default: [] },                // 학력 내역
   nationality:  { type: String },                               // 국적
   description:  { type: String },                               // 소개
-  workIds:      { type: [String], default: [] },                // 연관 작품 id(선택)
   heightCm:     { type: Number },                               // 키(cm)
   weightKg:     { type: Number },                               // 몸무게(kg)
 });

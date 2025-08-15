@@ -1,9 +1,5 @@
 // public/js/render-places.js
 
-// 작품 데이터 저장 변수 및 할당 함수
-export let allWorks = [];
-export function setWorks(w) { allWorks = w; }
-
 // 장소 카드 렌더링 함수
 export function renderPlaces(places) {
   const container = document.getElementById('place-list');
@@ -16,7 +12,7 @@ export function renderPlaces(places) {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
     const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
     const card = document.createElement('a');
-    card.href = `place.html?id=${place.id}`;
+    card.href = `place.html?id=${place._id}`; // place.id -> place._id 로 변경
     card.className = 'place-card';
     card.innerHTML = `
       <img src="${place.image}" alt="${place.real_name || place.fictional_name}" class="place-img" />

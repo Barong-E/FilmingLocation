@@ -1,58 +1,54 @@
 // routes/placeRoutes.js
 
 import express from 'express';
-import Place   from '../models/Place.js';
-import Work    from '../models/Work.js';
+import mongoose from 'mongoose';
+import Place from '../models/Place.js';
+import Work from '../models/Work.js';
 
 const router = express.Router();
 
 /**
- * 1) 전체 장소 조회 (검색 기능 포함)
+ * 1) 전체 장소 조회 (새로운 구조)
  */
 router.get('/', async (req, res) => {
   try {
     const { query } = req.query;
-    let filter = {};
 
-    if (query) {
-      const regex = new RegExp(query, 'i');
-
-      // 작품에서 제목 매칭된 ID 모으기
-      const matched = await Work.find({ title: regex }).select('id');
-      const workIds = matched.map(w => w.id);
-
-      filter = {
-        $or: [
-          { real_name:      regex },
-          { fictional_name: regex },
-          { address:        regex },
-          { workId:        { $in: workIds } }
-        ]
-      };
-    }
-
-    // const places = await Place.find(filter); // 기존 find() 로직 대신 aggregation 사용
-    
-    // Aggregation 파이프라인: places 컬렉션에 work 정보 Join
-    const placesWithWorks = await Place.aggregate([
-      { $match: filter }, // 검색어가 있으면 필터링 적용
+    // 1. 기본적으로 Place와 Work 정보를 합친다.
+    let aggregationPipeline = [
       {
         $lookup: {
-          from: 'works', // Join할 컬렉션 (Work 모델 -> works)
-          localField: 'workId', // Place 컬렉션의 필드
-          foreignField: 'id',   // works 컬렉션의 필드
-          as: 'workInfo'      // Join된 정보가 저장될 필드 이름
+          from: 'works',
+          localField: '_id',
+          foreignField: 'placeIds',
+          as: 'workInfo'
         }
       },
       {
-        $unwind: { // workInfo 배열을 객체로 변환
+        $unwind: {
           path: '$workInfo',
-          preserveNullAndEmptyArrays: true // work 정보가 없는 장소도 결과에 포함
+          preserveNullAndEmptyArrays: true // 작품 정보가 없는 장소도 포함
         }
       }
-    ]);
+    ];
 
-    return res.json(placesWithWorks);
+    // 2. 검색어가 있으면, 합쳐진 데이터를 대상으로 필터링한다.
+    if (query) {
+      const regex = new RegExp(query, 'i');
+      aggregationPipeline.push({
+        $match: {
+          $or: [
+            { real_name: regex },
+            { fictional_name: regex },
+            { address: regex },
+            { 'workInfo.title': regex } // Join된 작품 제목으로 검색
+          ]
+        }
+      });
+    }
+
+    const places = await Place.aggregate(aggregationPipeline);
+    return res.json(places);
   } catch (error) {
     console.error('Error fetching places:', error);
     return res.status(500).json({ message: '장소를 불러오는 중 오류 발생' });
@@ -60,24 +56,43 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * 2) 단일 장소 조회
+ * 2) 단일 장소 조회 (새로운 구조)
  */
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const place = await Place.findOne({ id });
+    // Mongoose의 ObjectId 형식인지 먼저 확인
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+    }
+    
+    // ObjectId로만 조회
+    const place = await Place.findById(id);
 
     if (!place) {
-      return res
-        .status(404)
-        .json({ message: '해당하는 장소를 찾을 수 없습니다.' });
+      return res.status(404).json({ message: '해당하는 장소를 찾을 수 없습니다.' });
     }
 
-    return res.json(place);
+    // 이 장소를 포함하는 작품을 찾고, 등장인물 정보를 populate 함
+    const work = await Work.findOne({ placeIds: place._id }).populate('characterIds');
+
+    const placeObject = place.toObject();
+    placeObject.work = work;
+
+    return res.json(placeObject);
+
   } catch (error) {
     console.error('Error fetching single place:', error);
     return res.status(500).json({ message: '장소 조회 중 오류 발생' });
   }
 });
 
+// 단일 장소 조회 시 중복 로직을 처리하는 헬퍼 함수 (이제 사용 안함)
+/*
+async function findWorkAndRespond(place, res) {
+  // ...
+}
+*/
+
 export default router;
+

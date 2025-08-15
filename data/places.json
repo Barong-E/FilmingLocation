@@ -3,7 +3,6 @@
     "id": "danbampocha",
     "real_name": "단밤포차",
     "fictional_name": null,
-    "workId": "itaewon-class",
     "address": "서울특별시 용산구 녹사평대로40길 57",
     "image": "/images/places/ItaewonClass_danbampocha.png",
     "mapUrl": "https://maps.app.goo.gl/ASauLxhLVMSXjsKA6"
@@ -12,7 +11,6 @@
     "id": "g-guesthouse",
     "real_name": "G게스트하우스",
     "fictional_name": "보광고시원",
-    "workId": "itaewon-class",
     "address": "서울특별시 용산구 보광로60길 14-38",
     "image": "/images/places/G Guesthouse Itaewon.png",
     "mapUrl": "https://maps.app.goo.gl/EvHELVkWxZ9wb7b16"
@@ -21,7 +19,6 @@
     "id": "wolfgang-steakhouse",
     "real_name": "울프강 스테이크하우스",
     "fictional_name": null,
-    "workId": "crash-landing-on-you",
     "address": "서울특별시 강남구 선릉로152길 21",
     "image": "/images/places/Wolfgang’s Steakhouse.png",
     "mapUrl": "https://maps.app.goo.gl/dZfVKJ4z2KdJDG8K6"
@@ -30,7 +27,6 @@
     "id": "buam7",
     "real_name": "부암동7번지",
     "fictional_name": null,
-    "workId": "crash-landing-on-you",
     "address": "서울특별시 종로구 북악산로 147",
     "image": "/images/places/Buam7.png",
     "mapUrl": "https://maps.app.goo.gl/fPLXvseziiHfvQaB8"
@@ -41,7 +37,6 @@
     "fictional_name": "단밤2호점",
     "address": "서울특별시 용산구 신흥로20길 43",
     "image": "/images/places/danbam-2.jpg",
-    "workId": "itaewon-class",
     "mapUrl": "https://maps.app.goo.gl/xKRfJ7ffyPCF62U19"
   },
   {
@@ -50,7 +45,6 @@
     "fictional_name": null,
     "address": "서울특별시 용산구 용산동4가 4",
     "image": "/images/places/noksapyeong-bridge.jpg",
-    "workId": "itaewon-class",
     "mapUrl": "https://maps.app.goo.gl/eXBSKTHzxBnHp63e6"
   },
   {
@@ -59,7 +53,6 @@
     "fictional_name": "장가포차",
     "address": "서울특별시 마포구 서교동 양화로16길 34",
     "image": "/images/places/jangga-pocha.jpg",
-    "workId": "itaewon-class",
     "mapUrl": "https://maps.app.goo.gl/4xxxFA4uD4E2K3bQ6"
   },
   {
@@ -68,7 +61,6 @@
     "fictional_name": null,
     "address": "경기도 포천시 영북면 비둘기낭길 207",
     "image": "/images/places/hantangang-sky-bridge.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/3pnDY7XwXMPzwJFg8"
   },
   {
@@ -77,7 +69,6 @@
     "fictional_name": null,
     "address": "서울특별시 강남구 도산대로 420 청담스퀘어 B1",
     "image": "/images/places/acredo-cheongdam.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/4Pb1bt4cFYF5K3Go8"
   },
   {
@@ -86,7 +77,6 @@
     "fictional_name": null,
     "address": "인천광역시 중구 용유동 선녀바위로 60",
     "image": "/images/places/seonnyeo-bawi-beach.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/6NzLUQwtTwxRuvUG7"
   },
   {
@@ -95,7 +85,6 @@
     "fictional_name": "평양 제일 백화점",
     "address": "인천광역시 부평구 부평문화로 35",
     "image": "/images/places/moda-department-store-bupyeong.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/BjkGux4TUAXneRBc7"
   },
   {
@@ -104,7 +93,6 @@
     "fictional_name": null,
     "address": "경기도 부천시 조마루로 15",
     "image": "/images/places/sangdong-lake-park.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/U46eLnv73NrVCwWu8"
   },
   {
@@ -113,7 +101,6 @@
     "fictional_name": null,
     "address": "경기 성남시 분당구 정자일로 132",
     "image": "/images/places/bundang-mcoreitz.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/9abtoVVB7UJY4mjx9"
   },
   {
@@ -122,7 +109,6 @@
     "fictional_name": null,
     "address": "경기도 이천시 경충대로2697번길 307-53",
     "image": "/images/places/seolbong-park.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/k83bYz5dmd9t3b6i6"
   },
   {
@@ -131,7 +117,6 @@
     "fictional_name": null,
     "address": "강원도 영월군 영월읍 천문대길 397",
     "image": "/images/places/byeolmaro-observatory.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/hsQ6bSsQStnzNpb77"
   },
   {
@@ -140,7 +125,6 @@
     "fictional_name": null,
     "address": "충청북도 충주시 중앙탑면 중앙탑길 150",
     "image": "/images/places/tangumho-rowing.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/miCXhjC7fcVK6JsD8"
   },
   {
@@ -149,7 +133,6 @@
     "fictional_name": null,
     "address": "충청북도 충주시 앙성면 조천리 412",
     "image": "/images/places/binaeseom.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/uPD8yqNCdrsVAXrVA"
   },
   {
@@ -158,7 +141,6 @@
     "fictional_name": null,
     "address": "전북특별자치도 군산시 동령길 57",
     "image": "/images/places/binhaewon.jpg",
-    "workId": "crash-landing-on-you",
     "mapUrl": "https://maps.app.goo.gl/sPSbgpvodhgBCHHs8"
   },
   {
@@ -167,7 +149,6 @@
     "fictional_name": "우리슈퍼",
     "address": "서울특별시 마포구 아현동 707",
     "image": "/images/places/dwaeji-super.jpg",
-    "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/EbEmTB4iJTVGKvCM9"
   },
   {
@@ -176,7 +157,6 @@
     "fictional_name": null,
     "address": "서울특별시 종로구 창의문로 151",
     "image": "/images/places/jahamun-tunnel-stairs.jpg",
-    "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/6p5fgLfbFHWJ7oYr6"
   },
   {
@@ -185,7 +165,6 @@
     "fictional_name": "기택 동네 계단",
     "address": "서울특별시 마포구 손기정로6길",
     "image": "/images/places/kitaek-neighborhood-stairs.jpg",
-    "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/dkHbQUaGgsb1Wmd38"
   },
   {
@@ -194,7 +173,6 @@
     "fictional_name": "피자시대",
     "address": "서울특별시 동작구 노량진로6길 86 1층",
     "image": "/images/places/sky-pizza.jpg",
-    "workId": "parasite",
     "mapUrl": "https://maps.app.goo.gl/17obvGjbcYbXLY179"
   },
   {
@@ -203,7 +181,6 @@
     "fictional_name": null,
     "address": "강원특별자치도 강릉시 주문진읍 향호리 8-55",
     "image": "/images/places/bts-bus-stop.jpg",
-    "workId": "you-never-walk-alone",
     "mapUrl": "https://maps.app.goo.gl/UrZFcg3vFjfCk2Hh9"
   },
   {
@@ -212,7 +189,6 @@
     "fictional_name": null,
     "address": "경기 양주시 장흥면 일영로647번길 25",
     "image": "/images/places/illyeong-station.jpg",
-    "workId": "spring-day",
     "mapUrl": "https://maps.app.goo.gl/tGPkWba3HA5DWoKX9"
   }
 ]

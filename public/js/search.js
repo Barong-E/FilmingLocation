@@ -1,5 +1,5 @@
 // public/js/search.js
-import { renderPlaces, setWorks, allWorks } from './render-places.js';
+import { renderPlaces } from './render-places.js';
 
 let allPlaces = [];
 let isSearchInitialized = false; // 중복 초기화 방지
@@ -245,8 +245,14 @@ function showSuggestions(query, suggList, input) {
     }
   });
 
-  // 작품명
-  allWorks.forEach(work => {
+  // 작품명 (이제 allPlaces에 workInfo가 포함되어 있음)
+  const worksForSuggestions = allPlaces
+    .map(p => p.workInfo)
+    .filter(w => w && w.title); // 중복 제거 전
+  
+  const uniqueWorks = [...new Map(worksForSuggestions.map(w => [w.id, w])).values()];
+
+  uniqueWorks.forEach(work => {
     if (work.title.toLowerCase().includes(lowerQuery)) {
       add('work', work.title);
     }
@@ -307,7 +313,8 @@ function updateList(input) {
   const query = input.value.trim().toLowerCase();
 
   const filtered = allPlaces.filter(place => {
-    const work = allWorks.find(w => w.id === place.workId);
+    // const work = allWorks.find(w => w.id === place.workId);
+    const work = place.workInfo; // workInfo 사용
     const combinedName = formatPlaceName(place.real_name, place.fictional_name).toLowerCase();
     const nameMatch = combinedName.includes(query);
     const workMatch = work && work.title.toLowerCase().includes(query);
@@ -316,8 +323,10 @@ function updateList(input) {
   });
 
   filtered.sort((a, b) => {
-    const titleA = allWorks.find(w => w.id === a.workId)?.title || '';
-    const titleB = allWorks.find(w => w.id === b.workId)?.title || '';
+    // const titleA = allWorks.find(w => w.id === a.workId)?.title || '';
+    // const titleB = allWorks.find(w => w.id === b.workId)?.title || '';
+    const titleA = a.workInfo?.title || '';
+    const titleB = b.workInfo?.title || '';
     return titleA.localeCompare(titleB);
   });
 

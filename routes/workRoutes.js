@@ -19,7 +19,10 @@ router.get('/', async (req, res) => {
 // 2) 특정 작품 상세 조회
 router.get('/:id', async (req, res) => {
   try {
-    const work = await Work.findOne({ id: req.params.id });
+    const work = await Work.findOne({ id: req.params.id })
+      .populate('characterIds')
+      .populate('placeIds'); // 촬영지 정보 추가
+
     if (!work) {
       return res.status(404).json({ message: '작품을 찾을 수 없습니다.' });
     }

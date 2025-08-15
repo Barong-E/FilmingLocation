@@ -1,6 +1,6 @@
 // public/js/search-results.js
 import { loadHeader, setupHeaderSearch } from './header-loader.js';
-import { renderPlaces, setWorks } from './render-places.js';
+import { renderPlaces } from './render-places.js';
 import { formatPlaceName } from './utils.js';
 
 async function init() {
@@ -10,7 +10,7 @@ async function init() {
 
   // 2. URL에서 검색어(쿼리) 가져오기
   const urlParams = new URLSearchParams(window.location.search);
-  const query = urlParams.get('query')?.toLowerCase() || '';
+  const query = urlParams.get('query') || '';
   document.getElementById('search-query').textContent = query;
 
   if (!query) {
@@ -19,31 +19,19 @@ async function init() {
   }
 
   try {
-    // 3. 데이터 로드 및 필터링
-    const [works, places] = await Promise.all([
-      fetch('/api/works').then(res => res.json()),
-      fetch('/api/places').then(res => res.json())
-    ]);
-
-    setWorks(works); // render-places 모듈에 작품 데이터 설정
-
-    const filteredPlaces = places.filter(place => {
-      const work = works.find(w => w.id === place.workId);
-      const combinedName = formatPlaceName(place.real_name, place.fictional_name).toLowerCase();
-      const nameMatch = combinedName.includes(query);
-      const workMatch = work && work.title.toLowerCase().includes(query);
-      const addrMatch = place.address.toLowerCase().includes(query);
-      return nameMatch || workMatch || addrMatch;
-    });
+    // 3. 백엔드 API에 검색 요청 (백엔드가 필터링을 모두 처리)
+    const res = await fetch(`/api/places?query=${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error('API 응답 오류');
+    
+    const filteredPlaces = await res.json();
 
     // 4. 결과 렌더링
     const resultsContainer = document.getElementById('search-results-list');
     if (filteredPlaces.length > 0) {
-      renderPlaces(filteredPlaces);
-      // renderPlaces는 #place-list를 찾으므로, id를 임시로 변경
+      // renderPlaces는 #place-list 컨테이너에 렌더링하므로, ID를 임시로 변경
       resultsContainer.id = 'place-list'; 
       renderPlaces(filteredPlaces);
-      resultsContainer.id = 'search-results-list'; // 원래 id로 복구
+      resultsContainer.id = 'search-results-list'; // 원래 ID로 복구
     } else {
       resultsContainer.innerHTML = '<p>검색 결과가 없습니다.</p>';
     }
