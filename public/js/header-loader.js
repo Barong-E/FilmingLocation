@@ -1,5 +1,5 @@
 // public/js/header-loader.js
-import { renderProfileArea, checkAuth } from './render-places.js';
+import { renderProfileArea } from './render-places.js';
 import { initializeSearch } from './search.js'; // search.js의 초기화 함수 import
 
 // 전역 변수로 중복 실행 방지

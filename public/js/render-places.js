@@ -12,7 +12,7 @@ export function renderPlaces(places) {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
     const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
     const card = document.createElement('a');
-    card.href = `place.html?id=${place._id}`; // place.id -> place._id 로 변경
+    card.href = `place.html?id=${place.id}`; // JSON의 id 사용 (URL 안정성)
     card.className = 'place-card';
     card.innerHTML = `
       <img src="${place.image}" alt="${place.real_name || place.fictional_name}" class="place-img" />
@@ -77,74 +77,4 @@ export async function renderProfileArea() {
 }
 
 // ───── 로그인 상태 표시 바(사용 안 할 경우 무시 가능) ─────
-export async function checkAuth() {
-  const res = await fetch('/auth/me', { credentials: 'include' });
-  const stub = await res.json();
-  let user = null;
-  if (stub && stub.id) {
-    // 상세 정보(닉네임, 프로필 등)를 추가로 조회
-    try {
-      const res2 = await fetch('/api/user/me', { credentials: 'include' });
-      if (res2.ok) {
-        const detailed = await res2.json();
-        // 통합 사용자 객체(댓글/표시용 닉네임 포함)
-        user = {
-          id: detailed.id,
-          displayName: detailed.displayName,
-          email: detailed.email,
-          nickname: detailed.nickname,
-          profileImageUrl: detailed.profileImageUrl,
-        };
-      } else {
-        user = stub; // 실패 시 기본 정보만
-      }
-    } catch (_) {
-      user = stub;
-    }
-  }
-
-  const loginBtn  = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const userInfo  = document.getElementById('user-info');
-
-  if (loginBtn && logoutBtn && userInfo) {
-    if (user) {
-      loginBtn.style.display  = 'none';
-      logoutBtn.style.display = 'inline';
-      const name = user.nickname || user.displayName || '사용자';
-      userInfo.textContent     = `${name}님 환영합니다`;
-    } else {
-      loginBtn.style.display  = 'inline';
-      logoutBtn.style.display = 'none';
-      userInfo.textContent     = '';
-    }
-
-    loginBtn.addEventListener('click', e => {
-      e.preventDefault();
-      window.location.href = '/login';
-    });
-
-    logoutBtn.addEventListener('click', e => {
-      e.preventDefault();
-      const origin = window.location.origin;
-      const currentPath = window.location.pathname + window.location.search;
-      const ref = document.referrer;
-      const isInternalRef = !!ref && ref.startsWith(origin);
-      let redirectPath = currentPath;
-
-      if (window.location.pathname === '/mypage.html') {
-        if (isInternalRef) {
-          const u = new URL(ref);
-          redirectPath = u.pathname + u.search;
-        } else {
-          redirectPath = '/index.html';
-        }
-      }
-
-      window.location.href = `/auth/logout?redirect_uri=${encodeURIComponent(redirectPath)}`;
-    });
-  }
-
-  // 호출 측에서 사용자 객체를 활용할 수 있게 반환
-  return user;
-}
+// checkAuth 함수는 utils.js로 이동됨

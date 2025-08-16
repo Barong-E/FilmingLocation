@@ -25,11 +25,15 @@ router.get('/', async (req, res) => {
     const filter = {};
 
     if (req.params.placeId) {
-      // 1) URL 파라미터 placeId를 _id로 직접 사용 (MongoDB ObjectId)
-      if (!mongoose.Types.ObjectId.isValid(req.params.placeId)) {
-        return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+      // 1) placeId가 ObjectId인지 확인
+      if (mongoose.Types.ObjectId.isValid(req.params.placeId)) {
+        filter.placeId = req.params.placeId;
+      } else {
+        // 2) ObjectId가 아니면 JSON의 id 필드로 Place를 찾아서 _id 사용
+        const place = await Place.findOne({ id: req.params.placeId }).select('_id');
+        if (!place) return res.status(404).json({ message: '존재하지 않는 장소입니다.' });
+        filter.placeId = place._id;
       }
-      filter.placeId = req.params.placeId;
     }
     else if (req.params.workId) {
       // 2) workId는 문자열 id이므로 Work 컬렉션에서 _id 찾기
@@ -62,11 +66,15 @@ router.post('/', ensureAuth, async (req, res) => {
     const comment = new Comment({ content, userId: req.user._id });
 
     if (req.params.placeId) {
-      // 1) placeId는 _id로 직접 사용
-      if (!mongoose.Types.ObjectId.isValid(req.params.placeId)) {
-        return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+      // 1) placeId가 ObjectId인지 확인
+      if (mongoose.Types.ObjectId.isValid(req.params.placeId)) {
+        comment.placeId = req.params.placeId;
+      } else {
+        // 2) ObjectId가 아니면 JSON의 id 필드로 Place를 찾아서 _id 사용
+        const place = await Place.findOne({ id: req.params.placeId }).select('_id');
+        if (!place) return res.status(404).json({ message: '존재하지 않는 장소입니다.' });
+        comment.placeId = place._id;
       }
-      comment.placeId = req.params.placeId;
     }
     else if (req.params.workId) {
       // 2) workId는 문자열 id이므로 Work 컬렉션에서 _id 찾기

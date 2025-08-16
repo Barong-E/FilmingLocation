@@ -49,3 +49,94 @@ export function formatRelativeTime(dateInput) {
   const diffYear = Math.floor(diffDay / 365);
   return `${diffYear}년 전`;
 }
+
+// 댓글 입력창 자동 크기 조절 설정 (공통 함수)
+export function setupCommentAutoResize() {
+  const input = document.getElementById('comment-input');
+  if (!input) return; // 댓글 입력창이 없으면 종료
+  
+  // 자동 크기 조절 함수
+  const autoResize = () => {
+    input.style.height = 'auto'; // 높이 초기화
+    input.style.height = input.scrollHeight + 'px'; // 내용에 맞게 높이 조정
+  };
+  
+  // 입력 이벤트에 자동 크기 조절 연결
+  input.addEventListener('input', autoResize);
+  
+  // 초기 크기 설정
+  autoResize();
+}
+
+// 로그인 상태 체크 함수 (공통)
+export async function checkAuth() {
+  const res = await fetch('/auth/me', { credentials: 'include' });
+  const stub = await res.json();
+  let user = null;
+  if (stub && stub.id) {
+    // 상세 정보(닉네임, 프로필 등)를 추가로 조회
+    try {
+      const res2 = await fetch('/api/user/me', { credentials: 'include' });
+      if (res2.ok) {
+        const detailed = await res2.json();
+        // 통합 사용자 객체(댓글/표시용 닉네임 포함)
+        user = {
+          id: detailed.id,
+          displayName: detailed.displayName,
+          email: detailed.email,
+          nickname: detailed.nickname,
+          profileImageUrl: detailed.profileImageUrl,
+        };
+      } else {
+        user = stub; // 실패 시 기본 정보만
+      }
+    } catch (_) {
+      user = stub;
+    }
+  }
+
+  const loginBtn  = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userInfo  = document.getElementById('user-info');
+
+  if (loginBtn && logoutBtn && userInfo) {
+    if (user) {
+      loginBtn.style.display  = 'none';
+      logoutBtn.style.display = 'inline';
+      const name = user.nickname || user.displayName || '사용자';
+      userInfo.textContent     = `${name}님 환영합니다`;
+    } else {
+      loginBtn.style.display  = 'inline';
+      logoutBtn.style.display = 'none';
+      userInfo.textContent     = '';
+    }
+
+    loginBtn.addEventListener('click', e => {
+      e.preventDefault();
+      window.location.href = '/login';
+    });
+
+    logoutBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const origin = window.location.origin;
+      const currentPath = window.location.pathname + window.location.search;
+      const ref = document.referrer;
+      const isInternalRef = !!ref && ref.startsWith(origin);
+      let redirectPath = currentPath;
+
+      if (window.location.pathname === '/mypage.html') {
+        if (isInternalRef) {
+          const u = new URL(ref);
+          redirectPath = u.pathname + u.search;
+        } else {
+          redirectPath = '/index.html';
+        }
+      }
+
+      window.location.href = `/auth/logout?redirect_uri=${encodeURIComponent(redirectPath)}`;
+    });
+  }
+
+  // 호출 측에서 사용자 객체를 활용할 수 있게 반환
+  return user;
+}

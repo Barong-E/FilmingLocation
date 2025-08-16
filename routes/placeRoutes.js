@@ -61,13 +61,17 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // Mongoose의 ObjectId 형식인지 먼저 확인
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+    let place = null;
+    
+    // 1. ObjectId 형식인지 확인하여 ObjectId로 조회 시도
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      place = await Place.findById(id);
     }
     
-    // ObjectId로만 조회
-    const place = await Place.findById(id);
+    // 2. ObjectId로 찾지 못했으면 JSON의 id 필드로 조회
+    if (!place) {
+      place = await Place.findOne({ id: id });
+    }
 
     if (!place) {
       return res.status(404).json({ message: '해당하는 장소를 찾을 수 없습니다.' });

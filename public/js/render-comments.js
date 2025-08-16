@@ -1,6 +1,5 @@
 import { fetchPlaceComments, fetchComments, postComment, deleteComment, editComment, renderComments } from './render-comments-utils.js';
-import { checkAuth }                          from './render-places.js';
-import { showToast }                          from './utils.js';
+import { checkAuth, showToast }               from './utils.js';
 
 // 전역 변수로 초기화 상태 관리 (모든 모듈에서 공유)
 if (window.renderCommentsInitialized) {

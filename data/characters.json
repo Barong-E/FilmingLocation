@@ -2,22 +2,71 @@
   {
     "id": "park-seo-joon",
     "name": "박서준",
-    "image": "/images/profiles/6880fec50bc291ef80ac3aff.jpg",
+    "image": "https://tse4.mm.bing.net/th/id/OIP.JTuquYYik4FosaOtSu20xQHaLH?pid=Api",
     "job": "배우",
     "birthDate": "1988-12-16",
-    "birthPlace": "서울특별시",
-    "awards": [
-      "백상예술대상 TV부문 최우수연기상 (예: 연도)",
-      "KBS 연기대상 우수상 (예: 연도)"
-    ],
-    "education": [
-      "서울예술대학교 영화과"
-    ],
+    "birthPlace": "인천광역시",
+
+    "education": "송내초등학교, 임학중학교, 안남고등학교, 서울예술대학교 연기과(중퇴)",
     "nationality": "대한민국",
-    "description": "대한민국의 배우. 드라마와 영화에서 다양한 캐릭터로 활약.",
-    "heightCm": 182,
+    "description": "대한민국의 배우. 드라마와 영화에서 다양한 캐릭터를 섬세하게 소화하며 높은 대중적 인기를 얻었다. 대표작으로는 드라마 <이태원 클라쓰>, <그녀는 예뻤다>, 영화 <청년경찰> 등이 있다.",
+    "heightCm": 185,
     "weightKg": 76
+  },
+  {
+    "id": "kim-da-mi",
+    "name": "김다미",
+    "image": "https://tse1.mm.bing.net/th/id/OIP.1tWzHhEv2Ek2mT61iUpUdwHaLH?pid=Api",
+    "job": "배우",
+    "birthDate": "1995-04-09",
+    "birthPlace": "서울특별시",
+
+    "education": null,
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 영화 <마녀>로 독보적인 데뷔를 했으며, 이후 드라마 <이태원 클라쓰>에서 강렬한 연기로 주목받았다.",
+    "heightCm": 168,
+    "weightKg": 50
+  },
+  {
+    "id": "yoo-jae-myung",
+    "name": "유재명",
+    "image": "https://tse4.mm.bing.net/th/id/OIP.TIHIFQ3_HmeR-Dd8sUOmAwHaLH?pid=Api",
+    "job": "배우",
+    "birthDate": "1973-06-03",
+    "birthPlace": "부산광역시",
+
+    "education": "양정고등학교(졸업), 부산대학교 생명공학과(학사)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 연극 무대를 기반으로 탄탄한 연기력을 쌓았으며, 다수의 영화와 드라마에서 믿고 보는 조연으로 활약하고 있다.",
+    "heightCm": null,
+    "weightKg": null
+  },
+  {
+    "id": "kwon-nara",
+    "name": "권나라",
+    "image": "https://tse2.mm.bing.net/th/id/OIP.cCnflZxSBWZ7IMl3XMvtwAHaLH?pid=Api",
+    "job": "배우, 가수",
+    "birthDate": "1991-03-13",
+    "birthPlace": "인천광역시",
+
+    "education": "성남신기초등학교, 양영중학교, 분당대진고등학교, 동덕여자대학교 방송연예과(졸업)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우이자 가수. 걸그룹 헬로비너스 출신으로, 이후 연기자로 전향해 드라마와 영화에서 인상적인 존재감을 보여주고 있다.",
+    "heightCm": 162,
+    "weightKg": 45
+  },
+  {
+    "id": "ahn-bo-hyun",
+    "name": "안보현",
+    "image": "https://tse3.mm.bing.net/th/id/OIP.SrmrcCkHxCB6Z0fYlyvR9wHaLH?pid=Api",
+    "job": "배우",
+    "birthDate": "1988-05-16",
+    "birthPlace": "부산광역시",
+
+    "education": "부산체육고등학교(졸업)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 모델 출신으로 데뷔해 드라마 <이태원 클라쓰>, <마이네임> 등에서 탄탄한 연기력을 인정받았다.",
+    "heightCm": 187,
+    "weightKg": 78
   }
 ]
-
-

@@ -1,7 +1,6 @@
 import { loadHeader, setupHeaderSearch } from './header-loader.js';
-import { showToast } from './utils.js';
+import { showToast, checkAuth } from './utils.js';
 import { fetchComments, postComment, deleteComment, editComment, renderComments } from './render-comments-utils.js';
-import { checkAuth } from './render-places.js';
 
 const id = new URLSearchParams(window.location.search).get('id');
 const $ = s => document.querySelector(s);
@@ -72,19 +71,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     else phy.textContent = '';
   }
 
-  // 학력/수상/설명 섹션 (값 없으면 행 제거)
+  // 학력/설명 섹션 (값 없으면 행 제거)
   const eduArr = Array.isArray(c.education) ? c.education : (c.education ? [c.education] : []);
-  const awardsArr = Array.isArray(c.awards) ? c.awards : (c.awards ? [c.awards] : []);
   const descStr = typeof c.description === 'string' ? c.description.trim() : '';
   const rowEdu = document.querySelector('#row-education');
-  const rowAwards = document.querySelector('#row-awards');
   const rowDesc = document.querySelector('#row-description');
   if (eduArr.length) document.querySelector('#edu-value').textContent = eduArr.join('\n'); else rowEdu?.remove();
-  if (awardsArr.length) document.querySelector('#awards-value').textContent = awardsArr.join('\n'); else rowAwards?.remove();
   if (descStr) document.querySelector('#desc-value').textContent = descStr; else rowDesc?.remove();
 
   const user = await checkAuth();
-  if (user) { currentUserId = user.id; $('#comment-form').style.display = 'block'; }
+  if (user) { 
+    currentUserId = user.id; 
+    $('#comment-form').style.display = 'block';
+    $('#login-prompt').style.display = 'none';
+  } else {
+    $('#login-prompt').style.display = 'block';
+  }
 
   await loadAndRender();
 
@@ -92,9 +94,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   const countEl = $('#comment-count');
   const limitEl = $('#comment-limit');
   limitEl.textContent = String(COMMENT_LIMIT);
-  const updateCounter = () => { const len = input.value.length; countEl.textContent = String(len); countEl.classList.toggle('limit-exceed', len > COMMENT_LIMIT); };
+  
+  // 자동 크기 조절 함수
+  const autoResize = () => {
+    input.style.height = 'auto'; // 높이 초기화
+    input.style.height = input.scrollHeight + 'px'; // 내용에 맞게 높이 조정
+  };
+  
+  const updateCounter = () => { 
+    const len = input.value.length; 
+    countEl.textContent = String(len); 
+    countEl.classList.toggle('limit-exceed', len > COMMENT_LIMIT);
+    autoResize(); // 글자 수 업데이트 시 크기도 조정
+  };
+  
   input.addEventListener('input', updateCounter);
   input.addEventListener('keydown', (e) => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); $('#comment-form').requestSubmit(); } });
+  
+  // 초기 크기 설정
+  autoResize();
   updateCounter();
 
   $('#comment-form').addEventListener('submit', async (e) => {

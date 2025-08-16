@@ -1,4 +1,5 @@
 import { loadHeader, setupHeaderSearch } from './header-loader.js';
+import { setupCommentAutoResize, checkAuth } from './utils.js';
 
 const id = new URLSearchParams(window.location.search).get('id');
 const $ = s => document.querySelector(s);
@@ -6,6 +7,7 @@ const $ = s => document.querySelector(s);
 document.addEventListener('DOMContentLoaded', async () => {
   await loadHeader();
   setupHeaderSearch();
+  setupCommentAutoResize(); // 댓글 자동 크기 조절 설정
 
   const res = await fetch(`/api/works/${id}`);
   const w = await res.json();
@@ -76,7 +78,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+  
+  // 댓글 섹션 로그인 상태 체크
+  await checkCommentAuth();
 });
+
+// 댓글 섹션 로그인 상태 체크
+async function checkCommentAuth() {
+  try {
+    const user = await checkAuth();
+    const commentForm = document.getElementById('comment-form');
+    const loginPrompt = document.getElementById('login-prompt');
+    
+    if (user) {
+      // 로그인된 사용자
+      if (commentForm) commentForm.style.display = 'block';
+      if (loginPrompt) loginPrompt.style.display = 'none';
+    } else {
+      // 로그인되지 않은 사용자
+      if (commentForm) commentForm.style.display = 'none';
+      if (loginPrompt) loginPrompt.style.display = 'block';
+    }
+  } catch (error) {
+    console.error('로그인 상태 체크 실패:', error);
+    // 에러 발생 시 기본적으로 로그인 안내 표시
+    const commentForm = document.getElementById('comment-form');
+    const loginPrompt = document.getElementById('login-prompt');
+    if (commentForm) commentForm.style.display = 'none';
+    if (loginPrompt) loginPrompt.style.display = 'block';
+  }
+}
+
+
 
 
 

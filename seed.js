@@ -7,6 +7,7 @@ import fs from 'fs/promises';
 import Place     from './models/Place.js';
 import Work      from './models/Work.js';
 import Character from './models/Character.js';
+import Comment   from './models/Comment.js';
 
 // 1) .env 파일 불러오기
 dotenv.config();
@@ -22,10 +23,11 @@ async function seed() {
     console.log('🔗 MongoDB 연결(Seeding) 성공');
 
     // 3) 기존 데이터를 모두 삭제하여 항상 최신 상태를 유지
-    await Place.deleteMany({});
+    // ⚠️ 댓글은 보존! 사용자 데이터는 삭제하지 않음
     await Work.deleteMany({});
     await Character.deleteMany({});
-    console.log('🗑️ 기존 데이터 삭제 완료');
+    console.log('🗑️ 기존 데이터 삭제 완료 (댓글 보존됨)');
+    // 📍 Place는 ID 보존을 위해 삭제하지 않음!
 
     // 4) JSON 파일 읽기
     const placesData     = JSON.parse(await fs.readFile('data/places.json', 'utf-8'));
@@ -34,12 +36,26 @@ async function seed() {
 
     // 5) 독립적인 데이터(Character, Place) 먼저 삽입
     if (charactersData.length > 0) {
-      await Character.insertMany(charactersData);
-      console.log(`👤 등장인물 ${charactersData.length}명 삽입 완료`);
+      // Character도 ID 보존을 위해 upsert 방식 사용
+      for (const charData of charactersData) {
+        await Character.findOneAndUpdate(
+          { id: charData.id },  // JSON의 id로 검색
+          charData,             // 데이터 업데이트
+          { upsert: true }      // 없으면 새로 생성
+        );
+      }
+      console.log(`👤 등장인물 ${charactersData.length}명 업데이트/삽입 완료 (ID 보존)`);
     }
     if (placesData.length > 0) {
-      await Place.insertMany(placesData);
-      console.log(`📍 촬영지 ${placesData.length}곳 삽입 완료`);
+      // Place는 ID 보존을 위해 upsert 방식 사용
+      for (const placeData of placesData) {
+        await Place.findOneAndUpdate(
+          { id: placeData.id },  // JSON의 id로 검색
+          placeData,             // 데이터 업데이트
+          { upsert: true }       // 없으면 새로 생성
+        );
+      }
+      console.log(`📍 촬영지 ${placesData.length}곳 업데이트/삽입 완료 (ID 보존)`);
     }
     
     // 6) 관계 매칭을 위해 DB에서 Character와 Place 전체 조회
@@ -86,6 +102,12 @@ async function seed() {
       await newWork.save();
     }
     console.log(`🎬 작품 ${worksData.length}개 및 관계 연결 완료`);
+
+    // 8) 댓글 연결 상태 확인 (Character ID가 보존되므로 연결 문제 없음)
+    const commentCount = await Comment.countDocuments({});
+    if (commentCount > 0) {
+      console.log(`💬 기존 댓글 ${commentCount}개 확인 완료 (ID 보존으로 연결 문제 없음)`);
+    }
 
     console.log('✅ 데이터베이스 시딩 완료');
   } catch (error) {

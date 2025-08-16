@@ -28,10 +28,7 @@
         <div class="detail-label">학력</div>
         <div id="edu-value" class="detail-value"></div>
       </div>
-      <div class="detail-row" id="row-awards">
-        <div class="detail-label">수상</div>
-        <div id="awards-value" class="detail-value"></div>
-      </div>
+
       <div class="detail-row" id="row-description">
         <div class="detail-label">설명</div>
         <div id="desc-value" class="detail-value"></div>
@@ -43,10 +40,13 @@
     <h3>댓글</h3>
     <div id="comment-list" style="padding: 0 12px;"></div>
     <form id="comment-form" style="display:none; padding: 0 12px;">
-      <textarea id="comment-input" rows="3" placeholder="댓글을 남겨보세요..." required></textarea>
+      <textarea id="comment-input" placeholder="댓글을 남겨보세요..." required></textarea>
       <div class="comment-counter"><span id="comment-count">0</span>/<span id="comment-limit">1000</span></div>
       <button type="submit">등록</button>
     </form>
+    <div id="login-prompt" style="padding: 0 12px; display: none;">
+      <p class="login-message">로그인 후 댓글을 남겨보세요...</p>
+    </div>
   </div>
 
   <script type="module" src="js/character-detail.js"></script>

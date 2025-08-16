@@ -58,13 +58,16 @@
     <form id="comment-form" style="display: none; padding: 0 12px;">
       <textarea
         id="comment-input"
-        rows="3"
         placeholder="댓글을 남겨보세요..."
         required
       ></textarea>
       <div class="comment-counter"><span id="comment-count">0</span>/<span id="comment-limit">1000</span></div>
       <button type="submit">등록</button>
     </form>
+    <!-- 로그인 안내 메시지 -->
+    <div id="login-prompt" style="padding: 0 12px; display: none;">
+      <p class="login-message">로그인 후 댓글을 남겨보세요...</p>
+    </div>
   </div>
   <!-- 댓글 섹션 끝 -->
 

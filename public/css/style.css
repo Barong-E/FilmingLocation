@@ -185,8 +185,9 @@ h1#detail-name {
 }
 #comment-input {
   width: 100%;
-  min-height: 90px;
-  resize: vertical;
+  min-height: 40px; /* 최소 높이를 줄임 */
+  max-height: 200px; /* 최대 높이 제한 */
+  resize: none; /* 수동 리사이즈 비활성화 */
   box-sizing: border-box;
   padding: 10px 12px;
   border: 1px solid #ddd;
@@ -194,6 +195,8 @@ h1#detail-name {
   font-size: 14px;
   outline: none;
   background: #fafafa;
+  overflow-y: auto; /* 내용이 넘칠 때 스크롤 */
+  line-height: 1.4; /* 줄 간격 조정 */
 }
 #comment-input:focus {
   border-color: #00c896;
@@ -361,6 +364,18 @@ h1#detail-name {
   margin-top: 4px;
 }
 .comment-counter .limit-exceed { color: #e54848; }
+
+/* 로그인 안내 메시지 스타일 */
+.login-message {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
 
 /* ── Toast UI ── */
 .filo-toast {
