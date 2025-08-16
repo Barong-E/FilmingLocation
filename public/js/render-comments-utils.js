@@ -1,50 +1,71 @@
 // 댓글 API 호출 및 렌더링 함수만 모아둔 유틸
 // 공통 댓글 API 유틸: places | works | characters
 export async function fetchComments(target, entityId) {
-  const res = await fetch(`/api/${target}/${entityId}/comments`, { credentials: 'include' });
-  if (!res.ok) throw new Error('댓글을 불러오는 중 오류 발생');
-  return res.json();
+  console.log(`[DEBUG] fetchComments 호출: target=${target}, entityId=${entityId}`);
+  try {
+    // 백엔드 라우트와 일치하도록 경로 수정
+    const res = await fetch(`/api/${target}/${entityId}/comments`, { credentials: 'include' });
+    console.log(`[DEBUG] fetchComments 응답: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    console.log(`[DEBUG] fetchComments 데이터:`, data);
+    return data;
+  } catch (error) {
+    console.error(`[ERROR] fetchComments 실패:`, error);
+    throw error;
+  }
 }
 
 export async function postComment(target, entityId, content) {
-  const token = localStorage.getItem('token'); // 로컬 스토리지에서 토큰 가져오기
-  const res = await fetch(`/api/${target}/${entityId}/comments`, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` // 헤더에 토큰 추가
-    },
-    credentials: 'include',
-    body: JSON.stringify({ content })
-  });
-  if (!res.ok) throw new Error('댓글 등록 중 오류 발생');
-  return res.json();
+  console.log(`[DEBUG] postComment 호출: target=${target}, entityId=${entityId}, content=${content}`);
+  try {
+    const res = await fetch(`/api/${target}/${entityId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ content })
+    });
+    console.log(`[DEBUG] postComment 응답: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new Error('댓글 등록 중 오류 발생');
+    return res.json();
+  } catch (error) {
+    console.error(`[ERROR] postComment 실패:`, error);
+    throw error;
+  }
 }
 
 export async function deleteComment(target, entityId, commentId) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
-    method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` },
-    credentials: 'include'
-  });
-  if (!res.ok) throw new Error('댓글 삭제 중 오류 발생');
-  return res.json();
+  console.log(`[DEBUG] deleteComment 호출: target=${target}, entityId=${entityId}, commentId=${commentId}`);
+  try {
+    const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    console.log(`[DEBUG] deleteComment 응답: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new Error('댓글 삭제 중 오류 발생');
+    return res.json();
+  } catch (error) {
+    console.error(`[ERROR] deleteComment 실패:`, error);
+    throw error;
+  }
 }
 
 export async function editComment(target, entityId, commentId, content) {
-  const token = localStorage.getItem('token');
-  const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
-    method: 'PATCH',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}` 
-    },
-    credentials: 'include',
-    body: JSON.stringify({ content })
-  });
-  if (!res.ok) throw new Error('댓글 수정 중 오류 발생');
-  return res.json();
+  console.log(`[DEBUG] editComment 호출: target=${target}, entityId=${entityId}, commentId=${commentId}, content=${content}`);
+  try {
+    const res = await fetch(`/api/${target}/${entityId}/comments/${commentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ content })
+    });
+    console.log(`[DEBUG] editComment 응답: ${res.status} ${res.statusText}`);
+    if (!res.ok) throw new Error('댓글 수정 중 오류 발생');
+    return res.json();
+  } catch (error) {
+    console.error(`[ERROR] editComment 실패:`, error);
+    throw error;
+  }
 }
 
 // 하위 호환: 장소 전용 함수 유지

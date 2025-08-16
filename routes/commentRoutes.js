@@ -5,6 +5,7 @@ import Place    from '../models/Place.js';
 import Work     from '../models/Work.js';
 import Character from '../models/Character.js';
 import Comment  from '../models/Comment.js';
+import mongoose from 'mongoose';
 
 // 로그인된 사용자만
 function ensureAuth(req, res, next) {
@@ -24,17 +25,20 @@ router.get('/', async (req, res) => {
     const filter = {};
 
     if (req.params.placeId) {
-      // 1) URL 파라미터 placeId(id 문자열)를 실제 _id로 바꿔준다
-      const place = await Place.findOne({ id: req.params.placeId }).select('_id');
-      if (!place) return res.status(404).json({ message: '존재하지 않는 촬영지입니다.' });
-      filter.placeId = place._id;
+      // 1) URL 파라미터 placeId를 _id로 직접 사용 (MongoDB ObjectId)
+      if (!mongoose.Types.ObjectId.isValid(req.params.placeId)) {
+        return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+      }
+      filter.placeId = req.params.placeId;
     }
     else if (req.params.workId) {
+      // 2) workId는 문자열 id이므로 Work 컬렉션에서 _id 찾기
       const work = await Work.findOne({ id: req.params.workId }).select('_id');
       if (!work) return res.status(404).json({ message: '존재하지 않는 작품입니다.' });
       filter.workId = work._id;
     }
     else if (req.params.characterId) {
+      // 3) characterId도 문자열 id이므로 Character 컬렉션에서 _id 찾기
       const ch = await Character.findOne({ id: req.params.characterId }).select('_id');
       if (!ch) return res.status(404).json({ message: '존재하지 않는 등장인물입니다.' });
       filter.characterId = ch._id;
@@ -58,16 +62,20 @@ router.post('/', ensureAuth, async (req, res) => {
     const comment = new Comment({ content, userId: req.user._id });
 
     if (req.params.placeId) {
-      const place = await Place.findOne({ id: req.params.placeId }).select('_id');
-      if (!place) return res.status(404).json({ message: '존재하지 않는 촬영지입니다.' });
-      comment.placeId = place._id;
+      // 1) placeId는 _id로 직접 사용
+      if (!mongoose.Types.ObjectId.isValid(req.params.placeId)) {
+        return res.status(400).json({ message: '유효하지 않은 장소 ID 형식입니다.' });
+      }
+      comment.placeId = req.params.placeId;
     }
     else if (req.params.workId) {
+      // 2) workId는 문자열 id이므로 Work 컬렉션에서 _id 찾기
       const work = await Work.findOne({ id: req.params.workId }).select('_id');
       if (!work) return res.status(404).json({ message: '존재하지 않는 작품입니다.' });
       comment.workId = work._id;
     }
     else if (req.params.characterId) {
+      // 3) characterId도 문자열 id이므로 Character 컬렉션에서 _id 찾기
       const ch = await Character.findOne({ id: req.params.characterId }).select('_id');
       if (!ch) return res.status(404).json({ message: '존재하지 않는 등장인물입니다.' });
       comment.characterId = ch._id;
