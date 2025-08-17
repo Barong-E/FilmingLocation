@@ -25,7 +25,8 @@
 
   <script type="module">
     import { loadHeader, setupHeaderSearch } from './js/header-loader.js';
-    import { renderProfileArea, checkAuth } from './js/render-places.js';
+    import { renderProfileArea } from './js/render-places.js';
+    import { checkAuth } from './js/utils.js';
 
     loadHeader().then(() => {
       setupHeaderSearch(); // 헤더 로드 후 검색 기능 초기화 (데이터 로딩 포함)
