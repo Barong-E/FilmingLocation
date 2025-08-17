@@ -1,0 +1,201 @@
+/* ── 댓글 공통 스타일 (분리 파일) ── */
+.comments {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+.comments h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #222;
+  padding: 0 12px;
+}
+
+#comment-form {
+  display: none;
+  margin-bottom: 12px;
+  padding: 0 12px;
+}
+#comment-input {
+  width: 100%;
+  min-height: 40px;
+  max-height: 200px;
+  resize: none;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #fafafa;
+  overflow-y: auto;
+  line-height: 1.4;
+}
+#comment-input:focus {
+  border-color: #00c896;
+  background: #fff;
+}
+#comment-form button[type="submit"] {
+  margin-top: 8px;
+  background: #00c896;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+}
+#comment-form button[type="submit"]:hover {
+  filter: brightness(0.98);
+}
+
+#comment-list { padding: 0 12px; }
+
+.comment-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.comment-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.comment-meta .left,
+.comment-meta .right {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.comment-meta .left { min-width: 0; }
+.comment-meta .author-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.comment-meta .author-name {
+  font-weight: 600;
+  color: #222;
+  white-space: nowrap;
+}
+.comment-meta .comment-date {
+  color: #999;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.comment-meta strong { color: #222; font-weight: 600; }
+.comment-date { color: #999; font-size: 12px; }
+
+.comment-content {
+  margin: 6px 0 8px 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.comment-foot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+  font-size: 12px;
+}
+.comment-foot .btn-edit,
+.comment-foot .btn-delete { font-size: 11px; padding: 2px 6px; }
+.comment-foot .btn-main {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #f7f7f7;
+  color: #999;
+  border: 1px solid #eee;
+}
+/* 기본 버튼 모양 통일 (댓글 하단 컨텍스트) */
+.comment-foot .btn-edit,
+.comment-foot .btn-delete,
+.comment-foot .btn-main {
+  border-radius: 6px;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+.btn-delete, .btn-edit {
+  background: #f7f7f7;
+  color: #999;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn-delete:hover, .btn-edit:hover {
+  color: #e54848;
+  border-color: #ffdede;
+  background: #fff7f7;
+}
+.btn-edit:hover {
+  color: #00a67d;
+  border-color: #d9f3ec;
+  background: #effcf9;
+}
+.comment-empty {
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* 엄지 아이콘 스타일 */
+.thumb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+.thumb-btn svg { width: 18px; height: 18px; }
+.thumb-like svg path { stroke: #00c896; }
+.thumb-dislike svg path { stroke: #e54848; }
+.thumb-btn:hover { background: #f7f7f7; }
+.thumb-count { font-size: 12px; color: #777; }
+/* 활성 상태 강조 */
+.thumb-btn.active { background: #effcf9; }
+.thumb-like.active svg path { stroke: #00a67d; }
+.thumb-dislike.active { background: #fff7f7; }
+.thumb-dislike.active svg path { stroke: #c63b3b; }
+
+/* 댓글 입력 카운터 */
+.comment-counter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+  padding: 0 12px;
+}
+.comment-counter .limit-exceed { color: #e54848; }
+
+/* 로그인 안내 메시지 스타일 */
+#login-prompt { padding: 0 12px; }
+.login-message {
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}

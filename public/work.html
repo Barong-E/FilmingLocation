@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FiLo — 작품 상세</title>
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/comments.css" />
 </head>
 <body>
   <div id="header"></div>
@@ -19,14 +20,14 @@
 
   <div class="comments">
     <h3>댓글</h3>
-    <div id="comment-list" style="padding: 0 12px;"></div>
-    <form id="comment-form" style="display:none; padding: 0 12px;">
+    <div id="comment-list"></div>
+    <form id="comment-form" style="display:none;">
       <textarea id="comment-input" placeholder="댓글을 남겨보세요..." required></textarea>
       <div class="comment-counter"><span id="comment-count">0</span>/<span id="comment-limit">1000</span></div>
       <button type="submit">등록</button>
     </form>
     <!-- 로그인 안내 메시지 -->
-    <div id="login-prompt" style="padding: 0 12px; display: none;">
+    <div id="login-prompt" style="display: none;">
       <p class="login-message">로그인 후 댓글을 남겨보세요...</p>
     </div>
   </div>

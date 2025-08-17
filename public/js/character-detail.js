@@ -1,12 +1,7 @@
 import { loadHeader, setupHeaderSearch } from './header-loader.js';
-import { showToast, checkAuth } from './utils.js';
-import { fetchComments, postComment, deleteComment, editComment, renderComments } from './render-comments-utils.js';
 
 const id = new URLSearchParams(window.location.search).get('id');
 const $ = s => document.querySelector(s);
-const COMMENT_LIMIT = 1000;
-
-let currentUserId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadHeader();
@@ -23,12 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('#ch-image').src        = c.image || '';
   $('#ch-image').alt        = c.name || '';
   $('#ch-name').textContent = c.name || '';
-  // 상단 요약: 국적 + 직업 한 줄
+
   const nationJob = [c.nationality, c.job].filter(Boolean).join(' ');
   const nationJobEl = document.querySelector('#ch-nation-job');
   if (nationJobEl) nationJobEl.textContent = nationJob;
 
-  // 출생 정보: 신 필드 우선
   let birthdate = c.birthDate || '';
   let birthplace = c.birthPlace || '';
   if ((!birthdate || !birthplace) && c.birth) {
@@ -41,7 +35,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!birthplace) birthplace = (parts[1] || '').trim();
   }
 
-  // 나이: 서버 응답 우선
   let age = c.age || '';
   if (!age && /^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
     const [yy, mm, dd] = birthdate.split('-').map(Number);
@@ -59,7 +52,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (ageEl) ageEl.textContent = age;
   if (bpEl) bpEl.textContent = birthplace ? `${birthplace} 출생` : '';
 
-  // 키/몸무게 한 줄
   const parseNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
   const h = parseNum(c.heightCm);
   const w = parseNum(c.weightKg);
@@ -71,118 +63,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     else phy.textContent = '';
   }
 
-  // 학력/설명 섹션 (값 없으면 행 제거)
   const eduArr = Array.isArray(c.education) ? c.education : (c.education ? [c.education] : []);
   const descStr = typeof c.description === 'string' ? c.description.trim() : '';
   const rowEdu = document.querySelector('#row-education');
   const rowDesc = document.querySelector('#row-description');
   if (eduArr.length) document.querySelector('#edu-value').textContent = eduArr.join('\n'); else rowEdu?.remove();
   if (descStr) document.querySelector('#desc-value').textContent = descStr; else rowDesc?.remove();
-
-  const user = await checkAuth();
-  if (user) { 
-    currentUserId = user.id; 
-    $('#comment-form').style.display = 'block';
-    $('#login-prompt').style.display = 'none';
-  } else {
-    $('#login-prompt').style.display = 'block';
-  }
-
-  await loadAndRender();
-
-  const input = $('#comment-input');
-  const countEl = $('#comment-count');
-  const limitEl = $('#comment-limit');
-  limitEl.textContent = String(COMMENT_LIMIT);
-  
-  // 자동 크기 조절 함수
-  const autoResize = () => {
-    input.style.height = 'auto'; // 높이 초기화
-    input.style.height = input.scrollHeight + 'px'; // 내용에 맞게 높이 조정
-  };
-  
-  const updateCounter = () => { 
-    const len = input.value.length; 
-    countEl.textContent = String(len); 
-    countEl.classList.toggle('limit-exceed', len > COMMENT_LIMIT);
-    autoResize(); // 글자 수 업데이트 시 크기도 조정
-  };
-  
-  input.addEventListener('input', updateCounter);
-  input.addEventListener('keydown', (e) => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); $('#comment-form').requestSubmit(); } });
-  
-  // 초기 크기 설정
-  autoResize();
-  updateCounter();
-
-  $('#comment-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const content = input.value.trim();
-    if (!content) return;
-    if (content.length > COMMENT_LIMIT) return showToast('댓글은 1000자까지 입력 가능합니다', 'error');
-    try { await postComment('characters', id, content); showToast('댓글이 등록되었어요', 'success'); input.value = ''; await loadAndRender(); }
-    catch { showToast('댓글 등록에 실패했어요', 'error'); }
-  });
 });
-
-async function loadAndRender() {
-  const comments = await fetchComments('characters', id);
-  renderComments(comments, $('#comment-list'), currentUserId);
-
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const cid = btn.dataset.id;
-      try { await deleteComment('characters', id, cid); showToast('댓글이 삭제되었어요', 'success'); await loadAndRender(); }
-      catch { showToast('댓글 삭제에 실패했어요', 'error'); }
-    });
-  });
-
-  document.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const cid = btn.dataset.id;
-      const card = btn.closest('.comment-card');
-      const p = card.querySelector('.comment-content');
-      const text = p.textContent.replace(/\(수정됨\)\s*$/, '').trimEnd();
-      const textarea = document.createElement('textarea');
-      textarea.value = text;
-      textarea.style.cssText = 'width:100%;min-height:80px;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;';
-      p.replaceWith(textarea);
-      btn.style.display = 'none';
-      const saveBtn = document.createElement('button');
-      saveBtn.textContent = '저장';
-      saveBtn.className = 'btn-main';
-      const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = '취소';
-      cancelBtn.className = 'btn-delete';
-      btn.insertAdjacentElement('afterend', saveBtn);
-      saveBtn.insertAdjacentElement('afterend', cancelBtn);
-      const exit = () => { const back = document.createElement('p'); back.className='comment-content'; back.textContent = text; textarea.replaceWith(back); saveBtn.remove(); cancelBtn.remove(); btn.style.display=''; };
-      cancelBtn.addEventListener('click', (e)=>{e.preventDefault(); exit();});
-      textarea.addEventListener('keydown', (e)=>{ if(e.key==='Escape') exit(); });
-      saveBtn.addEventListener('click', async ()=>{
-        const content = textarea.value.trim();
-        if (!content) return showToast('내용을 입력하세요', 'error');
-        if (content.length > COMMENT_LIMIT) return showToast('댓글은 1000자까지 입력 가능합니다', 'error');
-        try { await editComment('characters', id, cid, content); showToast('댓글이 수정되었어요', 'success'); await loadAndRender(); }
-        catch { showToast('댓글 수정에 실패했어요', 'error'); }
-      });
-    });
-  });
-
-  document.querySelectorAll('.btn-like').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const cid = btn.dataset.id;
-      const res = await fetch(`/api/characters/${id}/comments/${cid}/like`, { method:'POST', credentials:'include' });
-      if (res.ok) { const data = await res.json(); const card = btn.closest('.comment-card'); card.querySelector('.like-count').textContent = data.likes; card.querySelector('.dislike-count').textContent = data.dislikes; btn.classList.add('active'); card.querySelector('.btn-dislike')?.classList.remove('active'); }
-    });
-  });
-  document.querySelectorAll('.btn-dislike').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const cid = btn.dataset.id;
-      const res = await fetch(`/api/characters/${id}/comments/${cid}/dislike`, { method:'POST', credentials:'include' });
-      if (res.ok) { const data = await res.json(); const card = btn.closest('.comment-card'); card.querySelector('.like-count').textContent = data.likes; card.querySelector('.dislike-count').textContent = data.dislikes; btn.classList.add('active'); card.querySelector('.btn-like')?.classList.remove('active'); }
-    });
-  });
-}
 
 

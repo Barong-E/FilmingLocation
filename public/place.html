@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FiLo — 장소 상세</title>
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/comments.css" />
 </head>
 <body>
   <div id="header"></div>
@@ -53,9 +54,9 @@
   <div class="comments">
     <h3>댓글</h3>
     <!-- 댓글 목록이 렌더링될 곳 -->
-    <div id="comment-list" style="padding: 0 12px;"></div>
+    <div id="comment-list"></div>
     <!-- 댓글 작성 폼 (로그인해야 보일 예정) → 목록 아래로 이동 -->
-    <form id="comment-form" style="display: none; padding: 0 12px;">
+    <form id="comment-form" style="display: none;">
       <textarea
         id="comment-input"
         placeholder="댓글을 남겨보세요..."
@@ -65,7 +66,7 @@
       <button type="submit">등록</button>
     </form>
     <!-- 로그인 안내 메시지 -->
-    <div id="login-prompt" style="padding: 0 12px; display: none;">
+    <div id="login-prompt" style="display: none;">
       <p class="login-message">로그인 후 댓글을 남겨보세요...</p>
     </div>
   </div>

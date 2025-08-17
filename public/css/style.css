@@ -152,19 +152,11 @@ h1#detail-name {
   margin-left: 8px;
   transition: transform 0.3s ease;
 }
-.arrow.open {
-  transform: rotate(180deg);
-}
-.sub-info {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.4s ease;
-  padding-left: 12px;
-}
-.sub-info.open {
-  max-height: 1000px;
-  margin-top: 8px;
-}
+.arrow.open { transform: rotate(180deg); }
+.sub-info { overflow: hidden; max-height: 0; transition: max-height 0.4s ease; padding-left: 12px; }
+.sub-info.open { max-height: 1000px; margin-top: 8px; }
+
+/* ── Toast/검색/헤더/로그인 등 스타일 유지 (댓글 관련 제거) ── */
 
 /* ── 댓글 섹션 ── */
 .comments {

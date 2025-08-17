@@ -68,5 +68,70 @@
     "description": "대한민국의 배우. 모델 출신으로 데뷔해 드라마 <이태원 클라쓰>, <마이네임> 등에서 탄탄한 연기력을 인정받았다.",
     "heightCm": 187,
     "weightKg": 78
+  },
+  {
+    "id": "kim-dong-hee",
+    "name": "김동희",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Kim_Dong-hee_at_the_Seoul_Premiere_of_Ghost_(2023).jpg",
+    "job": "배우",
+    "birthDate": "1999-06-13",
+    "birthPlace": "안동시",
+    "education": "이목중학교, 안양예술고등학교, 가천대학교 연기예술학과(제적)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 웹드라마 <에이틴>으로 데뷔해 <SKY 캐슬>, <이태원 클라쓰>, 넷플릭스 <인간수업> 등에서 주목받았다.",
+    "heightCm": 177,
+    "weightKg": null
+  },
+  {
+    "id": "ryu-kyung-soo",
+    "name": "류경수",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ryu_Kyung-soo.jpg",
+    "job": "배우",
+    "birthDate": "1992-10-12",
+    "birthPlace": "서울특별시",
+    "education": "중앙대학교 연극영화학과(학사)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 드라마 <이태원 클라쓰>, <지옥>, <구미호뎐 1938> 등에서 인상적인 연기를 선보였다.",
+    "heightCm": 178,
+    "weightKg": 68
+  },
+  {
+    "id": "lee-joo-young",
+    "name": "이주영",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lee_Joo_Young_in_2023_(cropped).jpg",
+    "job": "배우",
+    "birthDate": "1992-02-14",
+    "birthPlace": null,
+    "education": "창현고등학교(2010년 졸업), 경희대학교 연극영화과(학사)",
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 영화 <메기>, <브로커>와 드라마 <이태원 클라쓰>, <타임즈> 등에 출연했다.",
+    "heightCm": 162,
+    "weightKg": null
+  },
+  {
+    "id": "lee-david",
+    "name": "이다윗",
+    "image": "https://commons.wikimedia.org/wiki/Special:FilePath/20210527_%EC%9D%B4%EB%8B%A4%EC%9C%97_Lee_David.png",
+    "job": "배우",
+    "birthDate": "1994-03-03",
+    "birthPlace": "인천광역시",
+    "education": null,
+    "nationality": "대한민국",
+    "description": "대한민국의 배우. 영화 <시>, <고지전>, <플루토>와 드라마 <이태원 클라쓰>, <오징어 게임> 등에서 활동했다.",
+    "heightCm": 167,
+    "weightKg": 60
+  },
+  {
+    "id": "chris-lyon",
+    "name": "크리스 라이언",
+    "image": "https://asianwiki.com/images/b/b5/Chris_Lyon-1993-p1.jpg",
+    "job": "배우",
+    "birthDate": null,
+    "birthPlace": null,
+    "education": null,
+    "nationality": "미국",
+    "description": "미국 출신 배우. 드라마 <이태원 클라쓰>에서 김토니 역으로 대중에 알려졌다.",
+    "heightCm": 180,
+    "weightKg": null
   }
 ]
