@@ -41,33 +41,20 @@ async function renderDetailPage() {
     imgEl.alt = displayName;
 
     document.getElementById('detail-name').textContent = displayName;
-    document.getElementById('detail-work').textContent = work ? work.title : '알 수 없음';
-
-    if (work) {
-      document.getElementById('detail-type').textContent = work.type || '';
-      document.getElementById('detail-release').textContent = work.releaseDate || '';
-      document.getElementById('detail-description').textContent = work.description || '';
-
-      const charsContainer = document.getElementById('detail-characters');
-      charsContainer.innerHTML = '';
-      if (work.characters && work.characters.length > 0) {
-        work.characters.forEach((characterName, index) => {
-          const realName = characterName.split('(')[0].trim();
-          const characterInfo = (work.characterIds || []).find(c => c.name === realName);
-          if (characterInfo) {
-            const roleName = characterName.match(/\(([^)]+)\)/);
-            const link = document.createElement('a');
-            link.href = `character.html?id=${characterInfo.id}`;
-            link.textContent = realName;
-            charsContainer.appendChild(link);
-            if (roleName) charsContainer.append(`(${roleName[1]})`);
-          } else {
-            charsContainer.append(characterName);
-          }
-          if (index < work.characters.length - 1) charsContainer.append(', ');
-        });
-      }
+    
+    // 작품명 링크 설정
+    const workLink = document.getElementById('detail-work-link');
+    const workText = document.getElementById('detail-work');
+    if (work && work.id) {
+      workLink.href = `work.html?id=${work.id}`;
+      workText.textContent = work.title;
+      workLink.style.display = 'inline';
+    } else {
+      workText.textContent = '알 수 없음';
+      workLink.style.display = 'none';
     }
+
+
 
     const addrEl = document.getElementById('detail-address');
     addrEl.textContent = place.address;

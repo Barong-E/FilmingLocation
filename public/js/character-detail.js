@@ -52,7 +52,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (ageEl) ageEl.textContent = age;
   if (bpEl) bpEl.textContent = birthplace ? `${birthplace} 출생` : '';
 
-  const parseNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+  const parseNum = (v) => { 
+    // null, undefined, 빈 문자열 체크를 먼저 수행
+    if (v === null || v === undefined || v === '') return null;
+    
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
   const h = parseNum(c.heightCm);
   const w = parseNum(c.weightKg);
   const phy = document.querySelector('#ch-physique');

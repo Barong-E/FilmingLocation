@@ -116,17 +116,6 @@ h1#detail-name {
 
 /* 모바일(작은 화면) 대응: 이미지 크기 축소 */
 @media (max-width: 380px) { .character-photo { width: 128px; } }
-.info {
-  margin-bottom: 12px;
-  line-height: 1.5;
-}
-.label {
-  font-weight: bold;
-  color: #666;
-}
-.value {
-  margin-left: 6px;
-}
 .value-line-break {
   display: block;
   margin-top: 1px;
@@ -153,8 +142,17 @@ h1#detail-name {
   transition: transform 0.3s ease;
 }
 .arrow.open { transform: rotate(180deg); }
-.sub-info { overflow: hidden; max-height: 0; transition: max-height 0.4s ease; padding-left: 12px; }
-.sub-info.open { max-height: 1000px; margin-top: 8px; }
+.sub-info { 
+  overflow: hidden; 
+  max-height: 0; 
+  transition: max-height 0.4s ease; 
+  padding-left: 12px; 
+}
+.sub-info.open { 
+  max-height: 1000px; 
+  margin-top: 4px;           /* 8px → 4px로 줄여서 간격 일관성 개선 */
+}
+
 
 /* ── Toast/검색/헤더/로그인 등 스타일 유지 (댓글 관련 제거) ── */
 
@@ -886,4 +884,54 @@ body.login-page .gsi-material-button {
 #search-results .page-title #search-query {
   color: #00c896;         /* FiLo 브랜드 컬러로 강조 */
   font-weight: 700;
+}
+
+/* ===== 공통 레이아웃: 모든 detail-row에 적용 ===== */
+.detail-row {
+  display: flex;
+  align-items: flex-start;   /* 줄바꿈 시 위쪽 기준으로 자연스러움 */
+  gap: 8px;                  /* 라벨-값 사이 여백 */
+  margin: 6px 0;             /* 행 간 간격(필요 시 조정) */
+}
+
+/* 라벨: 줄어들지 않도록 고정 */
+.detail-row .detail-label {
+  flex-shrink: 0;
+  font-weight: 600;          /* 기존 톤 유지(필요 시 제거) */
+  line-height: 1.5;          /* 행간 안정화 */
+}
+
+/* 값: 남는 공간을 차지하며, 줄바꿈 허용 */
+.detail-row .detail-value {
+  flex: 1;
+  min-width: 0;              /* 긴 내용 처리 시 필요(수평 오버플로 방지) */
+  line-height: 1.5;
+}
+
+/* 값 내부 텍스트/링크는 자연 줄바꿈(모드 B) */
+.detail-row .detail-value,
+.detail-row .detail-value a,
+.detail-row .detail-value span {
+  white-space: normal;       /* 줄바꿈 허용 */
+  word-break: break-word;    /* 긴 단어/주소 중간에서도 줄바꿈 */
+  overflow-wrap: anywhere;   /* 한글+숫자 혼합 주소도 잘 끊김 */
+}
+
+/* 링크 기본 톤 (프로젝트 기준 유지, 필요 시 조정) */
+.detail-row .detail-value a {
+  text-decoration: underline; 
+  cursor: pointer;
+  color: #00c896;            /* 원래 민트색으로 복원 */
+}
+
+/* 작품명 링크 스타일 */
+.work-link {
+  color: #00c896;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.work-link:hover {
+  color: #00a67d;
 }
