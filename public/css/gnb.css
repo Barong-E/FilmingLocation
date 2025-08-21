@@ -1,0 +1,195 @@
+/* GNB (Global Navigation Bar) - 모바일 하단 네비게이션 */
+
+/* iOS safe area 변수 */
+:root {
+  --sat: env(safe-area-inset-bottom, 0px);
+}
+
+/* iOS safe area를 위한 추가 컨테이너 */
+#app-gnb-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--sat);
+  background: #fff;
+  z-index: -1;
+}
+
+/* GNB 컨테이너 */
+#app-gnb-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  height: 56px; /* 정확한 높이 지정 */
+  overflow: hidden; /* 내용이 넘치지 않도록 */
+  box-sizing: border-box; /* border를 높이에 포함 */
+}
+
+/* 구분선을 위한 가상 요소 */
+#app-gnb-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+/* GNB 네비게이션 */
+.gnb {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0; /* 패딩 제거 */
+  background: #fff;
+  height: 56px; /* 유튜브 GNB 높이와 동일 */
+}
+
+/* GNB 탭 */
+.gnb-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px; /* 48px → 44px로 더 축소 */
+  min-height: 36px; /* 40px → 36px로 더 축소 */
+  padding: 2px 1px; /* 4px 2px → 2px 1px로 더 축소 */
+  text-decoration: none;
+  color: #666;
+  transition: all 0.2s ease;
+  border-radius: 4px; /* 6px → 4px로 더 축소 */
+  position: relative;
+}
+
+/* GNB 탭 호버/포커스 */
+.gnb-tab:hover,
+.gnb-tab:focus {
+  color: #333;
+  background: #f5f5f5;
+  outline: none;
+}
+
+/* GNB 탭 활성 상태 */
+.gnb-tab.is-active {
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.1);
+}
+
+/* GNB 아이콘 */
+.gnb-icon {
+  width: 22px; /* 22px로 수정 */
+  height: 22px; /* 22px로 수정 */
+  margin-bottom: 1px; /* 1px 유지 */
+  stroke: currentColor;
+  fill: none;
+  transition: transform 0.2s ease;
+}
+
+/* 활성 탭 아이콘 애니메이션 */
+.gnb-tab.is-active .gnb-icon {
+  transform: scale(1.1);
+}
+
+/* GNB 텍스트 */
+.gnb-text {
+  font-size: 11px; /* 10px → 11px로 수정 */
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  user-select: none;
+}
+
+/* 활성 탭 텍스트 강조 */
+.gnb-tab.is-active .gnb-text {
+  font-weight: 600;
+}
+
+/* 터치 피드백 */
+.gnb-tab:active {
+  transform: scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+/* 접근성: 포커스 표시 */
+.gnb-tab:focus-visible {
+  box-shadow: 0 0 0 2px #007AFF, 0 0 0 4px rgba(0, 122, 255, 0.3);
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .gnb {
+    background: #1c1c1e;
+    border-top-color: #38383a;
+  }
+  
+  .gnb-tab {
+    color: #8e8e93;
+  }
+  
+  .gnb-tab:hover,
+  .gnb-tab:focus {
+    color: #f2f2f7;
+    background: #2c2c2e;
+  }
+  
+  .gnb-tab.is-active {
+    color: #0A84FF;
+    background: rgba(10, 132, 255, 0.2);
+  }
+}
+
+/* 태블릿 이상에서는 GNB 숨김 */
+@media (min-width: 768px) {
+  #app-gnb-container {
+    display: none;
+  }
+}
+
+/* 작은 화면에서 GNB 최적화 */
+@media (max-width: 360px) {
+  .gnb-tab {
+    min-width: 40px; /* 40px 유지 */
+    padding: 1px 0px; /* 1px 0px 유지 */
+  }
+  
+  .gnb-icon {
+    width: 20px; /* 22px → 20px로 축소 */
+    height: 20px; /* 22px → 20px로 축소 */
+  }
+  
+  .gnb-text {
+    font-size: 10px; /* 9px → 10px로 수정 */
+  }
+}
+
+/* 고대비 모드 지원 */
+@media (prefers-contrast: high) {
+  .gnb {
+    border-top-width: 2px;
+    border-top-color: #000;
+  }
+  
+  .gnb-tab.is-active {
+    background: #000;
+    color: #fff;
+  }
+}
+
+/* 모션 감소 설정 지원 */
+@media (prefers-reduced-motion: reduce) {
+  .gnb-tab,
+  .gnb-icon {
+    transition: none;
+  }
+  
+  .gnb-tab:active {
+    transform: none;
+  }
+}

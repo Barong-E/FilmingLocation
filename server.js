@@ -30,6 +30,12 @@ const app = express();
 // ─── 정적 파일 서빙 ───────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
+// partials 폴더 라우트 (GNB 등 공통 컴포넌트)
+app.get('/partials/:file', (req, res) => {
+  const fileName = req.params.file;
+  res.sendFile(path.join(__dirname, 'public', 'partials', fileName));
+});
+
 // 로그인 브릿지 페이지
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
