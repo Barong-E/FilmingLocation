@@ -35,14 +35,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (w.image) {
       posterImage.src = w.image;
       posterImage.alt = `${w.title} 포스터`;
-      posterImage.onerror = () => {
-        posterImage.src = getDefaultPosterImage(w.title);
-        posterImage.classList.add('default');
-      };
-    } else {
-      posterImage.src = getDefaultPosterImage(w.title);
-      posterImage.classList.add('default');
-    }
+      
+                                 // 이미지 로드 후 비율 자동 조정
+              posterImage.onload = function() {
+                this.style.width = '100%';
+                this.style.height = 'auto';
+              };
+      
+                                       posterImage.onerror = () => {
+                posterImage.src = getDefaultPosterImage(w.title);
+                posterImage.classList.add('default');
+                posterImage.style.width = '100%';
+                posterImage.style.height = 'auto';
+              };
+                   } else {
+          posterImage.src = getDefaultPosterImage(w.title);
+          posterImage.classList.add('default');
+          posterImage.style.width = '100%';
+          posterImage.style.height = 'auto';
+        }
   }
 
   document.title = w.title;
@@ -53,7 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   const charsContainer = $('#work-chars');
   charsContainer.innerHTML = '';
-  if (w.characters && w.characters.length > 0) {
+  
+    if (w.characters && w.characters.length > 0) {
     w.characters.forEach((characterName, index) => {
       const realName = characterName.split('(')[0].trim();
       const characterInfo = (w.characterIds || []).find(c => c.name === realName);
@@ -61,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const roleName = characterName.match(/\(([^)]+)\)/);
         const link = document.createElement('a');
         link.href = `character?id=${characterInfo.id}`;
-        link.textContent = realName;
+        link.textContent = realName;  // 실제 이름을 링크 텍스트로 설정
         charsContainer.appendChild(link);
         if (roleName) charsContainer.append(`(${roleName[1]})`);
       } else {
