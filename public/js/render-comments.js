@@ -12,9 +12,9 @@ if (window.renderCommentsInitialized) {
   // 현재 페이지 타입과 ID 파악
   const urlParams = new URLSearchParams(window.location.search);
   const entityId = urlParams.get('id');
-  const isPlacePage = window.location.pathname.includes('place.html');
-  const isWorkPage = window.location.pathname.includes('work.html');
-  const isCharacterPage = window.location.pathname.includes('character.html');
+  const isPlacePage = window.location.pathname.includes('place');
+  const isWorkPage = window.location.pathname.includes('work');
+  const isCharacterPage = window.location.pathname.includes('character');
 
   console.log(`[DEBUG] render-comments.js 초기화:`, {
     pathname: window.location.pathname,
