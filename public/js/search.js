@@ -106,7 +106,7 @@ function attachSearchEvents(input, suggList) {
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       showSuggestions(input.value.trim().toLowerCase(), suggList, input);
-      // updateList(input); // index 페이지에서는 실시간 필터링을 하지 않음
+      // updateList(input); // places 페이지에서는 실시간 필터링을 하지 않음
     }, 100);
   });
 
@@ -145,7 +145,7 @@ function createRecentItemLi(term, suggList, input) {
   li.addEventListener('mousedown', (e) => {
     e.preventDefault();
     addRecentSearch(term);
-    window.location.href = `/search-results.html?query=${encodeURIComponent(term)}`;
+          window.location.href = `/search-results?query=${encodeURIComponent(term)}`;
   });
   // 삭제 (오른쪽 X 클릭)
   del.addEventListener('mousedown', (e) => {
@@ -299,7 +299,7 @@ function showSuggestions(query, suggList, input) {
       e.preventDefault();
       const keyword = sugg.label;
       addRecentSearch(keyword);
-      window.location.href = `/search-results.html?query=${encodeURIComponent(keyword)}`;
+      window.location.href = `/search-results?query=${encodeURIComponent(keyword)}`;
     });
 
     suggList.appendChild(li);

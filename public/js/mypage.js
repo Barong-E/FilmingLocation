@@ -171,7 +171,7 @@ document.getElementById('btn-logout').addEventListener('click', () => {
   }
 
   // 3) 그래도 없으면 홈
-  if (!redirectPath) redirectPath = '/index.html';
+  if (!redirectPath) redirectPath = '/places.html';
 
   window.location.href = `/auth/logout?redirect_uri=${encodeURIComponent(redirectPath)}`;
 });

@@ -46,7 +46,7 @@ async function renderDetailPage() {
     const workLink = document.getElementById('detail-work-link');
     const workText = document.getElementById('detail-work');
     if (work && work.id) {
-      workLink.href = `work.html?id=${work.id}`;
+      workLink.href = `work?id=${work.id}`;
       workText.textContent = work.title;
       workLink.style.display = 'inline';
     } else {

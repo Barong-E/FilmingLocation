@@ -40,6 +40,35 @@ app.get('/mypage', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'mypage.html'));
 });
 
+// HTML 페이지 라우트 (확장자 없이)
+app.get('/places', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'places.html'));
+});
+
+app.get('/works', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'works.html'));
+});
+
+app.get('/characters', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'characters.html'));
+});
+
+app.get('/place', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'place.html'));
+});
+
+app.get('/work', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'work.html'));
+});
+
+app.get('/character', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'character.html'));
+});
+
+app.get('/search-results', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'search-results.html'));
+});
+
 // ─── 2) CORS 설정 ─────────────────────────────────────────────────────
 app.use(cors({
   origin: [
@@ -84,9 +113,9 @@ app.use('/api/places/:placeId/comments', commentRoutes);
 app.use('/api/works/:workId/comments',   commentRoutes);
 app.use('/api/characters/:characterId/comments', commentRoutes);
 
-// ─── 9) 테스트용 기본 라우트 ───────────────────────────────────────────
+// ─── 9) 기본 라우트 (장소 리스트 페이지) ───────────────────────────────
 app.get('/', (req, res) => {
-  res.send('Hello from Filo server!');
+  res.sendFile(path.join(__dirname, 'public', 'places.html'));
 });
 
 // ─── 10) 서버 시작 (모바일 접속 가능!) ────────────────────────────────

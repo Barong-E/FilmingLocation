@@ -12,7 +12,7 @@ export function renderPlaces(places) {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
     const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
     const card = document.createElement('a');
-    card.href = `place.html?id=${place.id}`; // JSON의 id 사용 (URL 안정성)
+    card.href = `place?id=${place.id}`; // JSON의 id 사용 (URL 안정성)
     card.className = 'place-card';
     card.innerHTML = `
       <img src="${place.image}" alt="${place.real_name || place.fictional_name}" class="place-img" />
@@ -67,11 +67,11 @@ export async function renderProfileArea() {
       try {
         sessionStorage.setItem('prev_url_before_mypage', currentPath);
       } catch (e) { /* storage가 막힌 환경 대비 무시 */ }
-      window.location.href = '/mypage.html';
+              window.location.href = '/mypage';
     } else {
       // 로그인 후 돌아올 현재 페이지 주소를 쿼리 파라미터로 전달
       const redirectUrl = window.location.pathname + window.location.search;
-      window.location.href = `/login.html?redirect_uri=${encodeURIComponent(redirectUrl)}`;
+              window.location.href = `/login?redirect_uri=${encodeURIComponent(redirectUrl)}`;
     }
   };
 }

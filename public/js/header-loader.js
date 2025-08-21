@@ -66,7 +66,7 @@ export function setupHeaderSearch() {
         filtered.unshift(keyword);
         localStorage.setItem(key, JSON.stringify(filtered.slice(0, 8)));
       } catch (_) {}
-      window.location.href = `/search-results.html?query=${encodeURIComponent(keyword)}`;
+      window.location.href = `/search-results?query=${encodeURIComponent(keyword)}`;
     }
   }
 

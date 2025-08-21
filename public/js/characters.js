@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   list.forEach(c => {
     const a = document.createElement('a');
-    a.href = `character.html?id=${c.id}`;
+    a.href = `character?id=${c.id}`;
     a.className = 'place-card';
     a.innerHTML = `
       <div class="place-info">

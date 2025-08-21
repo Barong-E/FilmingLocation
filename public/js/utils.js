@@ -129,7 +129,7 @@ export async function checkAuth() {
           const u = new URL(ref);
           redirectPath = u.pathname + u.search;
         } else {
-          redirectPath = '/index.html';
+          redirectPath = '/places.html';
         }
       }
 

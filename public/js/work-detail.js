@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (characterInfo) {
         const roleName = characterName.match(/\(([^)]+)\)/);
         const link = document.createElement('a');
-        link.href = `character.html?id=${characterInfo.id}`;
+        link.href = `character?id=${characterInfo.id}`;
         link.textContent = realName;
         charsContainer.appendChild(link);
         if (roleName) charsContainer.append(`(${roleName[1]})`);
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     placesContainer.innerHTML = '';
     w.placeIds.forEach((place, index) => {
       const link = document.createElement('a');
-      link.href = `place.html?id=${place._id}`;
+      link.href = `place?id=${place._id}`;
       link.textContent = place.real_name || place.fictional_name;
       placesContainer.appendChild(link);
       if (index < w.placeIds.length - 1) placesContainer.append(', ');
