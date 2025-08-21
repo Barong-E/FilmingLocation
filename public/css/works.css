@@ -1,0 +1,148 @@
+/* 작품 목록 페이지 스타일 */
+.work-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+}
+
+.work-item {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: stretch;
+}
+
+.work-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.work-poster-container {
+  position: relative;
+  width: 120px;
+  height: 180px; /* 2:3 비율 (포스터 비율) */
+  overflow: hidden;
+  background: #f5f5f5;
+  flex-shrink: 0; /* 크기 고정 */
+}
+
+.work-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.work-item:hover .work-poster {
+  transform: scale(1.05);
+}
+
+.work-info {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.work-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.work-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #666;
+}
+
+.work-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+}
+
+.work-type {
+  color: #666;
+  font-weight: 500;
+}
+
+.work-release {
+  color: #888;
+}
+
+.work-separator {
+  color: #ccc;
+  font-weight: 300;
+}
+
+.work-description {
+  color: #666;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  max-height: calc(1.4em * 2); /* 2줄 높이 명시적 지정 */
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .work-list {
+    gap: 12px;
+    padding: 16px 0;
+  }
+  
+  .work-poster-container {
+    width: 80px;
+    height: 120px; /* 모바일에서도 2:3 비율 유지 */
+  }
+  
+  .work-info {
+    padding: 12px;
+  }
+  
+  .work-title {
+    font-size: 16px;
+  }
+  
+  .work-details {
+    font-size: 13px;
+  }
+  
+  .work-description {
+    font-size: 13px;
+    -webkit-line-clamp: 2; /* 2줄로 표시 */
+    max-height: calc(1.3em * 2); /* 모바일에서도 2줄 높이 */
+  }
+}
+
+/* 로딩 상태 */
+.work-item.loading {
+  opacity: 0.7;
+}
+
+.work-item.loading .work-poster-container {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

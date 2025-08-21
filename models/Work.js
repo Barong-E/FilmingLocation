@@ -9,6 +9,7 @@ const WorkSchema = new mongoose.Schema({
   type: { type: String },                                 // 드라마/영화/예능 등
   releaseDate: { type: String },                          // 공개일
   description: { type: String },                          // 간단 소개
+  image: { type: String },                                // 포스터 이미지 경로 (/images/works/{id}.png)
   characters: { type: [String], default: [] },             // 등장인물 배열 (화면 표시용)
   characterIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Character' }], // Character 모델 참조
   placeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Place' }]       // Place 모델 참조

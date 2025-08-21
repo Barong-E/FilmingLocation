@@ -1,0 +1,127 @@
+/* 인물 목록 페이지 스타일 */
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.character-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.character-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.character-image-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.character-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.character-card:hover .character-image {
+  transform: scale(1.05);
+}
+
+.character-info {
+  padding: 16px;
+}
+
+.character-name-row {
+  display: flex;
+  align-items: center; /* 중앙 정렬로 변경 */
+  flex-wrap: wrap;
+}
+
+.character-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.2; /* 줄 간격 줄임 */
+  margin-right: 4px;
+  margin-bottom: 0; /* 마진 완전 제거 */
+}
+
+.character-subtitle {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+  line-height: 1.2; /* 줄 간격 줄임 */
+}
+
+.character-birth-row {
+   gap: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.character-birth {
+  color: #666;
+}
+
+.character-age {
+  color: #888;
+  font-weight: 500;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+  }
+  
+  .character-image-container {
+    height: 160px;
+  }
+  
+  .character-info {
+    padding: 12px;
+  }
+  
+  .character-name {
+    font-size: 16px;
+  }
+  
+  .character-subtitle {
+    font-size: 13px;
+  }
+  
+  .character-birth-row {
+    font-size: 13px;
+  }
+}
+
+/* 로딩 상태 */
+.character-card.loading {
+  opacity: 0.7;
+}
+
+.character-card.loading .character-image-container {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
