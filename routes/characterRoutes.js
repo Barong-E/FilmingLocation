@@ -1,5 +1,6 @@
 import express from 'express';
 import Character from '../models/Character.js';
+import Work from '../models/Work.js'; // Work 모델 추가
 
 const router = express.Router();
 
@@ -57,6 +58,61 @@ router.post('/', async (req, res) => {
       error: { 
         code: 'INTERNAL_ERROR', 
         message: '등장인물 추가 중 오류가 발생했습니다.' 
+      } 
+    });
+  }
+});
+
+// 인물이 출현한 작품들 찾기
+router.get('/:id/works', async (req, res) => {
+  try {
+    const characterId = req.params.id;
+    
+    // 해당 인물 찾기
+    const character = await Character.findOne({ id: characterId });
+    if (!character) {
+      return res.status(404).json({ 
+        error: { 
+          code: 'CHARACTER_NOT_FOUND', 
+          message: '등장인물을 찾을 수 없습니다.' 
+        } 
+      });
+    }
+    
+    // 방법 1: characterIds로 직접 연결된 작품들 찾기
+    let works = await Work.find({
+      characterIds: character._id
+    }).select('id title type image releaseDate');
+    
+    // 방법 2: characters 배열에서 이름으로 검색 (characterIds가 비어있는 경우)
+    if (!works || works.length === 0) {
+      works = await Work.find({
+        characters: { $regex: character.name, $options: 'i' }
+      }).select('id title type image releaseDate');
+    }
+    
+    // 방법 3: 더 유연한 검색 (부분 일치)
+    if (!works || works.length === 0) {
+      works = await Work.find({
+        $or: [
+          { characterIds: character._id },
+          { characters: { $regex: character.name, $options: 'i' } },
+          { characters: { $regex: `.*${character.name}.*`, $options: 'i' } }
+        ]
+      }).select('id title type image releaseDate');
+    }
+    
+    // 디버깅 정보 추가
+    console.log(`Character ${character.name} (${characterId}) found ${works.length} works`);
+    
+    res.json(works);
+    
+  } catch (error) {
+    console.error('Error fetching character works:', error);
+    res.status(500).json({ 
+      error: { 
+        code: 'INTERNAL_ERROR', 
+        message: '작품 정보를 가져오는 중 오류가 발생했습니다.' 
       } 
     });
   }
