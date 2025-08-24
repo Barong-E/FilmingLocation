@@ -7,11 +7,16 @@ let isHeaderSearchInitialized = false;
 
 // 헤더 HTML 로드
 export async function loadHeader() {
-  await fetch('header.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById('header').innerHTML = html;
-    });
+  try {
+    const res = await fetch('/header.html');
+    if (!res.ok) throw new Error('Failed to load header.html');
+    const html = await res.text();
+    const headerRoot = document.getElementById('header');
+    if (headerRoot) headerRoot.innerHTML = html;
+  } catch (e) {
+    console.error('헤더 로드 실패:', e);
+    return;
+  }
   // 헤더가 로드된 후, 프로필 영역 렌더링
   await renderProfileArea();
 }
@@ -66,7 +71,7 @@ export function setupHeaderSearch() {
         filtered.unshift(keyword);
         localStorage.setItem(key, JSON.stringify(filtered.slice(0, 8)));
       } catch (_) {}
-      window.location.href = `/search-results?query=${encodeURIComponent(keyword)}`;
+      window.location.href = `/search?q=${encodeURIComponent(keyword)}`;
     }
   }
 

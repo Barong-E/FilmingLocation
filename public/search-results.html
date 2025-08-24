@@ -4,25 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FiLo — 검색 결과</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/gnb.css" /> <!-- GNB CSS 추가 -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/gnb.css" />
+  <link rel="stylesheet" href="/css/works.css" />
+  <link rel="stylesheet" href="/css/characters.css" />
 </head>
 <body>
   <div id="header"></div>
 
   <div class="container" id="search-results">
-    <h2 class="page-title">
-      '<span id="search-query"></span>'에 대한 검색 결과
-    </h2>
-    <div id="search-results-list" class="place-list">
-      <!-- 검색 결과가 여기에 동적으로 렌더링됩니다. -->
+    <h2 class="page-title">'<span id="search-query"></span>'에 대한 검색 결과</h2>
+    <!-- 탭 바 -->
+    <div id="search-tabs" class="search-tabs" role="tablist" aria-label="검색 결과 탭">
+      <button id="tab-places" class="search-tab active" role="tab" aria-selected="true" data-type="places">
+        장소 <span class="result-count" id="count-places">0</span>
+      </button>
+      <button id="tab-works" class="search-tab" role="tab" aria-selected="false" data-type="works">
+        작품 <span class="result-count" id="count-works">0</span>
+      </button>
+      <button id="tab-characters" class="search-tab" role="tab" aria-selected="false" data-type="characters">
+        인물 <span class="result-count" id="count-characters">0</span>
+      </button>
+    </div>
+
+    <!-- 결과 영역 -->
+    <div id="results" class="results">
+      <div id="results-places" class="results-panel" role="tabpanel"></div>
+      <div id="results-works" class="results-panel" role="tabpanel" hidden></div>
+      <div id="results-characters" class="results-panel" role="tabpanel" hidden></div>
     </div>
   </div>
 
   <!-- GNB 컨테이너 추가 -->
   <div id="app-gnb-container"></div>
 
-  <script type="module" src="js/search-results.js"></script>
+  <script type="module" src="/js/search-results.js"></script>
 </body>
 </html>
 

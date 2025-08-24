@@ -15,6 +15,7 @@ import workRoutes        from './routes/workRoutes.js';
 import characterRoutes   from './routes/characterRoutes.js';
 import commentRoutes     from './routes/commentRoutes.js';
 import userRoutes        from './routes/userRoutes.js';
+import searchRoutes      from './routes/searchRoutes.js';
 
 // ─── 환경 변수 설정 & DB 연결 ─────────────────────────────────────────
 dotenv.config();
@@ -71,7 +72,22 @@ app.get('/character', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'character.html'));
 });
 
-app.get('/search-results', (req, res) => {
+// 검색 결과 페이지 (신규 구조)
+app.get('/search', (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (q) {
+    // 기본 탭은 장소로 리다이렉트
+    return res.redirect(`/search/places?q=${encodeURIComponent(q)}`);
+  }
+  res.sendFile(path.join(__dirname, 'public', 'search-results.html'));
+});
+
+// 탭 전용 경로: /search/:type (places|works|characters)
+app.get('/search/:type', (req, res) => {
+  const { type } = req.params;
+  if (!['places', 'works', 'characters'].includes(type)) {
+    return res.redirect('/search');
+  }
   res.sendFile(path.join(__dirname, 'public', 'search-results.html'));
 });
 
@@ -113,6 +129,7 @@ app.use('/api/places', placeRoutes);
 app.use('/api/works',  workRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api',        userRoutes); // ⭐ 이 부분이 중요!
+app.use('/api/search', searchRoutes);
 
 // ─── 8) 댓글 라우터 ───────────────────────────────────────────────────
 app.use('/api/places/:placeId/comments', commentRoutes);

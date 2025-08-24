@@ -1,6 +1,18 @@
 // public/js/render-places.js
 
 // 장소 카드 렌더링 함수
+function getDefaultPlaceImage(name) {
+  const text = (name || 'FiLo').charAt(0);
+  const colors = ['#A0AEC0', '#CBD5E0', '#E2E8F0'];
+  const color = colors[(name || '').length % colors.length];
+  return `data:image/svg+xml,${encodeURIComponent(`
+    <svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="120" fill="${color}"/>
+      <text x="100" y="70" font-family="Arial, sans-serif" font-size="48" fill="#fff" text-anchor="middle">${text}</text>
+    </svg>
+  `)}`;
+}
+
 export function renderPlaces(places) {
   const container = document.getElementById('place-list');
   // place-list 컨테이너가 없는 페이지(예: 상세 페이지)에서는 함수를 바로 종료
@@ -12,12 +24,15 @@ export function renderPlaces(places) {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
     const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
     const card = document.createElement('a');
-    card.href = `place?id=${place.id}`; // JSON의 id 사용 (URL 안정성)
+    const pid = place.id || place._id; // 집계 결과에서 _id만 오는 경우 대비
+    card.href = `place?id=${pid}`;
     card.className = 'place-card';
+    const displayName = place.real_name || place.fictional_name || '';
+    const imgSrc = place.image || getDefaultPlaceImage(displayName);
     card.innerHTML = `
-      <img src="${place.image}" alt="${place.real_name || place.fictional_name}" class="place-img" />
+      <img src="${imgSrc}" alt="${displayName}" class="place-img" onerror="this.src='${getDefaultPlaceImage(displayName)}'" />
       <div class="place-info">
-        <div class="place-name">${place.real_name || place.fictional_name}</div>
+        <div class="place-name">${displayName}</div>
         <div class="work-name">${workTitle}</div>
         <div class="place-address" title="${place.address}">${place.address}</div>
       </div>

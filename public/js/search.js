@@ -63,15 +63,8 @@ function initializeSearch() {
     input.parentElement.appendChild(suggList);
   }
 
-  // 데이터 로드
-  // Promise.all([
-  //   fetch('/api/works').then(res => res.json()),
-  //   fetch('/api/places').then(res => res.json())
-  // ])
-  //   .then(([works, places]) => {
-  //     setWorks(works);
-  //     allPlaces = places;
-  fetch('/api/places') // places 데이터만 가져오면 됨
+  // 데이터 로드 (장소 리스트 페이지 초기 렌더)
+  fetch('/api/places')
     .then(res => res.json())
     .then(places => {
       allPlaces = places; // 작품 정보가 이미 포함되어 있음
@@ -145,7 +138,7 @@ function createRecentItemLi(term, suggList, input) {
   li.addEventListener('mousedown', (e) => {
     e.preventDefault();
     addRecentSearch(term);
-          window.location.href = `/search-results?query=${encodeURIComponent(term)}`;
+          window.location.href = `/search?q=${encodeURIComponent(term)}`;
   });
   // 삭제 (오른쪽 X 클릭)
   del.addEventListener('mousedown', (e) => {
@@ -192,7 +185,7 @@ function appendRecentHeader(suggList, input) {
 }
 
 // 3️⃣ 추천어 표시 (최근 검색어 포함)
-function showSuggestions(query, suggList, input) {
+async function showSuggestions(query, suggList, input) {
   suggList.innerHTML = '';
 
   const lowerQuery = (query || '').toLowerCase();
@@ -215,11 +208,9 @@ function showSuggestions(query, suggList, input) {
     return;
   }
 
-  // 입력이 있을 때: 최근 매칭을 먼저 쌓고, 그 다음 일반 추천어
+  // 입력이 있을 때: API 기반 추천어 + 최근 매칭 혼합
   const suggestions = [];
   const uniqSet = new Set();
-
-  // 타입+라벨 기준으로 추가하는 헬퍼
   const add = (type, label) => {
     const key = `${type}|${label.toLowerCase()}`;
     if (uniqSet.has(key)) return;
@@ -237,33 +228,14 @@ function showSuggestions(query, suggList, input) {
     });
   }
 
-  // 장소명
-  allPlaces.forEach(place => {
-    const combinedName = formatPlaceName(place.real_name, place.fictional_name);
-    if (combinedName.toLowerCase().includes(lowerQuery)) {
-      add('place', combinedName);
+  // API에서 추천어 가져오기 (장소/작품/인물 포함)
+  try {
+    const res = await fetch(`/api/search/suggest?q=${encodeURIComponent(lowerQuery)}`);
+    if (res.ok) {
+      const data = await res.json();
+      (data.suggestions || []).forEach(s => add(s.type, s.label));
     }
-  });
-
-  // 작품명 (이제 allPlaces에 workInfo가 포함되어 있음)
-  const worksForSuggestions = allPlaces
-    .map(p => p.workInfo)
-    .filter(w => w && w.title); // 중복 제거 전
-  
-  const uniqueWorks = [...new Map(worksForSuggestions.map(w => [w.id, w])).values()];
-
-  uniqueWorks.forEach(work => {
-    if (work.title.toLowerCase().includes(lowerQuery)) {
-      add('work', work.title);
-    }
-  });
-
-  // 주소
-  allPlaces.forEach(place => {
-    if (place.address.toLowerCase().includes(lowerQuery)) {
-      add('addr', place.address);
-    }
-  });
+  } catch (_) {}
 
   if (suggestions.length === 0 && recentMatches.length === 0) {
     suggList.classList.remove('show');
@@ -283,9 +255,9 @@ function showSuggestions(query, suggList, input) {
 
     let icon = '';
     let kind = '';
-    if (sugg.type === 'place') { icon = '🏠'; kind = '장소'; }
+    if (sugg.type === 'place') { icon = '📍'; kind = '장소'; }
     if (sugg.type === 'work')  { icon = '🎬'; kind = '작품'; }
-    if (sugg.type === 'addr')  { icon = '📍'; kind = '주소'; }
+    if (sugg.type === 'character')  { icon = '👤'; kind = '인물'; }
 
     left.innerHTML = `
       <span class="sugg-icon">${icon}</span>
@@ -299,7 +271,7 @@ function showSuggestions(query, suggList, input) {
       e.preventDefault();
       const keyword = sugg.label;
       addRecentSearch(keyword);
-      window.location.href = `/search-results?query=${encodeURIComponent(keyword)}`;
+      window.location.href = `/search?q=${encodeURIComponent(keyword)}`;
     });
 
     suggList.appendChild(li);
