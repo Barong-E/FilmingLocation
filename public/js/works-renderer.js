@@ -21,7 +21,8 @@ export function renderWorks(works, root) {
 
   works.forEach(work => {
     const item = document.createElement('a');
-    item.href = `work?id=${work.id}`;
+    const wid = work.id || work._id;
+    item.href = `/work?id=${wid}`;
     item.className = 'work-item';
 
     const imageUrl = work.image || getDefaultPosterImage(work.title);

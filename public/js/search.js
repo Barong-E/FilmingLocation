@@ -218,8 +218,16 @@ async function showSuggestions(query, suggList, input) {
     suggestions.push({ type, label });
   };
 
-  // 최근 검색어 먼저 (항상 표시)
-  const recentMatches = recent.filter(k => k.toLowerCase().includes(lowerQuery));
+  // 최근 검색어 먼저 (항상 표시) - 우선순위 정렬: 완전일치 > 접두사 > 부분일치
+  const rank = (label) => {
+    const l = label.toLowerCase();
+    if (l === lowerQuery) return 0;
+    if (l.startsWith(lowerQuery)) return 1;
+    return 2;
+  };
+  const recentMatches = recent
+    .filter(k => k.toLowerCase().includes(lowerQuery))
+    .sort((a, b) => rank(a) - rank(b));
   if (recentMatches.length) {
     appendRecentHeader(suggList, input);
     recentMatches.forEach(term => {
@@ -233,7 +241,8 @@ async function showSuggestions(query, suggList, input) {
     const res = await fetch(`/api/search/suggest?q=${encodeURIComponent(lowerQuery)}`);
     if (res.ok) {
       const data = await res.json();
-      (data.suggestions || []).forEach(s => add(s.type, s.label));
+      const sorted = (data.suggestions || []).slice().sort((a, b) => rank(a.label) - rank(b.label));
+      sorted.forEach(s => add(s.type, s.label));
     }
   } catch (_) {}
 
@@ -243,7 +252,7 @@ async function showSuggestions(query, suggList, input) {
   }
 
   // 일반 추천어 렌더 (최근 다음)
-  suggestions.slice(0, 8).forEach(sugg => {
+  suggestions.slice(0, 12).forEach(sugg => {
     const li = document.createElement('li');
     li.style.display = 'flex';
     li.style.alignItems = 'center';

@@ -421,7 +421,7 @@ h1#detail-name {
   border: 1px solid #eee;
   border-radius: 0 0 8px 8px;
   box-shadow: 0 6px 18px 0 rgba(0,0,0,0.05);
-  max-height: 220px;
+  max-height: 360px; /* 더 많이 보이도록 증가 */
   overflow-y: auto;
   padding: 0;
   margin: 0;
