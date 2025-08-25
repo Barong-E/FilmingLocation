@@ -47,7 +47,7 @@ export function renderCharacters(list, root) {
     const formattedBirth = formatDate(character.birthDate);
 
     const card = document.createElement('a');
-    card.href = `character?id=${character.id}`;
+    card.href = `/character?id=${character.id}`;
     card.className = 'character-card';
 
     const imageUrl = character.image || getDefaultProfileImage(character.name);
