@@ -1094,12 +1094,14 @@ body.login-page .gsi-material-button {
 }
 
 #results-places, #results-works, #results-characters { 
-  display: flex;
-  flex-direction: column;
-  gap: 16px; /* 아이템 간격 */
+  /* display, gap 등은 각 list 유형에 따라 다르므로 여기서 제거 */
 }
 
 .results-panel .empty-state { 
-  /* position: absolute; 이제 필요 없음. 패딩으로 위치 잡힘 */
-  margin: 0; /* 패딩으로 위치 조정하므로 margin 제거 */
+  position: absolute; /* 컨테이너의 스타일에 영향을 받지 않도록 위치 고정 */
+  top: 16px;          /* 부모 패널의 padding-top과 동일한 값 */
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: left; /* 기본 정렬 */
 }
