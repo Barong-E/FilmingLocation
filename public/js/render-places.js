@@ -1,4 +1,5 @@
 // public/js/render-places.js
+import { highlightText, smartTruncate } from './highlight-utils.js';
 
 // 장소 카드 렌더링 함수
 function getDefaultPlaceImage(name) {
@@ -13,32 +14,49 @@ function getDefaultPlaceImage(name) {
   `)}`;
 }
 
-export function renderPlaces(places) {
+export function renderPlaces(places, searchQuery = '') {
   const container = document.getElementById('place-list');
   // place-list 컨테이너가 없는 페이지(예: 상세 페이지)에서는 함수를 바로 종료
   if (!container) {
     return;
   }
+  
+  // 🚨 안전성 검사 추가: places가 배열인지 확인
+  if (!Array.isArray(places)) {
+    console.warn('⚠️ renderPlaces: places가 배열이 아닙니다:', places);
+    places = []; // 빈 배열로 초기화
+  }
+  
   container.innerHTML = '';
+  
   places.forEach(place => {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
-    const workTitle = place.workInfo?.title || '알 수 없음'; // 백엔드에서 받은 workInfo를 바로 사용
+    const workTitle = place.relatedWorks?.[0]?.title || place.workInfo?.title || '알 수 없음'; // 검색 API와 호환
     const card = document.createElement('a');
     const pid = place.id || place._id; // 집계 결과에서 _id만 오는 경우 대비
-    card.href = `place?id=${pid}`;
+    card.href = `/place?id=${pid}`;
     card.className = 'place-card';
+    
     const displayName = place.real_name || place.fictional_name || '';
     const imgSrc = place.image || getDefaultPlaceImage(displayName);
+    
+    // 🎨 검색어 하이라이팅 적용
+    const highlightedName = searchQuery ? highlightText(displayName, searchQuery) : displayName;
+    const highlightedWorkTitle = searchQuery ? highlightText(workTitle, searchQuery) : workTitle;
+    const highlightedAddress = searchQuery ? highlightText(place.address || '', searchQuery) : (place.address || '');
+    
     card.innerHTML = `
       <img src="${imgSrc}" alt="${displayName}" class="place-img" onerror="this.src='${getDefaultPlaceImage(displayName)}'" />
       <div class="place-info">
-        <div class="place-name">${displayName}</div>
-        <div class="work-name">${workTitle}</div>
-        <div class="place-address" title="${place.address}">${place.address}</div>
+        <div class="place-name">${highlightedName}</div>
+        <div class="work-name">${highlightedWorkTitle}</div>
+        <div class="place-address" title="${place.address || ''}">${highlightedAddress}</div>
       </div>
     `;
     container.appendChild(card);
   });
+  
+  // 전역 함수로도 등록 (하위 호환성)
   window.renderPlaces = renderPlaces;
 }
 

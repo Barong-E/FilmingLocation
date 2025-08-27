@@ -17,9 +17,22 @@ import commentRoutes     from './routes/commentRoutes.js';
 import userRoutes        from './routes/userRoutes.js';
 import searchRoutes      from './routes/searchRoutes.js';
 
+// Redis 연결 관리
+import redisManager from './config/redis.js';
+
 // ─── 환경 변수 설정 & DB 연결 ─────────────────────────────────────────
 dotenv.config();
 await connectDB();
+
+// ─── Redis 연결 초기화 ────────────────────────────────────────────────
+(async () => {
+  try {
+    await redisManager.connect();
+    console.log('🚀 FiLo 서버 Redis 연결 완료');
+  } catch (error) {
+    console.log('⚠️  Redis 연결 실패, 메모리 캐시로 동작합니다:', error.message);
+  }
+})();
 
 // ─── __dirname 정의 (ESM) ──────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +58,11 @@ app.get('/login', (req, res) => {
 // 마이페이지 (HTML)
 app.get('/mypage', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'mypage.html'));
+});
+
+// 📊 검색 통계 대시보드 (관리자용)
+app.get('/admin/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
 
 // HTML 페이지 라우트 (확장자 없이)

@@ -28,6 +28,13 @@ CharacterSchema.virtual('age').get(function() {
   return `만 ${age}세`;
 });
 
+// 검색 성능 최적화를 위한 인덱스 추가
+CharacterSchema.index({ name: 1 });                       // 이름 인덱스
+CharacterSchema.index({ job: 1 });                        // 직업 인덱스
+CharacterSchema.index({ nationality: 1 });                // 국적 인덱스
+CharacterSchema.index({ birthPlace: 1 });                 // 출생지 인덱스
+CharacterSchema.index({ name: 'text', job: 'text', description: 'text' }); // 텍스트 검색 인덱스
+
 CharacterSchema.set('toJSON', { virtuals: true });
 CharacterSchema.set('toObject', { virtuals: true });
 

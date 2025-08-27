@@ -15,5 +15,13 @@ const WorkSchema = new mongoose.Schema({
   placeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Place' }]       // Place 모델 참조
 });
 
+// 검색 성능 최적화를 위한 인덱스 추가
+WorkSchema.index({ title: 1 });                          // 작품 제목 인덱스
+WorkSchema.index({ characters: 1 });                     // 등장인물 배열 인덱스
+WorkSchema.index({ type: 1 });                          // 작품 타입 인덱스
+WorkSchema.index({ characterIds: 1 });                  // Character 참조 인덱스
+WorkSchema.index({ placeIds: 1 });                      // Place 참조 인덱스
+WorkSchema.index({ title: 'text', characters: 'text', description: 'text' }); // 텍스트 검색 인덱스
+
 // Work 모델 생성 및 내보내기
 export default mongoose.model('Work', WorkSchema);

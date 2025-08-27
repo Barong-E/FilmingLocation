@@ -1,5 +1,6 @@
 // public/js/search.js
 import { renderPlaces } from './render-places.js';
+import { highlightText } from './highlight-utils.js';
 
 let allPlaces = [];
 let isSearchInitialized = false; // 중복 초기화 방지
@@ -122,10 +123,15 @@ function createRecentItemLi(term, suggList, input) {
   const left = document.createElement('div');
   left.style.display = 'flex';
   left.style.alignItems = 'center';
+  
+  // 🎨 검색어 하이라이팅 적용 (최근 검색어)
+  const currentQuery = input.value.trim();
+  const highlightedTerm = currentQuery ? highlightText(term, currentQuery) : term;
+  
   left.innerHTML = `
     <span class="sugg-icon">🕘</span>
     <span class="sugg-label">최근</span>
-    <span class="sugg-text">${term}</span>
+    <span class="sugg-text">${highlightedTerm}</span>
   `;
 
   const del = document.createElement('span');
@@ -268,10 +274,13 @@ async function showSuggestions(query, suggList, input) {
     if (sugg.type === 'work')  { icon = '🎬'; kind = '작품'; }
     if (sugg.type === 'character')  { icon = '👤'; kind = '인물'; }
 
+    // 🎨 검색어 하이라이팅 적용
+    const highlightedLabel = highlightText(sugg.label, query);
+    
     left.innerHTML = `
       <span class="sugg-icon">${icon}</span>
       <span class="sugg-label">${kind}</span>
-      <span class="sugg-text">${sugg.label}</span>
+      <span class="sugg-text">${highlightedLabel}</span>
     `;
 
     li.appendChild(left);

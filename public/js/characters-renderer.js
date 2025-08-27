@@ -1,4 +1,5 @@
 // public/js/characters-renderer.js
+import { highlightText, smartTruncate } from './highlight-utils.js';
 
 function calculateAge(birthDate) {
   if (!birthDate) return null;
@@ -29,7 +30,7 @@ function getDefaultProfileImage(name) {
   `)}`;
 }
 
-export function renderCharacters(list, root) {
+export function renderCharacters(list, root, searchQuery = '') {
   const el = typeof root === 'string' ? document.getElementById(root) : (root || document.getElementById('character-list'));
   if (!el) return;
   el.innerHTML = '';
@@ -52,19 +53,29 @@ export function renderCharacters(list, root) {
 
     const imageUrl = character.image || getDefaultProfileImage(character.name);
 
+    // 🎨 검색어 하이라이팅 적용
+    const highlightedName = searchQuery ? highlightText(character.name, searchQuery) : character.name;
+    const highlightedJob = searchQuery ? highlightText(character.job || '', searchQuery) : (character.job || '');
+    const highlightedNationality = searchQuery ? highlightText(character.nationality || '', searchQuery) : (character.nationality || '');
+
     card.innerHTML = `
       <div class="character-image-container">
         <img class="character-image" src="${imageUrl}" alt="${character.name} 프로필 이미지" loading="lazy" onerror="this.src='${getDefaultProfileImage(character.name)}'" />
       </div>
       <div class="character-info">
         <div class="character-name-row">
-          <span class="character-name">${character.name}</span>
-          ${character.job ? `<span class="character-subtitle">${character.job}</span>` : ''}
+          <span class="character-name">${highlightedName}</span>
+          ${character.job ? `<span class="character-subtitle">${highlightedJob}</span>` : ''}
         </div>
         ${formattedBirth ? `
           <div class="character-birth-row">
             <span class="character-birth">${formattedBirth}</span>
             ${age !== null ? `<span class="character-age">(${age}세)</span>` : ''}
+          </div>
+        ` : ''}
+        ${character.nationality && searchQuery ? `
+          <div class="character-nationality">
+            <span>${highlightedNationality}</span>
           </div>
         ` : ''}
       </div>

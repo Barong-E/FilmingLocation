@@ -1001,3 +1001,105 @@ body.login-page .gsi-material-button {
   text-align: center;
   padding: 20px;
 }
+
+/* 🎨 검색어 하이라이팅 스타일 */
+.search-highlight {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 다크 모드 대응 */
+@media (prefers-color-scheme: dark) {
+  .search-highlight {
+    background-color: #664d03;
+    color: #fff3cd;
+  }
+}
+
+/* 강조 애니메이션 */
+.search-highlight-animated {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 600;
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% { background-color: #ffc107; }
+  50% { background-color: #fff3cd; }
+  100% { background-color: #fff3cd; }
+}
+
+/* 검색 결과별 하이라이팅 색상 */
+.highlight-place {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-left: 3px solid #17a2b8;
+  padding-left: 5px;
+}
+
+.highlight-work {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-left: 3px solid #dc3545;
+  padding-left: 5px;
+}
+
+.highlight-character {
+  background-color: #d4edda;
+  color: #155724;
+  border-left: 3px solid #28a745;
+  padding-left: 5px;
+}
+
+/* 검색 컨텍스트 스타일 */
+.search-context {
+  font-size: 0.9em;
+  color: #666;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.search-context .search-highlight {
+  font-size: 1em;
+  background-color: #ffc107;
+  color: #212529;
+}
+
+/* 공통 빈 상태 문구 위치/스타일 통일 */
+.empty-state {
+  margin: 16px 0 0; /* 항상 첫 줄 위치에 보이도록 위쪽만 여백 */
+  color: #666;
+  font-size: 14px;
+}
+
+/* 검색 결과 패널 레이아웃 안정화 */
+.results { margin-top: 8px; }
+
+.results-panel { 
+  position: relative; /* 자식 요소인 .empty-state의 기준점 */
+  padding-top: 16px; /* 모든 패널 동일한 상단 패딩 */
+}
+
+/* 🚨 중요: 결과가 있을 때만 최소 높이를 적용하여 빈 패널이 공간을 차지하지 않도록 함 */
+.results-panel:not(:empty) {
+  min-height: 160px; 
+}
+
+#results-places, #results-works, #results-characters { 
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 아이템 간격 */
+}
+
+.results-panel .empty-state { 
+  /* position: absolute; 이제 필요 없음. 패딩으로 위치 잡힘 */
+  margin: 0; /* 패딩으로 위치 조정하므로 margin 제거 */
+}

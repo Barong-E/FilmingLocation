@@ -85,6 +85,20 @@ function updateURL(type, q) {
   history.pushState({ type, q }, '', url);
 }
 
+// 공통 빈 상태 렌더러
+function renderEmpty(container, message = '해당 조건의 결과가 없습니다') {
+  container.innerHTML = `<p class="empty-state">${message}</p>`;
+}
+
+// 간단한 검색어 유효성 검사 (프론트 보호)
+function isInvalidQuery(q) {
+  if (!q) return true;
+  const trimmed = q.trim();
+  if (trimmed.length < 2) return true;
+  // 한글/영문/숫자 중 하나라도 포함되어야 함
+  return !/[가-힣a-zA-Z0-9]/.test(trimmed);
+}
+
 // 탭 전환
 function switchTab(type) {
   const panels = {
@@ -92,9 +106,17 @@ function switchTab(type) {
     works: document.getElementById('results-works'),
     characters: document.getElementById('results-characters')
   };
+  
   Object.keys(panels).forEach(key => {
     const panel = panels[key];
     const btn = document.querySelector(`.search-tab[data-type="${key}"]`);
+    
+    // 🚨 안전성 검사 추가: DOM 요소 존재 확인
+    if (!panel || !btn) {
+      console.warn(`⚠️ switchTab: ${key} 요소를 찾을 수 없습니다`);
+      return;
+    }
+    
     if (key === type) {
       panel.hidden = false;
       btn.classList.add('active');
@@ -111,16 +133,39 @@ function switchTab(type) {
 // 카운트 로드
 async function loadCounts(q) {
   try {
+    if (isInvalidQuery(q)) {
+      const countPlaces = document.getElementById('count-places');
+      const countWorks = document.getElementById('count-works');
+      const countCharacters = document.getElementById('count-characters');
+      if (countPlaces) countPlaces.textContent = '0';
+      if (countWorks) countWorks.textContent = '0';
+      if (countCharacters) countCharacters.textContent = '0';
+      return;
+    }
+
     const res = await fetch(`/api/search/counts?q=${encodeURIComponent(q)}`);
     const data = await res.json();
-    document.getElementById('count-places').textContent = data.places || 0;
-    document.getElementById('count-works').textContent = data.works || 0;
-    document.getElementById('count-characters').textContent = data.characters || 0;
+    
+    // 🚨 안전성 검사 추가: DOM 요소 존재 확인
+    const countPlaces = document.getElementById('count-places');
+    const countWorks = document.getElementById('count-works');
+    const countCharacters = document.getElementById('count-characters');
+    
+    if (countPlaces) countPlaces.textContent = data.places || 0;
+    if (countWorks) countWorks.textContent = data.works || 0;
+    if (countCharacters) countCharacters.textContent = data.characters || 0;
+    
   } catch (e) {
     console.error('counts load error', e);
-    document.getElementById('count-places').textContent = '0';
-    document.getElementById('count-works').textContent = '0';
-    document.getElementById('count-characters').textContent = '0';
+    
+    // 🚨 안전성 검사 추가: DOM 요소 존재 확인
+    const countPlaces = document.getElementById('count-places');
+    const countWorks = document.getElementById('count-works');
+    const countCharacters = document.getElementById('count-characters');
+    
+    if (countPlaces) countPlaces.textContent = '0';
+    if (countWorks) countWorks.textContent = '0';
+    if (countCharacters) countCharacters.textContent = '0';
   }
 }
 
@@ -132,33 +177,55 @@ async function loadResults(type, q) {
     characters: document.getElementById('results-characters')
   };
   const container = containerMap[type];
-  if (!container) return;
+  
+  // 🚨 안전성 검사 추가: 컨테이너 존재 확인
+  if (!container) {
+    console.error(`❌ loadResults: ${type} 컨테이너를 찾을 수 없습니다`);
+    return;
+  }
+
+  // 유효하지 않은 검색어는 API 호출하지 않고 빈 메시지 표시
+  if (isInvalidQuery(q)) {
+    renderEmpty(container);
+    return;
+  }
+  
   container.innerHTML = '<div class="skeleton">로딩 중...</div>';
 
   try {
     const res = await fetch(`/api/search/${type}?q=${encodeURIComponent(q)}`);
     if (!res.ok) throw new Error('API error');
-    const items = await res.json();
+    const response = await res.json();
+    
+    // 🚨 API 응답 구조 처리: { data: [...] } 또는 직접 배열
+    const items = response.data || response || [];
+    
+    // 🚨 안전성 검사: 배열인지 확인
+    if (!Array.isArray(items)) {
+      console.error(`❌ loadResults: ${type} API가 배열을 반환하지 않았습니다:`, response);
+      renderEmpty(container, '정보를 불러오는 데 실패했습니다.');
+      return;
+    }
 
     if (type === 'places') {
       // renderPlaces는 #place-list를 기대 → 임시로 id 스왑
       container.id = 'place-list';
-      renderPlaces(items);
+      renderPlaces(items, q); // 🎨 검색어 전달
       container.id = 'results-places';
     }
     if (type === 'works') {
-      renderWorks(items, 'results-works');
+      renderWorks(items, 'results-works', q); // 🎨 검색어 전달
     }
     if (type === 'characters') {
-      renderCharacters(items, 'results-characters');
+      renderCharacters(items, 'results-characters', q); // 🎨 검색어 전달
     }
 
     if (!items || items.length === 0) {
-      container.innerHTML = '<p>해당 조건의 결과가 없습니다</p>';
+      renderEmpty(container);
     }
   } catch (e) {
     console.error('loadResults error', e);
-    container.innerHTML = '<p>정보를 불러오는 데 실패했습니다.</p>';
+    renderEmpty(container, '정보를 불러오는 데 실패했습니다.');
   }
 }
 
