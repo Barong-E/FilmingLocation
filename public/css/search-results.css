@@ -1,0 +1,97 @@
+/* 검색 결과 페이지 전용 스타일 */
+
+/* 페이지 제목 */
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  text-align: left;
+  margin: 16px 0 12px 0;
+  line-height: 1.4;
+}
+
+/* 검색어 하이라이트 */
+.page-title span { color: #00c896; font-weight: 700; }
+
+/* 탭 컨테이너 */
+.search-tabs {
+  display: flex;
+  justify-content: flex-start;
+  gap: 6px;
+  margin: 4px 0 12px 0;
+}
+
+/* 개별 탭 버튼 - 컴팩트한 필 스타일 */
+.search-tab {
+  background: #fff;
+  border: 1px solid #dde2e6;
+  border-radius: 8px;           /* 라운드 축소 */
+  padding: 4px 10px;
+  font-size: 13px;              /* 글자 13px */
+  font-weight: 500;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  height: 30px;                 /* 낮은 높이 */
+  display: inline-flex;         /* 텍스트 세로 중앙 정렬 */
+  align-items: center;          /* 세로 중앙 */
+  justify-content: center;      /* 가로 중앙 */
+  white-space: nowrap;
+}
+
+/* 호버 - 배경 유지, 테두리/텍스트만 강조 */
+.search-tab:hover { border-color: #00c896; color: #00c896; }
+
+/* 포커스 접근성 */
+.search-tab:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.18); }
+
+/* 활성 탭 */
+.search-tab.active { border-color: #00c896; color: #00c896; font-weight: 600; }
+.search-tab.active:hover { border-color: #00b184; color: #00b184; }
+
+/* 결과 카운트 - 글자 13px, 세로 중앙, 라운드 축소 */
+.result-count {
+  display: inline-flex;         /* 배지 내용 중앙 정렬 */
+  align-items: center;
+  justify-content: center;
+  background: #f2f4f6;
+  color: inherit;
+  font-size: 13px;              /* 숫자 13px */
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;           /* 라운드 축소 */
+  margin-left: 6px;
+  line-height: 1;               /* 정확한 높이 */
+}
+
+/* 활성 탭 배지 */
+.search-tab.active .result-count { background: #eefcf8; }
+
+/* 결과 패널 */
+.results-panel { min-height: 200px; }
+
+/* 로딩 상태 */
+.results-panel:empty::before {
+  content: "검색 중...";
+  display: block;
+  text-align: center;
+  color: #999;
+  padding: 32px 0;
+  font-size: 15px;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .page-title { font-size: 20px; margin: 14px 0 10px 0; }
+  .search-tabs { gap: 5px; margin: 2px 0 10px 0; }
+  .search-tab { padding: 4px 8px; font-size: 13px; height: 28px; border-radius: 8px; }
+  .result-count { font-size: 13px; padding: 2px 6px; }
+}
+
+/* 작은 화면 최적화 */
+@media (max-width: 480px) {
+  .page-title { font-size: 18px; margin: 12px 0 8px 0; }
+  .search-tabs { gap: 4px; margin: 2px 0 8px 0; }
+  .search-tab { padding: 3px 8px; font-size: 13px; height: 26px; border-radius: 8px; }
+  .result-count { font-size: 13px; }
+}

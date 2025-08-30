@@ -1,0 +1,22 @@
+/* 홈페이지 전용 스타일 */
+
+.home-main {
+  min-height: 100vh;
+  padding: 20px;
+  padding-top: 80px; /* 헤더 높이 + 여백 */
+  box-sizing: border-box;
+}
+
+.home-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* 데스크톱 여백 조정 */
+@media (min-width: 768px) {
+  .home-main {
+    padding: 40px;
+    padding-top: 100px;
+  }
+}
