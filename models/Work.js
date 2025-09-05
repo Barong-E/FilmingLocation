@@ -12,7 +12,8 @@ const WorkSchema = new mongoose.Schema({
   image: { type: String },                                // 포스터 이미지 경로 (/images/works/{id}.png)
   characters: { type: [String], default: [] },             // 등장인물 배열 (화면 표시용)
   characterIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Character' }], // Character 모델 참조
-  placeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Place' }]       // Place 모델 참조
+  placeIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Place' }],       // Place 모델 참조
+  createdAt: { type: Date, default: Date.now }
 });
 
 // 검색 성능 최적화를 위한 인덱스 추가

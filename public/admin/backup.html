@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 백업 관리</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 공통 헤더 -->
+    <div id="admin-header"></div>
+    
+    <main class="dashboard-main">
+      <div class="page-header">
+        <h2><i class="fas fa-database"></i> 백업 관리</h2>
+      </div>
+
+      <!-- 백업 섹션 -->
+      <div class="backup-section">
+        <div class="backup-card">
+          <div class="backup-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <div class="backup-content">
+            <h3>데이터 백업</h3>
+            <p>모든 데이터를 JSON 형태로 백업합니다.</p>
+            <button id="backupBtn" class="btn-primary">
+              <i class="fas fa-download"></i> 백업 시작
+            </button>
+          </div>
+        </div>
+        
+        <div class="backup-info">
+          <h4>백업 정보</h4>
+          <ul>
+            <li>백업 파일 형식: JSON</li>
+            <li>포함 데이터: 사용자, 장소, 작품, 인물, 댓글</li>
+            <li>백업 시 OTP 인증이 필요합니다</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 공통 푸터 -->
+  <div id="admin-footer"></div>
+
+  <script>
+    // 헤더와 푸터 로드
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerResponse = await fetch('/partials/admin-header.html');
+        const headerHtml = await headerResponse.text();
+        document.getElementById('admin-header').innerHTML = headerHtml;
+        
+        const footerResponse = await fetch('/partials/admin-footer.html');
+        const footerHtml = await footerResponse.text();
+        document.getElementById('admin-footer').innerHTML = footerHtml;
+      } catch (error) {
+        console.error('헤더/푸터 로드 오류:', error);
+      }
+    });
+  </script>
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-backup.js"></script>
+</body>
+</html>

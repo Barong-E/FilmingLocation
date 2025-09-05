@@ -14,6 +14,7 @@ const CharacterSchema = new mongoose.Schema({
   description:  { type: String },                               // 소개
   heightCm:     { type: Number },                               // 키(cm)
   weightKg:     { type: Number },                               // 몸무게(kg)
+  createdAt:    { type: Date, default: Date.now }
 });
 
 // 가상 필드: 만 나이

@@ -16,6 +16,7 @@ import characterRoutes   from './routes/characterRoutes.js';
 import commentRoutes     from './routes/commentRoutes.js';
 import userRoutes        from './routes/userRoutes.js';
 import searchRoutes      from './routes/searchRoutes.js';
+import adminRoutes       from './routes/adminRoutes.js';
 
 // Redis 연결 관리
 import redisManager from './config/redis.js';
@@ -41,9 +42,46 @@ const __dirname  = path.dirname(__filename);
 // ─── Express 앱 생성 ──────────────────────────────────────────────────
 const app = express();
 
-// ─── 정적 파일 서빙 ───────────────────────────────────────────────────
+// ─── 1) 핵심 미들웨어 설정 ──────────────────────────────────────────
+// CORS 설정
+app.use(cors({
+  origin: [
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:5501',
+    'http://localhost:5500',
+    'http://localhost:5501',
+    'http://localhost:5000',
+  ],
+  credentials: true,
+}));
+
+// JSON 파싱
+app.use(express.json());
+
+// 세션 설정
+app.use(session({
+  name: 'filo.sid',
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true,
+  cookie: {
+    secure: false, // 프로덕션에서는 true로 변경
+    maxAge: 1000 * 60 * 30, // 30분
+    httpOnly: true,
+  },
+}));
+
+// Passport 초기화
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+// ─── 2) 정적 파일 서빙 ───────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+// ─── 3) 라우터 설정 ──────────────────────────────────────────────────────
 // partials 폴더 라우트 (GNB 등 공통 컴포넌트)
 app.get('/partials/:file', (req, res) => {
   const fileName = req.params.file;
@@ -60,9 +98,63 @@ app.get('/mypage', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'mypage.html'));
 });
 
-// 📊 검색 통계 대시보드 (관리자용)
-app.get('/admin/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
+// 📊 관리자 로그인 페이지 (세션 있으면 대시보드로)
+app.get('/admin', (req, res) => {
+  try {
+    if (req.session && req.session.adminId) {
+      return res.redirect('/admin/dashboard');
+    }
+  } catch (e) {}
+  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+// 관리자 페이지 접근 가드
+const ensureAdminPage = (req, res, next) => {
+  console.log(`[ensureAdminPage] checking session for URL: ${req.originalUrl}`);
+  console.log(`[ensureAdminPage] session ID: ${req.sessionID}`);
+  console.log(`[ensureAdminPage] session.adminId: ${req.session.adminId}`);
+
+  if (!req.session || !req.session.adminId) {
+    console.log('[ensureAdminPage] FAILED - no adminId in session. Redirecting to /admin');
+    return res.redirect('/admin');
+  }
+  console.log('[ensureAdminPage] SUCCESS - adminId found. Proceeding.');
+  next();
+};
+
+// 📊 관리자 대시보드 (로그인 후 접근)
+app.get('/admin/dashboard', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'dashboard.html'));
+});
+
+// 📊 관리자 사용자 관리
+app.get('/admin/users', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'users.html'));
+});
+
+// 📊 관리자 장소 관리
+app.get('/admin/places', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'places.html'));
+});
+
+// 📊 관리자 작품 관리
+app.get('/admin/works', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'works.html'));
+});
+
+// 📊 관리자 인물 관리
+app.get('/admin/characters', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'characters.html'));
+});
+
+// 📊 관리자 로그 관리
+app.get('/admin/logs', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'logs.html'));
+});
+
+// 📊 관리자 백업 관리
+app.get('/admin/backup', ensureAdminPage, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'backup.html'));
 });
 
 // HTML 페이지 라우트 (확장자 없이)
@@ -109,57 +201,28 @@ app.get('/search/:type', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'search-results.html'));
 });
 
-// ─── 2) CORS 설정 ─────────────────────────────────────────────────────
-app.use(cors({
-  origin: [
-    'http://127.0.0.1:5500',
-    'http://127.0.0.1:5501',
-    'http://localhost:5500',
-    'http://localhost:5501',
-  ],
-  credentials: true,
-}));
-
-// ─── 3) JSON 파싱 ───────────────────────────────────────────────────────
-app.use(express.json());
-
-// ─── 4) 세션 설정 ───────────────────────────────────────────────────────
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  rolling: true,
-  cookie: {
-    secure: false,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7일
-  },
-}));
-
-// ─── 5) Passport 초기화 ─────────────────────────────────────────────────
-app.use(passport.initialize());
-app.use(passport.session());
-
-// ─── 6) 인증 라우터 ───────────────────────────────────────────────────
+// ─── 4) API 라우터 ────────────────────────────────────────────────────
 app.use('/auth', authRoutes);
-
-// ─── 7) API 라우터 ────────────────────────────────────────────────────
 app.use('/api/places', placeRoutes);
 app.use('/api/works',  workRoutes);
 app.use('/api/characters', characterRoutes);
-app.use('/api',        userRoutes); // ⭐ 이 부분이 중요!
+app.use('/api',        userRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/admin', adminRoutes);
 
-// ─── 8) 댓글 라우터 ───────────────────────────────────────────────────
+// 댓글 라우터 (API 라우터보다 아래에 위치)
 app.use('/api/places/:placeId/comments', commentRoutes);
 app.use('/api/works/:workId/comments',   commentRoutes);
 app.use('/api/characters/:characterId/comments', commentRoutes);
 
-// ─── 9) 기본 라우트 (장소 리스트 페이지) ───────────────────────────────
+
+// ─── 5) 기본 라우트 (다른 모든 라우트 뒤에 위치) ─────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'places.html'));
 });
 
-// ─── 10) 서버 시작 (모바일 접속 가능!) ────────────────────────────────
+
+// ─── 6) 서버 시작 ──────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);

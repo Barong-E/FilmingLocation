@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 로그 관리</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 공통 헤더 -->
+    <div id="admin-header"></div>
+    
+    <main class="dashboard-main">
+      <div class="page-header">
+        <h2><i class="fas fa-clipboard-list"></i> 로그 관리</h2>
+        <div class="page-actions">
+          <button id="logsExportBtn" class="btn-secondary">
+            <i class="fas fa-download"></i> CSV 내보내기
+          </button>
+        </div>
+      </div>
+
+      <!-- 필터 -->
+      <div class="filter-section">
+        <div class="filter-box">
+          <select id="logTypeFilter">
+            <option value="">모든 활동</option>
+            <option value="login">로그인</option>
+            <option value="logout">로그아웃</option>
+            <option value="create">생성</option>
+            <option value="update">수정</option>
+            <option value="delete">삭제</option>
+          </select>
+          <input type="date" id="logDateFrom" placeholder="시작일">
+          <input type="date" id="logDateTo" placeholder="종료일">
+          <button id="logFilterBtn" class="btn-primary">
+            <i class="fas fa-filter"></i> 필터 적용
+          </button>
+        </div>
+      </div>
+
+      <!-- 로그 테이블 -->
+      <div class="table-section">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>시간</th>
+              <th>관리자</th>
+              <th>활동</th>
+              <th>대상</th>
+              <th>상세</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <!-- 로그 목록 -->
+          </tbody>
+        </table>
+        
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="logsPagination">
+          <!-- 페이지 번호들 -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 공통 푸터 -->
+  <div id="admin-footer"></div>
+
+  <script>
+    // 헤더와 푸터 로드
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerResponse = await fetch('/partials/admin-header.html');
+        const headerHtml = await headerResponse.text();
+        document.getElementById('admin-header').innerHTML = headerHtml;
+        
+        const footerResponse = await fetch('/partials/admin-footer.html');
+        const footerHtml = await footerResponse.text();
+        document.getElementById('admin-footer').innerHTML = footerHtml;
+      } catch (error) {
+        console.error('헤더/푸터 로드 오류:', error);
+      }
+    });
+  </script>
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-logs.js"></script>
+</body>
+</html>

@@ -3,213 +3,447 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FiLo 검색 통계 대시보드</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/dashboard.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>FiLo 관리자 대시보드</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div id="dashboard-container">
+  <!-- 로딩 화면 -->
+  <div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>관리자 인증 확인 중...</p>
+  </div>
+
+  <!-- 메인 대시보드 -->
+  <div id="dashboard" class="dashboard" style="display: none;">
     <!-- 헤더 -->
     <header class="dashboard-header">
-      <div class="header-content">
-        <h1>📊 FiLo 검색 통계 대시보드</h1>
-        <div class="header-actions">
-          <button id="refresh-btn" class="btn btn-primary">🔄 새로고침</button>
-          <button id="export-btn" class="btn btn-secondary">📥 내보내기</button>
-          <a href="/" class="btn btn-outline">🏠 홈으로</a>
-        </div>
+      <div class="header-left">
+        <h1>
+          <span class="logo-inline">
+            F<span class="mint">i</span>L<span class="mint">o</span>
+          </span>
+          <i class="fas fa-tachometer-alt"></i> 관리자 대시보드
+        </h1>
+      </div>
+      <div class="header-right">
+        <span class="admin-info">
+          <i class="fas fa-user-shield"></i>
+          <span id="adminName">관리자</span>
+        </span>
+        <button id="logoutBtn" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> 로그아웃
+        </button>
       </div>
     </header>
 
-    <!-- 주요 지표 카드 -->
-    <section class="metrics-section">
-      <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-icon">🔍</div>
-          <div class="metric-content">
-            <h3>총 검색 요청</h3>
-            <div class="metric-value" id="total-requests">-</div>
-            <div class="metric-change" id="requests-change">-</div>
-          </div>
-        </div>
-        
-        <div class="metric-card">
-          <div class="metric-icon">⚡</div>
-          <div class="metric-content">
-            <h3>캐시 히트율</h3>
-            <div class="metric-value" id="cache-hit-rate">-</div>
-            <div class="metric-change" id="cache-change">-</div>
-          </div>
-        </div>
-        
-        <div class="metric-card">
-          <div class="metric-icon">⏱️</div>
-          <div class="metric-content">
-            <h3>평균 응답시간</h3>
-            <div class="metric-value" id="avg-response-time">-</div>
-            <div class="metric-change" id="response-change">-</div>
-          </div>
-        </div>
-        
-        <div class="metric-card">
-          <div class="metric-icon">❌</div>
-          <div class="metric-content">
-            <h3>오류율</h3>
-            <div class="metric-value" id="error-rate">-</div>
-            <div class="metric-change" id="error-change">-</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- 네비게이션 -->
+    <nav class="dashboard-nav">
+      <button class="nav-item active" data-tab="overview">
+        <i class="fas fa-chart-line"></i> 개요
+      </button>
+      <button class="nav-item" data-tab="users">
+        <i class="fas fa-users"></i> 사용자 관리
+      </button>
+      <button class="nav-item" data-tab="places">
+        <i class="fas fa-map-marker-alt"></i> 장소 관리
+      </button>
+      <button class="nav-item" data-tab="works">
+        <i class="fas fa-film"></i> 작품 관리
+      </button>
+      <button class="nav-item" data-tab="characters">
+        <i class="fas fa-user-tie"></i> 인물 관리
+      </button>
+      <button class="nav-item" data-tab="logs">
+        <i class="fas fa-history"></i> 활동 로그
+      </button>
+      <button class="nav-item" data-tab="backup">
+        <i class="fas fa-download"></i> 백업
+      </button>
+    </nav>
 
-    <!-- 차트 섹션 -->
-    <section class="charts-section">
-      <div class="charts-grid">
-        <!-- 시간별 검색 요청 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>📈 시간별 검색 요청</h3>
-            <select id="time-range-select">
-              <option value="24h">최근 24시간</option>
-              <option value="7d">최근 7일</option>
-              <option value="30d">최근 30일</option>
+    <!-- 메인 콘텐츠 -->
+    <main class="dashboard-content">
+      <!-- 개요 탭 -->
+      <div id="overview" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="userCount">0</h3>
+              <p>전체 사용자</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="placeCount">0</h3>
+              <p>등록된 장소</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-film"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="workCount">0</h3>
+              <p>등록된 작품</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="characterCount">0</h3>
+              <p>등록된 인물</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="commentCount">0</h3>
+              <p>전체 댓글</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="recent-activity">
+          <h2><i class="fas fa-clock"></i> 최근 활동</h2>
+          <div class="toolbar-row" style="display:flex; align-items:center; gap:12px; margin:8px 0;">
+            <label for="trendDays">기간</label>
+            <select id="trendDays">
+              <option value="7" selected>7일</option>
+              <option value="14">14일</option>
+              <option value="30">30일</option>
             </select>
           </div>
-          <div class="chart-container">
-            <canvas id="requests-chart"></canvas>
+          <div class="chart-row">
+            <canvas id="trendChart" height="80"></canvas>
           </div>
-        </div>
-
-        <!-- 검색 타입별 분포 */
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>🎯 검색 타입별 분포</h3>
+          <div class="activity-tabs">
+            <button class="activity-tab active" data-activity="users">최근 가입</button>
+            <button class="activity-tab" data-activity="comments">최근 댓글</button>
+            <button class="activity-tab" data-activity="logs">관리자 활동</button>
           </div>
-          <div class="chart-container">
-            <canvas id="types-chart"></canvas>
-          </div>
-        </div>
-
-        <!-- 인기 검색어 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>🔥 인기 검색어 TOP 10</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="popular-queries-chart"></canvas>
-          </div>
-        </div>
-
-        <!-- 응답시간 분포 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>⚡ 응답시간 분포</h3>
-          </div>
-          <div class="chart-container">
-            <canvas id="response-time-chart"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 상세 테이블 섹션 -->
-    <section class="tables-section">
-      <div class="tables-grid">
-        <!-- 느린 쿼리 -->
-        <div class="table-card">
-          <div class="table-header">
-            <h3>🐌 느린 쿼리 (상위 10개)</h3>
-            <button id="clear-slow-queries" class="btn btn-sm">지우기</button>
-          </div>
-          <div class="table-container">
-            <table id="slow-queries-table">
-              <thead>
-                <tr>
-                  <th>검색어</th>
-                  <th>타입</th>
-                  <th>응답시간</th>
-                  <th>시간</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 최근 오류 -->
-        <div class="table-card">
-          <div class="table-header">
-            <h3>⚠️ 최근 오류 (상위 10개)</h3>
-            <button id="clear-errors" class="btn btn-sm">지우기</button>
-          </div>
-          <div class="table-container">
-            <table id="errors-table">
-              <thead>
-                <tr>
-                  <th>오류 메시지</th>
-                  <th>엔드포인트</th>
-                  <th>시간</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 시스템 상태 -->
-    <section class="status-section">
-      <div class="status-grid">
-        <div class="status-card">
-          <h3>🖥️ 시스템 상태</h3>
-          <div class="status-content">
-            <div class="status-item">
-              <span class="status-label">서버 가동시간:</span>
-              <span id="server-uptime">-</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">메모리 사용량:</span>
-              <span id="memory-usage">-</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">Redis 연결:</span>
-              <span id="redis-status">-</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">캐시 크기:</span>
-              <span id="cache-size">-</span>
+          
+          <div id="recentUsers" class="activity-content active">
+            <div class="activity-list" id="recentUsersList">
+              <!-- 최근 가입 사용자 목록 -->
             </div>
           </div>
-        </div>
-
-        <div class="status-card">
-          <h3>📋 캐시 통계</h3>
-          <div class="status-content">
-            <div class="status-item">
-              <span class="status-label">Redis 히트:</span>
-              <span id="redis-hits">-</span>
+          
+          <div id="recentComments" class="activity-content">
+            <div class="activity-list" id="recentCommentsList">
+              <!-- 최근 댓글 목록 -->
             </div>
-            <div class="status-item">
-              <span class="status-label">메모리 히트:</span>
-              <span id="memory-hits">-</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">총 미스:</span>
-              <span id="total-misses">-</span>
-            </div>
-            <div class="status-item">
-              <span class="status-label">오류 수:</span>
-              <span id="cache-errors">-</span>
+          </div>
+          
+          <div id="recentLogs" class="activity-content">
+            <div class="activity-list" id="recentLogsList">
+              <!-- 관리자 활동 로그 -->
             </div>
           </div>
         </div>
       </div>
-    </section>
+
+      <!-- 사용자 관리 탭 -->
+      <div id="users" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-users"></i> 사용자 관리</h2>
+          <div class="search-box">
+            <input type="text" id="userSearch" placeholder="사용자명, 이메일 검색...">
+            <button id="userSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="usersExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>사용자명</th>
+                <th>이메일</th>
+                <th>가입일</th>
+                <th>상태</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- 사용자 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="usersPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 장소 관리 탭 -->
+      <div id="places" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-map-marker-alt"></i> 장소 관리</h2>
+          <div class="search-box">
+            <input type="text" id="placeSearch" placeholder="장소명 검색...">
+            <button id="placeSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="placeAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="placesExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>장소명</th>
+                <th>주소</th>
+                <th>등록일</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="placesTableBody">
+              <!-- 장소 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="placesPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 작품 관리 탭 -->
+      <div id="works" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-film"></i> 작품 관리</h2>
+          <div class="search-box">
+            <input type="text" id="workSearch" placeholder="작품명 검색...">
+            <button id="workSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="workAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="worksExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>작품명</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="worksTableBody">
+              <!-- 작품 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="worksPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 인물 관리 탭 -->
+      <div id="characters" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-user-tie"></i> 인물 관리</h2>
+          <div class="search-box">
+            <input type="text" id="characterSearch" placeholder="인물명 검색...">
+            <button id="characterSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="characterAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="charactersExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>인물명</th>
+                <th>설명</th>
+                <th>등록일</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="charactersTableBody">
+              <!-- 인물 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="charactersPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 활동 로그 탭 -->
+      <div id="logs" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-history"></i> 활동 로그</h2>
+          <div class="log-filters">
+            <select id="logAction">
+              <option value="">모든 활동</option>
+              <option value="login">로그인</option>
+              <option value="logout">로그아웃</option>
+              <option value="create">생성</option>
+              <option value="update">수정</option>
+              <option value="delete">삭제</option>
+            </select>
+            <input type="date" id="logStartDate">
+            <input type="date" id="logEndDate">
+            <button id="logFilterBtn">필터</button>
+            <button id="logsExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>시간</th>
+                <th>관리자</th>
+                <th>활동</th>
+                <th>대상</th>
+                <th>상세</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="logsTableBody">
+              <!-- 로그 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="logsPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 백업 탭 -->
+      <div id="backup" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-download"></i> 데이터 백업</h2>
+        </div>
+        
+        <div class="backup-section">
+          <div class="backup-card">
+            <h3><i class="fas fa-database"></i> 전체 데이터 백업</h3>
+            <p>모든 사용자, 장소, 작품, 인물, 댓글 데이터를 JSON 형태로 백업합니다.</p>
+            <button id="backupBtn" class="btn-backup">
+              <i class="fas fa-download"></i> 백업 다운로드
+            </button>
+            <div class="backup-note">
+              <p><i class="fas fa-info-circle"></i> OTP 인증이 필요합니다.</p>
+            </div>
+          </div>
+          
+          <div class="backup-info">
+            <h3>백업 정보</h3>
+            <ul>
+              <li>백업 파일은 JSON 형태로 다운로드됩니다.</li>
+              <li>백업 시점의 모든 데이터가 포함됩니다.</li>
+              <li>보안을 위해 OTP 인증이 필요합니다.</li>
+              <li>백업 활동은 로그에 기록됩니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <script type="module" src="/js/dashboard.js"></script>
+  <!-- 모달 -->
+  <div id="modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">제목</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- 모달 내용 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- OTP 입력 모달 -->
+  <div id="otpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-shield-alt"></i> OTP 인증</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Google Authenticator에서 생성된 6자리 코드를 입력하세요.</p>
+        <input type="text" id="otpInput" placeholder="000000" maxlength="6">
+        <div class="modal-actions">
+          <button id="otpConfirmBtn" class="btn-primary">확인</button>
+          <button id="otpCancelBtn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 작품 수정 모달 -->
+  <div id="workEditModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> 작품 수정</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>제목</label>
+          <input type="text" id="work-title" value="">
+        </div>
+        <div class="form-row">
+          <label>타입</label>
+          <input type="text" id="work-type" value="">
+        </div>
+        <div class="form-row">
+          <label>공개일</label>
+          <input type="text" id="work-releaseDate" value="">
+        </div>
+        <div class="form-row">
+          <label>설명</label>
+          <textarea id="work-description" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <label>이미지 경로</label>
+          <input type="text" id="work-image" value="">
+        </div>
+        <div class="form-row">
+          <label>등장인물</label>
+          <div id="work-characters" class="editable-list"></div>
+        </div>
+        <div class="form-row">
+          <label>캐릭터 ID</label>
+          <div id="work-characterIds" class="editable-list"></div>
+        </div>
+        <div class="form-row">
+          <label>장소 ID</label>
+          <div id="work-placeIds" class="editable-list"></div>
+        </div>
+        <div class="modal-actions">
+          <button id="work-save-btn" class="btn-primary">저장</button>
+          <button id="work-cancel-btn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
 </body>
 </html>
 

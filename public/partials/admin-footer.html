@@ -1,0 +1,23 @@
+  </main>
+</div> <!-- .dashboard -->
+
+<!-- OTP 입력 모달 (공통) -->
+<div id="otpModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3><i class="fas fa-shield-alt"></i> OTP 인증</h3>
+      <button class="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Google Authenticator에서 생성된 6자리 코드를 입력하세요.</p>
+      <input type="text" id="otpInput" placeholder="000000" maxlength="6">
+      <div class="modal-actions">
+        <button id="otpConfirmBtn" class="btn-primary">확인</button>
+        <button id="otpCancelBtn" class="btn-secondary">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

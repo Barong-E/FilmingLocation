@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 관리자 로그인</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- 로그인 화면 -->
+  <div class="login-screen">
+    <div class="login-container">
+      <div class="login-header">
+        <h1>
+          <span class="logo-inline">
+            F<span class="mint">i</span>L<span class="mint">o</span>
+          </span>
+          <i class="fas fa-shield-alt"></i> 관리자
+        </h1>
+        <p>관리자 계정으로 로그인하세요</p>
+      </div>
+      
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="username">
+            <i class="fas fa-user"></i> 사용자명
+          </label>
+          <input type="text" id="username" name="username" required placeholder="관리자 ID를 입력하세요">
+        </div>
+        
+        <div class="form-group">
+          <label for="password">
+            <i class="fas fa-lock"></i> 비밀번호
+          </label>
+          <input type="password" id="password" name="password" required placeholder="비밀번호를 입력하세요">
+        </div>
+        
+        <button type="submit" class="btn-login">
+          <i class="fas fa-sign-in-alt"></i> 로그인
+        </button>
+      </form>
+      
+      <div id="loginError" class="error-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- OTP 팝업 모달 -->
+  <div id="otpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-mobile-alt"></i> 2단계 인증</h3>
+        <span class="modal-close" onclick="closeOTPModal()">&times;</span>
+      </div>
+      
+      <div class="modal-body">
+        <p>Google Authenticator에서 생성된 6자리 코드를 입력하세요.</p>
+        
+        <div class="form-group">
+          <label for="otpToken">
+            <i class="fas fa-key"></i> OTP 코드
+          </label>
+          <input type="text" id="otpToken" name="otpToken" placeholder="000000" maxlength="6" autocomplete="off" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeOTPModal()">
+            <i class="fas fa-times"></i> 취소
+          </button>
+          <button type="button" class="btn-primary" onclick="confirmOTP()">
+            <i class="fas fa-check"></i> 확인
+          </button>
+        </div>
+      </div>
+      
+      <div id="otpError" class="error-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // 페이지 로드 확인
+    console.log('=== 로그인 페이지 로드됨 ===');
+    console.log('현재 URL:', window.location.href);
+    console.log('현재 쿠키:', document.cookie);
+    
+    let currentAdminData = null; // 현재 로그인 시도 중인 관리자 정보
+    
+    // 관리자 로그인 처리 (1단계: ID/PW)
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      // 로딩 상태 표시
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 로그인 중...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/admin/login-step1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // 1단계 성공 - OTP 팝업 표시
+          currentAdminData = data.admin;
+          showOTPModal();
+        } else {
+          showLoginError(data.error.message);
+        }
+      } catch (error) {
+        showLoginError('로그인 중 오류가 발생했습니다.');
+      } finally {
+        // 로딩 상태 해제
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+    
+    // OTP 모달 표시
+    function showOTPModal() {
+      document.getElementById('otpModal').style.display = 'flex';
+      document.getElementById('otpToken').focus();
+    }
+    
+    // OTP 모달 닫기
+    function closeOTPModal() {
+      document.getElementById('otpModal').style.display = 'none';
+      document.getElementById('otpToken').value = '';
+      document.getElementById('otpError').style.display = 'none';
+      currentAdminData = null;
+    }
+    
+    // OTP 확인 (2단계)
+    async function confirmOTP() {
+      const otpToken = document.getElementById('otpToken').value;
+      
+      if (!otpToken || otpToken.length !== 6) {
+        showOTPError('6자리 OTP 코드를 입력하세요.');
+        return;
+      }
+      
+      // 로딩 상태 표시
+      const confirmBtn = document.querySelector('.btn-primary');
+      const originalText = confirmBtn.innerHTML;
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 확인 중...';
+      confirmBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/admin/login-step2', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            adminId: currentAdminData.id,
+            otpToken 
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // 로그인 성공 - 대시보드로 리다이렉트
+          console.log('OTP 로그인 성공:', data);
+          console.log('리다이렉트 전 쿠키 확인:', document.cookie);
+          
+          // 5초간 로그 유지 (디버깅용)
+          console.log('=== 디버깅 시작 ===');
+          console.log('현재 시간:', new Date().toLocaleTimeString());
+          console.log('document.cookie:', document.cookie);
+          console.log('response.ok:', response.ok);
+          console.log('data:', JSON.stringify(data, null, 2));
+          console.log('=== 디버깅 끝 ===');
+          
+          // 잠시 대기 후 리다이렉트
+          setTimeout(() => {
+            console.log('리다이렉트 실행: /admin/dashboard');
+            // 강제 페이지 교체 (히스토리 없이)
+            window.location.replace('/admin/dashboard');
+          }, 1000); // 1초 대기
+        } else {
+          console.error('OTP 로그인 실패:', data);
+          showOTPError(data.error.message);
+        }
+      } catch (error) {
+        showOTPError('OTP 확인 중 오류가 발생했습니다.');
+      } finally {
+        // 로딩 상태 해제
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+      }
+    }
+    
+    // Enter 키로 OTP 확인
+    document.getElementById('otpToken').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        confirmOTP();
+      }
+    });
+    
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeOTPModal();
+      }
+    });
+    
+    // 모달 외부 클릭으로 닫기
+    document.getElementById('otpModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('otpModal')) {
+        closeOTPModal();
+      }
+    });
+    
+    function showLoginError(message) {
+      const errorDiv = document.getElementById('loginError');
+      errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+      errorDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    function showOTPError(message) {
+      const errorDiv = document.getElementById('otpError');
+      errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+      errorDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+  </script>
+</body>
+</html>

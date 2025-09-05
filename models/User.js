@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
   familyName:    { type: String }, // ★ 성
   givenName:     { type: String }, // ★ 이름
   profileImage:  { type: String },
+  isActive:      { type: Boolean, default: true },
   createdAt:     { type: Date, default: Date.now }
 });
 

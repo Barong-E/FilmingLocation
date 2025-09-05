@@ -8,7 +8,8 @@ const PlaceSchema = new mongoose.Schema({
   fictional_name: { type: String },                          // 드라마/영화 속 이름
   address: { type: String },                                 // 주소
   image: { type: String },                                   // 이미지 경로
-  mapUrl: { type: String }                                   // 구글맵 링크
+  mapUrl: { type: String },                                  // 구글맵 링크
+  createdAt: { type: Date, default: Date.now }
 });
 
 // 검색 성능 최적화를 위한 인덱스 추가
