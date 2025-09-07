@@ -754,8 +754,10 @@ body {
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--filo-border);
 }
 
@@ -796,6 +798,49 @@ body {
 
 .modal-body {
   padding: 25px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-actions {
+  padding: 20px 25px;
+  border-top: 1px solid var(--filo-border);
+  background: var(--filo-gray-light);
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+/* 작품 수정 모달 특별 스타일 */
+#workEditModal .modal-content {
+  max-width: 800px;
+  max-height: 85vh;
+  position: relative; /* 플로팅 버튼의 기준점 */
+}
+
+#workEditModal .modal-body {
+  padding: 30px;
+  padding-bottom: 60px; /* 플로팅 버튼 공간 확보 (더 줄임) */
+}
+
+#workEditModal .modal-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 30px;
+  background: var(--filo-white);
+  border-top: 1px solid var(--filo-border);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  border-radius: 0 0 12px 12px;
+}
+
+#workEditModal .modal-actions .btn-primary,
+#workEditModal .modal-actions .btn-secondary {
+  padding: 10px 20px;
+  font-size: 14px;
 }
 
 .modal-body p {
@@ -850,10 +895,27 @@ body {
 }
 
 .form-row input:focus,
-.form-row textarea:focus {
+.form-row textarea:focus,
+.form-row select:focus {
   outline: none;
   border-color: var(--filo-mint);
   box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
+}
+
+.form-row select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--filo-white);
+  color: var(--filo-text-dark);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.form-row select:hover {
+  border-color: var(--filo-mint);
 }
 
 .form-row textarea {
@@ -996,6 +1058,26 @@ body {
   outline: none;
   border-color: var(--filo-mint);
   box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
+}
+
+/* OTP 입력 필드 특별 스타일 */
+#otpToken {
+  text-align: center !important;
+  font-size: 18px !important;
+  letter-spacing: 2px !important;
+  font-weight: 500;
+}
+
+/* OTP placeholder 스타일 - 가이드임을 명확히 표시 */
+#otpToken::placeholder {
+  color: #9ca3af !important; /* 진한 회색 */
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* OTP 입력 시 텍스트 색상 - 검정색으로 명확하게 */
+#otpToken {
+  color: #1f2937 !important; /* 진한 검정색 */
 }
 
 .btn-login {

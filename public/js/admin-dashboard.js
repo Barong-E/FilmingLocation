@@ -1,4 +1,5 @@
 // 관리자 대시보드 JavaScript
+const ENABLE_LIVE_STATS = false; // 새로고침 시에만 갱신하려면 false 유지
 class AdminDashboard {
   constructor() {
     this.currentAdmin = null;
@@ -311,18 +312,36 @@ class AdminDashboard {
   // 대시보드 데이터 로드
   async loadDashboardData() {
     try {
+      // console.log('=== 대시보드 데이터 로드 시작 ===');
       const response = await fetch('/api/admin/dashboard/stats', {
         credentials: 'include'
       });
       
+      // console.log('API 응답 상태:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        this.updateStats(data.stats);
-        this.updateRecentActivity(data.recentActivity);
+        // console.log('받은 데이터:', data);
+        
+        // 안전하게 데이터 처리
+        if (data.stats) {
+          this.updateStats(data.stats);
+        } else {
+          // console.warn('stats 데이터가 없습니다:', data);
+        }
+        
+        if (data.recentActivity) {
+          this.updateRecentActivity(data.recentActivity);
+        } else {
+          // console.warn('recentActivity 데이터가 없습니다:', data);
+        }
+        
         // 차트 데이터 로드
         this.loadTrends();
-        // SSE 구독 시작
-        this.startLiveStream();
+        // SSE 구독 (옵션)
+        if (ENABLE_LIVE_STATS) this.startLiveStream();
+      } else {
+        console.error('API 호출 실패:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('대시보드 데이터 로드 오류:', error);
@@ -332,11 +351,37 @@ class AdminDashboard {
   // 트렌드 데이터 로드 및 차트 렌더링
   async loadTrends(days = 7) {
     try {
+      console.log('=== 트렌드 데이터 로드 시작 ===');
       const res = await fetch(`/api/admin/dashboard/trends?days=${days}`, { credentials: 'include' });
-      if (!res.ok) return;
-      const { labels, series } = await res.json();
+      
+      if (!res.ok) {
+        console.error('트렌드 API 호출 실패:', res.status, res.statusText);
+        return;
+      }
+      
+      const data = await res.json();
+      console.log('트렌드 데이터:', data);
+      
+      // 안전하게 데이터 검증
+      if (!data.labels || !data.series) {
+        console.warn('트렌드 데이터 구조가 올바르지 않습니다:', data);
+        return;
+      }
+      
+      const { labels, series } = data;
+      
+      // series 객체 안전성 검증
+      if (!series.users || !series.comments) {
+        console.warn('series 데이터가 올바르지 않습니다:', series);
+        return;
+      }
+      
       const ctx = document.getElementById('trendChart');
-      if (!ctx) return;
+      if (!ctx) {
+        console.warn('trendChart 캔버스 요소를 찾을 수 없습니다');
+        return;
+      }
+      
       this.trendChart?.destroy?.();
       this.trendChart = new Chart(ctx, {
         type: 'line',
@@ -349,8 +394,10 @@ class AdminDashboard {
         },
         options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
       });
+      
+      console.log('트렌드 차트 생성 완료');
     } catch (e) {
-      console.error('트렌드 로드 실패:', e);
+      console.error('●▶ 트렌드 로드 오류:', e);
     }
   }
 
@@ -510,11 +557,23 @@ class AdminDashboard {
   
   // 통계 업데이트
   updateStats(stats) {
-    document.getElementById('userCount').textContent = stats.users;
-    document.getElementById('placeCount').textContent = stats.places;
-    document.getElementById('workCount').textContent = stats.works;
-    document.getElementById('characterCount').textContent = stats.characters;
-    document.getElementById('commentCount').textContent = stats.comments;
+    console.log('통계 업데이트:', stats);
+    
+    // 안전하게 통계 업데이트
+    const updateCount = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value || 0;
+      } else {
+        console.warn(`요소를 찾을 수 없습니다: ${id}`);
+      }
+    };
+    
+    updateCount('userCount', stats?.users);
+    updateCount('placeCount', stats?.places);
+    updateCount('workCount', stats?.works);
+    updateCount('characterCount', stats?.characters);
+    updateCount('commentCount', stats?.comments);
   }
   
   // 최근 활동 업데이트
@@ -952,9 +1011,84 @@ class AdminDashboard {
       // 모달 표시
       document.getElementById('workEditModal').style.display = 'flex';
       
+      // 키보드 네비게이션 설정
+      this.setupWorkModalKeyboardNavigation();
+      
+      // 버튼 이벤트 설정
+      this.setupWorkModalButtons(workId);
+      
     } catch (error) {
       console.error('작품 수정 모달 열기 오류:', error);
       alert('작품 정보를 불러오는 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 작품 수정 모달 키보드 네비게이션 설정
+  setupWorkModalKeyboardNavigation() {
+    const typeSelect = document.getElementById('work-type');
+    if (!typeSelect) return;
+    
+    // 드롭다운 키보드 네비게이션
+    typeSelect.addEventListener('keydown', (e) => {
+      const options = Array.from(typeSelect.options);
+      const currentIndex = typeSelect.selectedIndex;
+      
+      switch(e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          if (currentIndex < options.length - 1) {
+            typeSelect.selectedIndex = currentIndex + 1;
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (currentIndex > 0) {
+            typeSelect.selectedIndex = currentIndex - 1;
+          }
+          break;
+        case 'Enter':
+          e.preventDefault();
+          typeSelect.blur(); // 포커스 해제
+          break;
+        case 'Escape':
+          e.preventDefault();
+          typeSelect.blur();
+          break;
+      }
+    });
+    
+    // 모달 전체 키보드 네비게이션
+    const modal = document.getElementById('workEditModal');
+    modal.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeWorkEditModal();
+      }
+    });
+  }
+
+  // 작품 수정 모달 닫기
+  closeWorkEditModal() {
+    document.getElementById('workEditModal').style.display = 'none';
+  }
+
+  // 작품 수정 모달 버튼 이벤트 설정
+  setupWorkModalButtons(workId) {
+    // 저장 버튼
+    const saveBtn = document.getElementById('work-save-btn');
+    if (saveBtn) {
+      saveBtn.onclick = () => this.saveWorkEdit(workId);
+    }
+    
+    // 취소 버튼
+    const cancelBtn = document.getElementById('work-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.onclick = () => this.closeWorkEditModal();
+    }
+    
+    // 모달 닫기 버튼 (X)
+    const closeBtn = document.querySelector('#workEditModal .modal-close');
+    if (closeBtn) {
+      closeBtn.onclick = () => this.closeWorkEditModal();
     }
   }
 
@@ -1070,6 +1204,17 @@ class AdminDashboard {
       const releaseDate = document.getElementById('work-releaseDate').value;
       const description = document.getElementById('work-description').value;
       const image = document.getElementById('work-image').value;
+      
+      // 필수 필드 검증
+      if (!title.trim()) {
+        alert('작품 제목을 입력해주세요.');
+        return;
+      }
+      
+      if (!type) {
+        alert('작품 타입을 선택해주세요.');
+        return;
+      }
       
       // 리스트 데이터 수집
       const characters = Array.from(document.getElementById('work-characters').querySelectorAll('.item-text'))

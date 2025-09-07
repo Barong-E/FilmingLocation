@@ -326,12 +326,16 @@ router.post('/verify-otp-setup', requireAdminAuth, async (req, res) => {
 // 대시보드 통계
 router.get('/dashboard/stats', requireAdminAuth, async (req, res) => {
   try {
+    console.log('=== 대시보드 통계 API 호출됨 ===');
+    
     // 기본 통계
     const userCount = await User.countDocuments();
     const placeCount = await Place.countDocuments();
     const workCount = await Work.countDocuments();
     const characterCount = await Character.countDocuments();
     const commentCount = await Comment.countDocuments();
+    
+    console.log('통계 데이터:', { userCount, placeCount, workCount, characterCount, commentCount });
     
     // 최근 활동
     const recentUsers = await User.find()

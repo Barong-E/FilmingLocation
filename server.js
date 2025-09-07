@@ -123,8 +123,9 @@ const ensureAdminPage = (req, res, next) => {
 };
 
 // 📊 관리자 대시보드 (로그인 후 접근)
+// SPA 버전의 대시보드 사용 (admin-dashboard.html)
 app.get('/admin/dashboard', ensureAdminPage, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
 
 // 📊 관리자 사용자 관리
