@@ -74,66 +74,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (w.characters && w.characters.length > 0) {
     w.characters.forEach((characterName, index) => {
-      // 그룹인지 확인 (괄호 안에 쉼표가 있는 경우만 그룹)
-      const groupMatch = characterName.match(/^(.+?)\(([^)]+)\)$/);
+      // 개별 인물 처리
+      const realName = characterName.split('(')[0].trim();
+      const characterInfo = (w.characterIds || []).find(c => 
+        c.name === realName || 
+        c.id === realName ||
+        c._id === realName
+      );
       
-      if (groupMatch && groupMatch[2].includes(',')) {
-        const groupName = groupMatch[1].trim(); // "방탄소년단"
-        const memberNames = groupMatch[2].split(',').map(name => name.trim()); // ["RM", "진", "슈가", ...]
-        
-        // 그룹명 표시 (링크 없음)
-        charsContainer.append(groupName);
-        charsContainer.append('(');
-        
-        // 각 멤버별로 링크 생성
-        memberNames.forEach((memberName, memberIndex) => {
-          // Character 모델에서 해당 멤버 찾기 (여러 필드로 시도)
-          const characterInfo = (w.characterIds || []).find(c => 
-            c.name === memberName || 
-            c.id === memberName ||
-            c._id === memberName
-          );
-          
-          if (characterInfo) {
-            const link = document.createElement('a');
-            link.href = `character?id=${characterInfo.id || characterInfo._id}`;
-            link.textContent = memberName;
-            link.className = 'character-link';
-            charsContainer.appendChild(link);
-          } else {
-            charsContainer.append(memberName);
-          }
-          
-          // 멤버 사이에 쉼표 추가 (마지막 멤버 제외)
-          if (memberIndex < memberNames.length - 1) {
-            charsContainer.append(', ');
-          }
-        });
-        
-        charsContainer.append(')');
+      if (characterInfo) {
+        const roleName = characterName.match(/\(([^)]+)\)/);
+        const link = document.createElement('a');
+        link.href = `character?id=${characterInfo.id || characterInfo._id}`;
+        link.textContent = realName;
+        link.className = 'character-link';
+        charsContainer.appendChild(link);
+        if (roleName) charsContainer.append(`(${roleName[1]})`);
       } else {
-        // 개별 인물인 경우 (기존 로직)
-        const realName = characterName.split('(')[0].trim();
-        const characterInfo = (w.characterIds || []).find(c => 
-          c.name === realName || 
-          c.id === realName ||
-          c._id === realName
-        );
-        
-        if (characterInfo) {
-          const roleName = characterName.match(/\(([^)]+)\)/);
-          const link = document.createElement('a');
-          link.href = `character?id=${characterInfo.id || characterInfo._id}`;
-          link.textContent = realName;
-          link.className = 'character-link';
-          charsContainer.appendChild(link);
-          if (roleName) charsContainer.append(`(${roleName[1]})`);
-        } else {
-          charsContainer.append(characterName);
-        }
+        charsContainer.append(characterName);
       }
       
-      // 작품 사이에 쉼표 추가 (마지막 작품 제외)
+      // 인물 사이에 쉼표 추가 (마지막 인물 제외)
       if (index < w.characters.length - 1) charsContainer.append(', ');
     });
   } else {

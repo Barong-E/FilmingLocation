@@ -712,6 +712,16 @@ router.get('/works', requireAdminAuth, requirePermission('works'), async (req, r
   }
 });
 
+// 작품 요약 리스트(제목/타입만) - 인물 추가 모달에서 사용
+router.get('/works/summary', requireAdminAuth, async (req, res) => {
+  try {
+    const works = await Work.find({}, 'title type').sort({ title: 1 }).limit(1000);
+    res.json({ success: true, works });
+  } catch (error) {
+    res.status(500).json({ error: { code: 'WORKS_SUMMARY_ERROR', message: '작품 요약 불러오기 실패', details: error.message } });
+  }
+});
+
 router.post('/works', requireAdminAuth, requirePermission('works'), logAdminActivity('create', 'work'), async (req, res) => {
   try {
     const doc = await Work.create(req.body);
@@ -825,29 +835,189 @@ router.get('/characters', requireAdminAuth, requirePermission('characters'), asy
 
 router.post('/characters', requireAdminAuth, requirePermission('characters'), logAdminActivity('create', 'character'), async (req, res) => {
   try {
-    const doc = await Character.create(req.body);
-    res.status(201).json({ success: true, character: doc });
+    const { workIds, ...characterData } = req.body;
+    
+    // id 필드 자동 생성 (영문 고유값)
+    if (!characterData.id) {
+      // 이름을 기반으로 영문 ID 생성
+      const nameToId = characterData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9가-힣]/g, '') // 특수문자 제거
+        .replace(/[가-힣]/g, (char) => {
+          // 한글을 영문으로 변환 (간단한 매핑)
+          const hangulMap = {
+            '가': 'ga', '나': 'na', '다': 'da', '라': 'ra', '마': 'ma', '바': 'ba', '사': 'sa', '아': 'a', '자': 'ja', '차': 'cha', '카': 'ka', '타': 'ta', '파': 'pa', '하': 'ha',
+            '김': 'kim', '이': 'lee', '박': 'park', '최': 'choi', '정': 'jung', '강': 'kang', '조': 'jo', '윤': 'yoon', '장': 'jang', '임': 'lim', '한': 'han', '오': 'oh', '서': 'seo', '신': 'shin', '권': 'kwon', '황': 'hwang', '안': 'ahn', '송': 'song', '노': 'noh', '하': 'ha', '전': 'jeon', '고': 'ko', '문': 'moon', '양': 'yang', '손': 'son', '배': 'bae', '백': 'baek', '유': 'yoo', '남': 'nam', '심': 'shim', '허': 'heo', '변': 'byun', '공': 'gong', '소': 'so', '채': 'chae', '민': 'min', '지': 'ji', '엄': 'eom', '원': 'won', '천': 'cheon', '방': 'bang', '곽': 'kwak', '제': 'je', '홍': 'hong', '우': 'woo', '도': 'do', '석': 'seok', '인': 'in', '여': 'yeo', '동': 'dong', '구': 'gu', '라': 'ra', '나': 'na', '마': 'ma', '바': 'ba', '사': 'sa', '아': 'a', '자': 'ja', '차': 'cha', '카': 'ka', '타': 'ta', '파': 'pa', '하': 'ha'
+          };
+          return hangulMap[char] || char;
+        });
+      
+      // 중복 방지를 위해 타임스탬프 추가
+      characterData.id = `${nameToId}_${Date.now()}`;
+    }
+    
+    console.log('생성할 인물 데이터:', characterData);
+    
+    // 인물 생성
+    const character = await Character.create(characterData);
+    
+    // 선택된 작품들의 characterIds와 characters에 새 인물 정보 추가
+    if (workIds && workIds.length > 0) {
+      // 기본적으로 characterIds만 추가
+      await Work.updateMany(
+        { _id: { $in: workIds } },
+        { $push: { characterIds: character._id } }
+      );
+
+      // 작품별 작중이름 매핑 처리
+      const map = Array.isArray(req.body.workCharacterNames) ? req.body.workCharacterNames : [];
+      const updates = map
+        .filter(x => x && x.workId && x.characterName)
+        .map(x => {
+          // 극중이름이 실제이름과 같은 경우 중복 제거
+          let formattedCharName;
+          if (x.characterName === character.name) {
+            formattedCharName = character.name; // 실제이름만
+          } else {
+            formattedCharName = `${character.name}(${x.characterName})`; // 실제이름(극중이름)
+          }
+          
+          return Work.updateOne({ _id: x.workId }, { $push: { characters: formattedCharName } });
+        });
+      if (updates.length > 0) {
+        await Promise.all(updates);
+      }
+    }
+    
+    res.status(201).json({ success: true, character });
   } catch (error) {
+    console.error('인물 생성 오류:', error);
     res.status(400).json({ error: { code: 'CHAR_CREATE_ERROR', message: '인물 생성 실패', details: error.message } });
   }
 });
 
 router.get('/characters/:id', requireAdminAuth, requirePermission('characters'), async (req, res) => {
   try {
-    const character = await Character.findById(req.params.id);
-    if (!character) return res.status(404).json({ error: { code: 'CHAR_NOT_FOUND', message: '인물 없음' } });
+    console.log(`=== 인물 조회 시작: ID = ${req.params.id} ===`);
+    
+    const doc = await Character.findById(req.params.id);
+    const character = doc ? doc.toObject() : null;
+    if (!character) {
+      console.log(`인물을 찾을 수 없음: ${req.params.id}`);
+      return res.status(404).json({ error: { code: 'CHAR_NOT_FOUND', message: '인물 없음' } });
+    }
+
+    console.log(`인물 정보: ${character.name} (${character._id})`);
+
+    // 인물 ObjectId로 정확히 characterIds에 포함된 작품만 조회
+    console.log(`작품 검색 시작 - characterIds에서 ${character._id} 찾기`);
+    const works = await Work.find({ characterIds: character._id })
+      .select('_id title characters characterIds');
+
+    console.log(`Character ${character.name} (${character.id || character._id}) found ${works.length} works`);
+
+    if (works.length > 0) {
+      console.log('찾은 작품들:');
+      works.forEach(work => {
+        console.log(`  - ${work.title} (${work._id})`);
+        console.log(`    characterIds: [${work.characterIds.join(', ')}]`);
+        console.log(`    characters: [${work.characters.join(', ')}]`);
+      });
+    } else {
+      console.log('관련 작품을 찾지 못했습니다.');
+      // 디버깅을 위해 모든 작품의 characterIds 확인
+      const allWorks = await Work.find({}).select('_id title characterIds characters');
+      console.log('=== 전체 작품의 characterIds 확인 ===');
+      allWorks.forEach(work => {
+        console.log(`작품: ${work.title}`);
+        console.log(`  characterIds: [${work.characterIds.map(id => id.toString()).join(', ')}]`);
+        console.log(`  현재 인물 ID와 일치?: ${work.characterIds.some(id => id.toString() === character._id.toString())}`);
+      });
+    }
+
+    // workIds와 각 작품별 작중이름(같은 인덱스) 매핑
+    character.workIds = works.map(work => work._id.toString());
+    character.workCharacterNames = {};
+    works.forEach(work => {
+      let roleName = '';
+      if (Array.isArray(work.characterIds)) {
+        const idx = work.characterIds.findIndex(id => id && id.toString() === character._id.toString());
+        if (idx > -1 && Array.isArray(work.characters)) {
+          const raw = work.characters[idx] || '';
+          // 형식: "배우명(작중이름)"이면 괄호 안만 추출, 괄호가 없으면 작중이름 없음으로 처리
+          const m = typeof raw === 'string' ? raw.match(/^[^()]*\(([^)]+)\)\s*$/) : null;
+          roleName = m ? m[1] : '';
+        }
+      }
+      character.workCharacterNames[work._id.toString()] = roleName;
+    });
+
+    console.log(`최종 결과 - workIds: [${character.workIds.join(', ')}]`);
+    console.log(`최종 결과 - workCharacterNames:`, character.workCharacterNames);
+    console.log('=== 인물 조회 완료 ===');
+
     res.json({ success: true, character });
   } catch (error) {
+    console.error('인물 조회 오류:', error);
     res.status(500).json({ error: { code: 'CHAR_FETCH_ERROR', message: '인물 조회 실패', details: error.message } });
   }
 });
 
 router.put('/characters/:id', requireAdminAuth, requirePermission('characters'), logAdminActivity('update', 'character'), async (req, res) => {
   try {
-    const updated = await Character.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { workIds, workCharacterNames = {}, ...characterData } = req.body;
+    
+    // 인물 정보 업데이트
+    const updated = await Character.findByIdAndUpdate(req.params.id, characterData, { new: true });
     if (!updated) return res.status(404).json({ error: { code: 'CHAR_NOT_FOUND', message: '인물 없음' } });
+    
+    // 관련 작품 업데이트 (workIds가 제공된 경우)
+    if (workIds && Array.isArray(workIds)) {
+      // 기존 작품들에서 이 인물만 제거 (characters 배열은 인덱스 기반으로 정확히 제거)
+      const worksWithThisChar = await Work.find({ characterIds: updated._id });
+      
+      for (const work of worksWithThisChar) {
+        const charIndex = work.characterIds.findIndex(id => id.toString() === updated._id.toString());
+        if (charIndex !== -1) {
+          // characterIds에서 제거
+          work.characterIds.splice(charIndex, 1);
+          // 동일한 인덱스의 characters에서도 제거
+          if (work.characters && work.characters[charIndex]) {
+            work.characters.splice(charIndex, 1);
+          }
+          await work.save();
+        }
+      }
+      
+      // 새로운 작품들에 이 인물 추가
+      if (workIds.length > 0) {
+        // 각 작품별로 characterIds, characters 갱신
+        for (const workId of workIds) {
+          const charName = workCharacterNames[workId] || updated.name; // 없으면 인물명 기본
+          
+          // 극중이름이 실제이름과 같은 경우 중복 제거
+          let formattedCharName;
+          if (charName === updated.name) {
+            formattedCharName = updated.name; // 실제이름만
+          } else {
+            formattedCharName = `${updated.name}(${charName})`; // 실제이름(극중이름)
+          }
+          
+          await Work.findByIdAndUpdate(
+            workId,
+            { 
+              $addToSet: { characterIds: updated._id },
+              $push: { characters: formattedCharName }
+            },
+            { new: true }
+          );
+        }
+      }
+    }
+    
     res.json({ success: true, character: updated });
   } catch (error) {
+    console.error('인물 수정 오류:', error);
     res.status(400).json({ error: { code: 'CHAR_UPDATE_ERROR', message: '인물 수정 실패', details: error.message } });
   }
 });

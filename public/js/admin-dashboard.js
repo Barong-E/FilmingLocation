@@ -19,6 +19,15 @@ class AdminDashboard {
       // 이벤트 리스너 등록
       this.bindEvents();
       
+      // 인물 추가 버튼 이벤트 (중복 방지)
+      const characterAddBtn = document.getElementById('characterAddBtn');
+      if (characterAddBtn && !characterAddBtn.hasAttribute('data-listener-added')) {
+        characterAddBtn.addEventListener('click', () => {
+          this.openCharacterAddModal();
+        });
+        characterAddBtn.setAttribute('data-listener-added', 'true');
+      }
+      
       // URL에서 탭 정보 확인
       this.restoreTabFromURL();
       
@@ -94,7 +103,7 @@ class AdminDashboard {
     // 추가 버튼들
     document.getElementById('placeAddBtn')?.addEventListener('click', () => this.openPlaceModal());
     document.getElementById('workAddBtn')?.addEventListener('click', () => this.openWorkModal());
-    document.getElementById('characterAddBtn')?.addEventListener('click', () => this.openCharacterModal());
+    // 기존 공용 모달을 여는 인물 추가 리스너는 제거 (새 인물 전용 모달 사용)
 
     // 기간 셀렉트 -> 트렌드 갱신
     document.getElementById('trendDays')?.addEventListener('change', (e) => this.loadTrends(parseInt(e.target.value)));
@@ -766,8 +775,7 @@ class AdminDashboard {
           <td>${new Date(place.createdAt).toLocaleDateString()}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-action btn-view" onclick="dashboard.viewPlace('${place._id}')">보기</button>
-              <button class="btn-action btn-edit" onclick="dashboard.editPlace('${place._id}')">수정</button>
+              <button class="btn-action btn-view" onclick="dashboard.editPlace('${place._id}')">수정</button>
             </div>
           </td>
         </tr>
@@ -796,12 +804,9 @@ class AdminDashboard {
     tbody.innerHTML = characters.map(character => `
       <tr>
         <td>${character.name}</td>
-        <td>${character.description ? character.description.substring(0, 50) + '...' : 'N/A'}</td>
-        <td>${new Date(character.createdAt).toLocaleDateString()}</td>
         <td>
           <div class="action-buttons">
-            <button class="btn-action btn-view" onclick="dashboard.viewCharacter('${character._id}')">보기</button>
-            <button class="btn-action btn-edit" onclick="dashboard.editCharacter('${character._id}')">수정</button>
+            <button class="btn-action btn-view" onclick="dashboard.editCharacter('${character._id}')">수정</button>
           </div>
         </td>
       </tr>
@@ -1195,6 +1200,683 @@ class AdminDashboard {
     }
   }
 
+  // 인물 추가 모달 열기
+  async openCharacterAddModal() {
+    try {
+      // 작품 목록 가져오기(요약 API)
+      const worksRes = await fetch('/api/admin/works/summary', { credentials: 'include' });
+      if (!worksRes.ok) throw new Error('작품 목록을 불러올 수 없습니다.');
+      const worksData = await worksRes.json();
+      
+      // 작품 드롭다운 채우기
+      this.populateWorksDropdown(worksData.works);
+      
+      // 모달 표시
+      document.getElementById('characterAddModal').style.display = 'flex';
+      
+      // 이벤트 설정
+      this.setupCharacterAddModal();
+      
+    } catch (error) {
+      console.error('인물 추가 모달 오류:', error);
+      alert('작품 목록을 불러오는 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 작품 드롭다운 채우기
+  populateWorksDropdown(works, dropdownId = 'works-dropdown') {
+    this.allWorks = works; // 작품 전체 목록을 보관
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = works.map(work => `
+      <div class=\"work-option\" data-work-id=\"${work._id}\">
+        <div class=\"work-title\">${work.title}</div>
+        <div class=\"work-type\">${work.type || '타입 미지정'}</div>
+      </div>
+    `).join('');
+  }
+
+  // 인물 추가 모달 이벤트 설정
+  setupCharacterAddModal() {
+    const selectedWorks = document.getElementById('selected-works');
+    const dropdown = document.getElementById('works-dropdown');
+    let selectedWorkIds = [];
+    const nameRow = document.getElementById('work-character-names-row');
+    const nameList = document.getElementById('work-character-names');
+
+    // 기존 이벤트 리스너 제거 (중복 방지)
+    const newSelectedWorks = selectedWorks.cloneNode(true);
+    selectedWorks.parentNode.replaceChild(newSelectedWorks, selectedWorks);
+    
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+
+    // 드롭다운 토글
+    newSelectedWorks.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // 작품 선택 (중복 방지 강화)
+    newDropdown.addEventListener('click', (e) => {
+      const workOption = e.target.closest('.work-option');
+      if (!workOption) return;
+
+      const workId = workOption.dataset.workId;
+      const workTitle = workOption.querySelector('.work-title').textContent;
+
+      // 중복 체크 강화
+      if (!selectedWorkIds.includes(workId)) {
+        selectedWorkIds.push(workId);
+        this.addSelectedWorkTag(workTitle, workId, selectedWorkIds);
+
+        // 작품별 작중이름 입력칸 추가
+        this.addWorkCharacterNameInput(workId, workTitle, nameRow, nameList);
+
+        // 선택된 옵션에 시각적 표시
+        workOption.classList.add('selected');
+
+        // 드롭다운 닫기
+        newDropdown.style.display = 'none';
+      } else {
+        console.log('이미 선택된 작품입니다:', workTitle);
+      }
+    });
+
+    // 저장 버튼 (중복 방지)
+    const saveBtn = document.getElementById('character-save-btn');
+    if (saveBtn) {
+      saveBtn.onclick = () => {
+        this.saveCharacter(selectedWorkIds);
+      };
+    }
+
+    // 취소 버튼 (중복 방지)
+    const cancelBtn = document.getElementById('character-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        this.closeCharacterAddModal();
+      };
+    }
+
+    // 모달 닫기 버튼 (중복 방지)
+    const closeBtn = document.querySelector('#characterAddModal .modal-close');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        this.closeCharacterAddModal();
+      };
+    }
+
+    // 외부 클릭으로 드롭다운 닫기
+    const clickHandler = (e) => {
+      if (!e.target.closest('.multi-select-container')) {
+        newDropdown.style.display = 'none';
+      }
+    };
+    document.addEventListener('click', clickHandler);
+    
+    // 모달이 닫힐 때 이벤트 리스너 제거
+    const modal = document.getElementById('characterAddModal');
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          if (modal.style.display === 'none') {
+            document.removeEventListener('click', clickHandler);
+            observer.disconnect();
+          }
+        }
+      });
+    });
+    observer.observe(modal, { attributes: true });
+  }
+
+  // 선택된 작품 태그 추가
+  addSelectedWorkTag(title, workId, selectedWorkIds) {
+    const selectedWorks = document.getElementById('selected-works');
+    const placeholder = selectedWorks.querySelector('.placeholder');
+    
+    if (placeholder) {
+      placeholder.remove();
+    }
+
+    const tag = document.createElement('div');
+    tag.className = 'selected-work-tag';
+    tag.innerHTML = `
+      ${title}
+      <span class="remove" data-work-id="${workId}">&times;</span>
+    `;
+
+    // 제거 버튼 이벤트
+    tag.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const index = selectedWorkIds.indexOf(workId);
+      if (index > -1) {
+        selectedWorkIds.splice(index, 1);
+      }
+      tag.remove();
+
+      // 해당 작품의 작중이름 입력칸도 제거
+      this.removeWorkCharacterNameInput(workId);
+
+      // 모든 태그가 제거되면 placeholder 다시 표시
+      if (selectedWorkIds.length === 0) {
+        selectedWorks.innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
+        // 작중이름 섹션도 숨기기
+        const nameRow = document.getElementById('work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+    });
+
+    selectedWorks.appendChild(tag);
+  }
+
+  // 작품별 작중이름 입력칸 추가
+  addWorkCharacterNameInput(workId, workTitle, nameRow, nameList) {
+    if (nameRow.style.display === 'none') nameRow.style.display = 'block';
+    const item = document.createElement('div');
+    item.className = 'work-character-name-item';
+    item.dataset.workId = workId;
+    item.innerHTML = `
+      <div class="work-title">${workTitle}</div>
+      <input type="text" class="work-character-name-input" placeholder="작중이름 입력">
+    `;
+    nameList.appendChild(item);
+  }
+
+  // 작품별 작중이름 입력칸 제거
+  removeWorkCharacterNameInput(workId) {
+    const nameList = document.getElementById('work-character-names');
+    if (nameList) {
+      const item = nameList.querySelector(`[data-work-id="${workId}"]`);
+      if (item) {
+        item.remove();
+      }
+      
+      // 모든 입력칸이 제거되면 섹션 숨기기
+      if (nameList.children.length === 0) {
+        const nameRow = document.getElementById('work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+    }
+  }
+
+  // 인물 저장
+  async saveCharacter(selectedWorkIds) {
+    try {
+      // 모든 필드 값 수집
+      const name = document.getElementById('character-name').value.trim();
+      const job = document.getElementById('character-job').value.trim();
+      const nationality = document.getElementById('character-nationality').value.trim();
+      const birthDate = document.getElementById('character-birthDate').value;
+      const birthPlace = document.getElementById('character-birthPlace').value.trim();
+      const education = document.getElementById('character-education').value.trim();
+      const heightCm = document.getElementById('character-heightCm').value;
+      const weightKg = document.getElementById('character-weightKg').value;
+      const description = document.getElementById('character-description').value.trim();
+      const image = document.getElementById('character-image').value.trim();
+      const characterName = document.getElementById('character-characterName').value.trim();
+
+      if (!name) {
+        alert('인물명을 입력해주세요.');
+        return;
+      }
+
+      // 작품별 작중이름 수집 (workId -> name)
+      const perWorkNames = Array.from(document.querySelectorAll('.work-character-name-item'))
+        .map(item => ({
+          workId: item.dataset.workId,
+          characterName: item.querySelector('.work-character-name-input').value.trim()
+        }))
+        .filter(x => x.characterName);
+
+      const characterData = {
+        name,
+        job: job || undefined,
+        nationality: nationality || undefined,
+        birthDate: birthDate || undefined,
+        birthPlace: birthPlace || undefined,
+        education: education || undefined,
+        heightCm: heightCm ? parseInt(heightCm) : undefined,
+        weightKg: weightKg ? parseInt(weightKg) : undefined,
+        description: description || undefined,
+        image: image || undefined,
+        characterName: characterName || undefined, // 단일 입력값(하위호환)
+        workIds: selectedWorkIds, // 선택된 작품 ID들
+        workCharacterNames: perWorkNames // 작품별 작중이름 목록
+      };
+
+      console.log('인물 데이터:', characterData);
+
+      const response = await fetch('/api/admin/characters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(characterData)
+      });
+
+      if (response.ok) {
+        alert('인물이 성공적으로 추가되었습니다.');
+        this.closeCharacterAddModal();
+        this.loadCharacters(); // 인물 목록 새로고침
+      } else {
+        const error = await response.json();
+        console.error('인물 추가 실패:', error);
+        alert(`인물 추가 실패: ${error.error.message}`);
+      }
+    } catch (error) {
+      console.error('인물 저장 오류:', error);
+      alert('인물 저장 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 인물 추가 모달 닫기
+  closeCharacterAddModal() {
+    const modal = document.getElementById('characterAddModal');
+    if (modal) {
+      modal.style.display = 'none';
+      
+      // 모든 폼 필드 초기화
+      document.getElementById('character-name').value = '';
+      document.getElementById('character-job').value = '';
+      document.getElementById('character-nationality').value = '';
+      document.getElementById('character-birthDate').value = '';
+      document.getElementById('character-birthPlace').value = '';
+      document.getElementById('character-education').value = '';
+      document.getElementById('character-heightCm').value = '';
+      document.getElementById('character-weightKg').value = '';
+      document.getElementById('character-description').value = '';
+      document.getElementById('character-image').value = '';
+      document.getElementById('character-characterName').value = '';
+      document.getElementById('selected-works').innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
+      // 작품별 작중이름 입력 목록 초기화
+      const nameRow = document.getElementById('work-character-names-row');
+      const nameList = document.getElementById('work-character-names');
+      if (nameList) nameList.innerHTML = '';
+      if (nameRow) nameRow.style.display = 'none';
+      
+      // 드롭다운 숨기기
+      const dropdown = document.getElementById('works-dropdown');
+      if (dropdown) {
+        dropdown.style.display = 'none';
+      }
+    }
+  }
+
+  // 인물 수정 모달 열기
+  async openCharacterEditModal(character) {
+    try {
+      // 작품 목록 가져오기(요약 API)
+      const worksRes = await fetch('/api/admin/works/summary', { credentials: 'include' });
+      if (!worksRes.ok) throw new Error('작품 목록을 불러올 수 없습니다.');
+      const worksData = await worksRes.json();
+      
+      // 작품 드롭다운 채우기
+      this.populateWorksDropdown(worksData.works, 'edit-works-dropdown');
+      
+      // 현재 인물 정보로 폼 채우기
+      this.populateCharacterEditForm(character);
+      
+      // 선택된 작품 뱃지 스타일, 입력 필드 스타일 동일화 (추가 모달 기준)
+      const selectedWrap = document.getElementById('edit-selected-works');
+      selectedWrap.className = 'selected-works';
+      const dropdown = document.getElementById('edit-works-dropdown');
+      dropdown.className = 'works-dropdown';
+      const namesWrap = document.getElementById('edit-work-character-names');
+      if (namesWrap) namesWrap.classList.remove('edit-mode');
+      
+      // 모달 표시
+      document.getElementById('characterEditModal').style.display = 'flex';
+      
+      // 이벤트 설정
+      this.setupCharacterEditModal();
+      
+    } catch (error) {
+      console.error('인물 수정 모달 오류:', error);
+      alert('작품 목록을 불러오는 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 인물 수정 폼에 데이터 채우기
+  populateCharacterEditForm(character) {
+    console.log('=== 인물 수정 폼 데이터 채우기 ===');
+    console.log('전체 인물 정보:', character);
+    console.log('workIds 타입:', typeof character.workIds, '값:', character.workIds);
+    console.log('workCharacterNames 타입:', typeof character.workCharacterNames, '값:', character.workCharacterNames);
+    
+    document.getElementById('edit-character-name').value = character.name || '';
+    document.getElementById('edit-character-job').value = character.job || '';
+    document.getElementById('edit-character-nationality').value = character.nationality || '';
+    document.getElementById('edit-character-birthDate').value = character.birthDate || '';
+    document.getElementById('edit-character-birthPlace').value = character.birthPlace || '';
+    document.getElementById('edit-character-education').value = character.education || '';
+    document.getElementById('edit-character-heightCm').value = character.heightCm || '';
+    document.getElementById('edit-character-weightKg').value = character.weightKg || '';
+    document.getElementById('edit-character-description').value = character.description || '';
+    document.getElementById('edit-character-image').value = character.image || '';
+    
+    // 관련 작품 설정
+    console.log('workIds 존재 여부:', !!character.workIds);
+    console.log('workIds 길이:', character.workIds ? character.workIds.length : 'undefined');
+    
+    if (character.workIds && character.workIds.length > 0) {
+      console.log('>>> 관련 작품 설정 시작');
+      console.log('관련 작품 IDs:', character.workIds);
+      console.log('작중이름 매핑:', character.workCharacterNames);
+      
+      // 잠시 후에 실행 (드롭다운이 준비될 때까지 대기)
+      setTimeout(() => {
+        console.log('>>> setTimeout에서 setSelectedWorksForEdit 호출');
+        this.setSelectedWorksForEdit(character.workIds, character.workCharacterNames || {});
+      }, 100);
+    } else {
+      console.log('>>> 관련 작품이 없음');
+    }
+  }
+
+  // 수정 모달용 작품 선택 설정
+  setSelectedWorksForEdit(workIds, workCharacterNames = {}) {
+    console.log('=== setSelectedWorksForEdit 시작 ===');
+    console.log('받은 workIds:', workIds);
+    console.log('받은 workCharacterNames:', workCharacterNames);
+    
+    const selectedWorks = document.getElementById('edit-selected-works');
+    const nameRow = document.getElementById('edit-work-character-names-row');
+    const nameList = document.getElementById('edit-work-character-names');
+    
+    console.log('DOM 요소들:', {
+      selectedWorks: !!selectedWorks,
+      nameRow: !!nameRow,
+      nameList: !!nameList
+    });
+    
+    if (!selectedWorks) {
+      console.error('edit-selected-works 요소를 찾을 수 없습니다!');
+      return;
+    }
+    
+    // 기존 선택 초기화
+    selectedWorks.innerHTML = '';
+    if (nameList) nameList.innerHTML = '';
+    if (nameRow) nameRow.style.display = 'none';
+    
+    // 선택된 작품들 표시
+    console.log('작품 처리 시작, workIds 개수:', workIds.length);
+    workIds.forEach((workId, index) => {
+      console.log(`작품 ${index}: workId=${workId}`);
+      const workOption = document.querySelector(`#edit-works-dropdown [data-work-id="${workId}"]`);
+      console.log(`workOption 찾음:`, !!workOption);
+      
+      if (workOption) {
+        // 작품 제목만 가져오기 (타입 제외)
+        const workTitleElement = workOption.querySelector('.work-title');
+        const workTitle = workTitleElement ? workTitleElement.textContent.trim() : workOption.textContent.trim();
+        console.log(`작품 제목: ${workTitle}`);
+        
+        const characterName = workCharacterNames[workId];
+        console.log(`작중이름: ${characterName}`);
+        
+        this.addSelectedWorkTagForEdit(workId, workTitle);
+        this.addWorkCharacterNameInputForEdit(workId, workTitle, characterName);
+      } else {
+        console.warn(`workId ${workId}에 해당하는 작품을 드롭다운에서 찾을 수 없습니다`);
+      }
+    });
+    
+    // 작품이 선택되었으면 작중이름 섹션 표시
+    if (workIds.length > 0) {
+      console.log('작중이름 섹션 표시');
+      if (nameRow) nameRow.style.display = 'block';
+    }
+    
+    // placeholder 제거
+    const placeholder = selectedWorks.querySelector('.placeholder');
+    if (placeholder) {
+      console.log('placeholder 제거');
+      placeholder.remove();
+    }
+    
+    console.log('=== setSelectedWorksForEdit 완료 ===');
+  }
+
+  // 수정 모달용 작품 태그 추가
+  addSelectedWorkTagForEdit(workId, workTitle) {
+    const selectedWorks = document.getElementById('edit-selected-works');
+    const tag = document.createElement('span');
+    tag.className = 'work-tag';
+    tag.setAttribute('data-work-id', workId);
+    tag.innerHTML = `
+      <span class="work-title">${workTitle}</span>
+      <span class="remove">&times;</span>
+    `;
+    
+    // 제거 버튼 이벤트
+    tag.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      tag.remove();
+      this.removeWorkCharacterNameInputForEdit(workId);
+      
+      // 모든 태그가 제거되면 placeholder 다시 표시
+      if (selectedWorks.children.length === 0) {
+        selectedWorks.innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
+        const nameRow = document.getElementById('edit-work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+    });
+    
+    selectedWorks.appendChild(tag);
+  }
+
+  // 수정 모달용 작중이름 입력칸 추가
+  addWorkCharacterNameInputForEdit(workId, workTitle, characterName = '') {
+    const nameList = document.getElementById('edit-work-character-names');
+    const nameRow = document.getElementById('edit-work-character-names-row');
+    
+    const item = document.createElement('div');
+    item.className = 'work-character-name-item';
+    item.setAttribute('data-work-id', workId);
+    item.innerHTML = `
+      <span class="work-title">${workTitle}</span>
+      <input type="text" placeholder="작중이름 입력" class="character-name-input" value="${characterName}">
+    `;
+    
+    nameList.appendChild(item);
+    nameRow.style.display = 'block';
+  }
+
+  // 수정 모달용 작중이름 입력칸 제거
+  removeWorkCharacterNameInputForEdit(workId) {
+    const nameList = document.getElementById('edit-work-character-names');
+    if (nameList) {
+      const item = nameList.querySelector(`[data-work-id="${workId}"]`);
+      if (item) {
+        item.remove();
+      }
+      
+      // 모든 입력칸이 제거되면 섹션 숨기기
+      if (nameList.children.length === 0) {
+        const nameRow = document.getElementById('edit-work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+    }
+  }
+
+  // 인물 수정 모달 이벤트 설정
+  setupCharacterEditModal() {
+    const selectedWorks = document.getElementById('edit-selected-works');
+    const dropdown = document.getElementById('edit-works-dropdown');
+    const nameRow = document.getElementById('edit-work-character-names-row');
+    
+    // 작품 선택 영역 클릭 이벤트
+    selectedWorks.addEventListener('click', () => {
+      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    // 작품 옵션 클릭 이벤트
+    dropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.work-option');
+      if (option) {
+        const workId = option.getAttribute('data-work-id');
+        const titleEl = option.querySelector('.work-title');
+        const workTitle = titleEl ? titleEl.textContent.trim() : option.textContent.trim();
+        
+        // 이미 선택된 작품인지 확인
+        if (!this.isWorkSelectedForEdit(workId)) {
+          this.addSelectedWorkTagForEdit(workId, workTitle);
+          this.addWorkCharacterNameInputForEdit(workId, workTitle);
+        }
+        
+        dropdown.style.display = 'none';
+      }
+    });
+    
+    // 저장 버튼 이벤트
+    const saveBtn = document.getElementById('edit-character-save-btn');
+    if (saveBtn) {
+      saveBtn.onclick = () => {
+        this.saveCharacterEdit();
+      };
+    }
+    
+    // 취소 버튼 이벤트
+    const cancelBtn = document.getElementById('edit-character-cancel-btn');
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        this.closeCharacterEditModal();
+      };
+    }
+    
+    // 모달 닫기 버튼 이벤트
+    const closeBtn = document.querySelector('#characterEditModal .modal-close');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        this.closeCharacterEditModal();
+      };
+    }
+    
+    // 외부 클릭으로 드롭다운 닫기
+    const clickHandler = (e) => {
+      if (!e.target.closest('.multi-select-container')) {
+        dropdown.style.display = 'none';
+      }
+    };
+    document.addEventListener('click', clickHandler);
+  }
+
+  // 수정 모달에서 작품 선택 여부 확인
+  isWorkSelectedForEdit(workId) {
+    const selectedWorks = document.getElementById('edit-selected-works');
+    return selectedWorks.querySelector(`[data-work-id="${workId}"]`) !== null;
+  }
+
+  // 인물 수정 저장
+  async saveCharacterEdit() {
+    try {
+      const characterId = this.currentEditingCharacterId;
+      if (!characterId) {
+        alert('수정할 인물 정보가 없습니다.');
+        return;
+      }
+      
+      // 폼 데이터 수집
+      const characterData = {
+        name: document.getElementById('edit-character-name').value,
+        job: document.getElementById('edit-character-job').value,
+        nationality: document.getElementById('edit-character-nationality').value,
+        birthDate: document.getElementById('edit-character-birthDate').value,
+        birthPlace: document.getElementById('edit-character-birthPlace').value,
+        education: document.getElementById('edit-character-education').value,
+        heightCm: parseInt(document.getElementById('edit-character-heightCm').value) || null,
+        weightKg: parseInt(document.getElementById('edit-character-weightKg').value) || null,
+        description: document.getElementById('edit-character-description').value,
+        image: document.getElementById('edit-character-image').value
+      };
+      
+      // 필수 필드 검증
+      if (!characterData.name.trim()) {
+        alert('인물명을 입력해주세요.');
+        return;
+      }
+      
+      // 선택된 작품들 수집
+      const selectedWorkTags = document.querySelectorAll('#edit-selected-works .work-tag');
+      const workIds = [];
+      const workCharacterNames = {};
+      
+      selectedWorkTags.forEach(tag => {
+        const workId = tag.getAttribute('data-work-id');
+        if (workId) {
+          workIds.push(workId);
+          
+          // 해당 작품의 작중이름 입력값 수집
+          const nameInput = document.querySelector(`#edit-work-character-names [data-work-id="${workId}"] input`);
+          if (nameInput && nameInput.value.trim()) {
+            workCharacterNames[workId] = nameInput.value.trim();
+          }
+        }
+      });
+      
+      characterData.workIds = workIds;
+      characterData.workCharacterNames = workCharacterNames;
+      
+      // 서버에 수정 요청
+      const response = await fetch(`/api/admin/characters/${characterId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(characterData)
+      });
+
+      if (response.ok) {
+        alert('인물이 성공적으로 수정되었습니다.');
+        this.closeCharacterEditModal();
+        this.loadCharacters(); // 인물 목록 새로고침
+      } else {
+        const error = await response.json();
+        console.error('인물 수정 실패:', error);
+        alert(`인물 수정 실패: ${error.error.message}`);
+      }
+    } catch (error) {
+      console.error('인물 수정 오류:', error);
+      alert('인물 수정 중 오류가 발생했습니다.');
+    }
+  }
+
+  // 인물 수정 모달 닫기
+  closeCharacterEditModal() {
+    const modal = document.getElementById('characterEditModal');
+    if (modal) {
+      modal.style.display = 'none';
+      
+      // 모든 폼 필드 초기화
+      document.getElementById('edit-character-name').value = '';
+      document.getElementById('edit-character-job').value = '';
+      document.getElementById('edit-character-nationality').value = '';
+      document.getElementById('edit-character-birthDate').value = '';
+      document.getElementById('edit-character-birthPlace').value = '';
+      document.getElementById('edit-character-education').value = '';
+      document.getElementById('edit-character-heightCm').value = '';
+      document.getElementById('edit-character-weightKg').value = '';
+      document.getElementById('edit-character-description').value = '';
+      document.getElementById('edit-character-image').value = '';
+      document.getElementById('edit-selected-works').innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
+      
+      // 작품별 작중이름 입력 목록 초기화
+      const nameRow = document.getElementById('edit-work-character-names-row');
+      const nameList = document.getElementById('edit-work-character-names');
+      if (nameList) nameList.innerHTML = '';
+      if (nameRow) nameRow.style.display = 'none';
+      
+      // 드롭다운 숨기기
+      const dropdown = document.getElementById('edit-works-dropdown');
+      if (dropdown) {
+        dropdown.style.display = 'none';
+      }
+      
+      // 현재 편집 중인 인물 ID 초기화
+      this.currentEditingCharacterId = null;
+    }
+  }
+
   // 작품 수정 저장
   async saveWorkEdit(workId) {
     try {
@@ -1343,8 +2025,28 @@ class AdminDashboard {
     alert(`작품 ${workId} 수정 (미구현)`);
   }
   
-  editCharacter(characterId) {
-    alert(`인물 ${characterId} 수정 (미구현)`);
+  async editCharacter(characterId) {
+    try {
+      // 현재 편집 중인 인물 ID 저장
+      this.currentEditingCharacterId = characterId;
+      
+      // 인물 정보 가져오기
+      const response = await fetch(`/api/admin/characters/${characterId}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('인물 정보를 가져올 수 없습니다.');
+      }
+      
+      const data = await response.json();
+      const character = data && data.character ? data.character : data;
+      this.openCharacterEditModal(character);
+    } catch (error) {
+      console.error('인물 정보 로드 오류:', error);
+      alert('인물 정보를 불러오는데 실패했습니다.');
+    }
   }
 }
 

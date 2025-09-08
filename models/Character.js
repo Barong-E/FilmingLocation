@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const CharacterSchema = new mongoose.Schema({
   id:           { type: String, required: true, unique: true }, // 영문 고유값
   name:         { type: String, required: true },               // 실제 인물 이름
+  characterName: { type: String },                              // 작중이름 (작품에서 사용되는 캐릭터 이름)
   image:        { type: String },                               // 이미지 URL/경로
   job:          { type: String },                               // 직업(배우, 가수 등)
   birth:        { type: String },                               // 예: 1988-12-16 (만 35세), 서울특별시

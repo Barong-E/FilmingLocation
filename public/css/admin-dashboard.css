@@ -843,6 +843,135 @@ body {
   font-size: 14px;
 }
 
+/* 멀티셀렉트 드롭다운 스타일 */
+.multi-select-container {
+  position: relative;
+}
+
+.selected-works {
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  padding: 12px 15px;
+  background: var(--filo-white);
+  cursor: pointer;
+  min-height: 45px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.selected-works:hover {
+  border-color: var(--filo-mint);
+}
+
+.selected-works .placeholder {
+  color: var(--filo-text-light);
+  font-style: italic;
+}
+
+.selected-work-tag {
+  background: var(--filo-mint);
+  color: var(--filo-white);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.selected-work-tag .remove {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0 2px;
+}
+
+.selected-work-tag .remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.works-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--filo-white);
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.work-option {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--filo-gray-medium);
+}
+
+.work-option:last-child {
+  border-bottom: none;
+}
+
+.work-option:hover {
+  background: var(--filo-mint-light);
+}
+
+.work-option.selected {
+  background: var(--filo-mint);
+  color: var(--filo-white);
+}
+
+.work-option .work-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.work-option .work-type {
+  font-size: 12px;
+  color: var(--filo-text-light);
+}
+
+/* 폼 도움말 스타일 */
+.form-help {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--filo-text-light);
+  font-style: italic;
+}
+
+/* 작품별 작중이름 입력 영역 */
+#work-character-names {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.work-character-name-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.work-character-name-item .work-title {
+  min-width: 160px;
+  max-width: 160px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.work-character-name-item input {
+  flex: 1;
+}
+
 .modal-body p {
   margin-bottom: 20px;
   color: var(--filo-text-light);
