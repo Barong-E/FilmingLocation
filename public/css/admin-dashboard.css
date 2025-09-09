@@ -986,6 +986,127 @@ body {
   box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
 }
 
+/* 작품 수정 모달용 추가 버튼 스타일 */
+.btn-add-item {
+  background: var(--filo-mint);
+  color: var(--filo-white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 8px;
+}
+
+.btn-add-item:hover {
+  background: var(--filo-mint-dark);
+}
+
+.btn-add-item i {
+  margin-right: 4px;
+}
+
+/* 작품 수정 모달용 인물/장소 선택 영역 */
+.selected-characters,
+.selected-places {
+  min-height: 40px;
+  border: 1px solid var(--filo-border);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  background: var(--filo-white);
+  cursor: pointer;
+}
+
+.selected-characters:hover,
+.selected-places:hover {
+  border-color: var(--filo-mint);
+}
+
+.characters-dropdown,
+.places-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--filo-white);
+  border: 1px solid var(--filo-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--filo-shadow);
+  z-index: 1000;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.character-option,
+.place-option {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--filo-gray-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.character-option:hover,
+.place-option:hover {
+  background: var(--filo-mint-light);
+}
+
+.character-option:last-child,
+.place-option:last-child {
+  border-bottom: none;
+}
+
+.character-option.selected,
+.place-option.selected {
+  background: var(--filo-mint-light);
+  color: var(--filo-mint-dark);
+}
+
+.character-option .character-name,
+.place-option .place-name {
+  font-weight: 600;
+}
+
+.character-option .character-job,
+.place-option .place-address {
+  font-size: 12px;
+  color: var(--filo-text-light);
+}
+
+/* 검색 입력창 스타일 */
+.search-container {
+  padding: 12px;
+  border-bottom: 1px solid var(--filo-border);
+  background: var(--filo-gray-light);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--filo-border);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--filo-mint);
+  box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
+}
+
+.character-options,
+.place-options {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
 .modal-body p {
   margin-bottom: 20px;
   color: var(--filo-text-light);

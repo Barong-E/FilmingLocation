@@ -745,36 +745,58 @@ router.get('/works/:id', requireAdminAuth, requirePermission('works'), async (re
 
 router.put('/works/:id', requireAdminAuth, requirePermission('works'), logAdminActivity('update', 'work'), async (req, res) => {
   try {
-    const { characterNames, placeNames, ...updateData } = req.body;
-    
-    // 캐릭터 이름을 ID로 변환
-    let characterIds = [];
-    if (characterNames && characterNames.length > 0) {
+    // 클라이언트가 보낸 필드 분해
+    const {
+      characterIds: incomingCharacterIds,
+      characters: incomingCharacters,
+      placeIds: incomingPlaceIds,
+      characterNames, // 과거 호환
+      placeNames,     // 과거 호환
+      ...updateData
+    } = req.body;
+
+    // 기존 문서 로드 (필드 미제공시 보존 목적)
+    const existing = await Work.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: { code: 'WORK_NOT_FOUND', message: '작품 없음' } });
+
+    // characterIds 결정: 우선순위 1) incomingCharacterIds 2) characterNames 변환 3) 기존 값 유지
+    let finalCharacterIds = existing.characterIds || [];
+    if (Array.isArray(incomingCharacterIds)) {
+      finalCharacterIds = incomingCharacterIds;
+    } else if (Array.isArray(characterNames)) {
       const characters = await Character.find({ name: { $in: characterNames } });
-      characterIds = characters.map(c => c._id);
+      finalCharacterIds = characters.map(c => c._id);
     }
-    
-    // 장소 이름을 ID로 변환
-    let placeIds = [];
-    if (placeNames && placeNames.length > 0) {
+
+    // placeIds 결정: 우선순위 1) incomingPlaceIds 2) placeNames 변환 3) 기존 값 유지
+    let finalPlaceIds = existing.placeIds || [];
+    if (Array.isArray(incomingPlaceIds)) {
+      finalPlaceIds = incomingPlaceIds;
+    } else if (Array.isArray(placeNames)) {
       const places = await Place.find({
         $or: [
           { real_name: { $in: placeNames } },
           { fictional_name: { $in: placeNames } }
         ]
       });
-      placeIds = places.map(p => p._id);
+      finalPlaceIds = places.map(p => p._id);
     }
-    
-    // 업데이트 데이터에 변환된 ID 추가
+
+    // characters 문자열 배열: 제공되면 교체, 아니면 기존 유지
+    let finalCharacters = existing.characters || [];
+    if (Array.isArray(incomingCharacters)) {
+      finalCharacters = incomingCharacters;
+    }
+
+    // 업데이트 데이터 구성
     const finalUpdateData = {
       ...updateData,
-      characterIds,
-      placeIds
+      characterIds: finalCharacterIds,
+      characters: finalCharacters,
+      placeIds: finalPlaceIds,
     };
-    
+
     const updated = await Work.findByIdAndUpdate(req.params.id, finalUpdateData, { new: true });
-    if (!updated) return res.status(404).json({ error: { code: 'WORK_NOT_FOUND', message: '작품 없음' } });
     res.json({ success: true, work: updated });
   } catch (error) {
     res.status(400).json({ error: { code: 'WORK_UPDATE_ERROR', message: '작품 수정 실패', details: error.message } });

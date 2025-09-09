@@ -428,15 +428,36 @@
         </div>
         <div class="form-row">
           <label>등장인물</label>
-          <div id="work-characters" class="editable-list"></div>
+          <div class="multi-select-container">
+            <div class="selected-characters" id="selected-characters">
+              <span class="placeholder">인물을 선택하세요</span>
+            </div>
+            <div class="characters-dropdown" id="characters-dropdown" style="display: none;">
+              <!-- 인물 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+            <button type="button" id="add-character-btn" class="btn-add-item">
+              <i class="fas fa-plus"></i> 인물 추가
+            </button>
+          </div>
+        </div>
+        <div class="form-row" id="work-character-names-row" style="display: none;">
+          <label>작중이름</label>
+          <div id="work-character-names"></div>
+          <small class="form-help">인물을 선택하면 해당 인물별 작중이름 입력 칸이 나타납니다.</small>
         </div>
         <div class="form-row">
-          <label>캐릭터 ID</label>
-          <div id="work-characterIds" class="editable-list"></div>
-        </div>
-        <div class="form-row">
-          <label>장소 ID</label>
-          <div id="work-placeIds" class="editable-list"></div>
+          <label>촬영 장소</label>
+          <div class="multi-select-container">
+            <div class="selected-places" id="selected-places">
+              <span class="placeholder">장소를 선택하세요</span>
+            </div>
+            <div class="places-dropdown" id="places-dropdown" style="display: none;">
+              <!-- 장소 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+            <button type="button" id="add-place-btn" class="btn-add-item">
+              <i class="fas fa-plus"></i> 장소 추가
+            </button>
+          </div>
         </div>
         <div class="modal-actions">
           <button id="work-save-btn" class="btn-primary">저장</button>

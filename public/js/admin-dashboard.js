@@ -1013,6 +1013,10 @@ class AdminDashboard {
       // 모달에 데이터 채우기
       this.populateWorkEditModal(work, charactersData.characters, placesData.places);
       
+      // 인물/장소 선택 기능 설정
+      this.setupWorkCharacterSelection(charactersData.characters);
+      this.setupWorkPlaceSelection(placesData.places);
+      
       // 모달 표시
       document.getElementById('workEditModal').style.display = 'flex';
       
@@ -1108,34 +1112,8 @@ class AdminDashboard {
     document.getElementById('work-description').value = work.description || '';
     document.getElementById('work-image').value = work.image || '';
 
-    // 등장인물 리스트 채우기
-    this.populateEditableList('work-characters', work.characters || [], 'characters');
-
-    // 캐릭터 ID 리스트 채우기 (populate된 객체에서 이름 추출)
-    const characterNames = (work.characterIds || []).map(character => {
-      if (typeof character === 'object' && character.name) {
-        return character.name;
-      } else if (typeof character === 'string') {
-        // ID인 경우 allCharacters에서 찾기
-        const foundCharacter = allCharacters.find(c => c._id === character);
-        return foundCharacter ? foundCharacter.name : character;
-      }
-      return character;
-    });
-    this.populateEditableList('work-characterIds', characterNames, 'characterIds');
-
-    // 장소 ID 리스트 채우기 (populate된 객체에서 이름 추출)
-    const placeNames = (work.placeIds || []).map(place => {
-      if (typeof place === 'object') {
-        return place.real_name || place.fictional_name || place._id;
-      } else if (typeof place === 'string') {
-        // ID인 경우 allPlaces에서 찾기
-        const foundPlace = allPlaces.find(p => p._id === place);
-        return foundPlace ? (foundPlace.real_name || foundPlace.fictional_name || place) : place;
-      }
-      return place;
-    });
-    this.populateEditableList('work-placeIds', placeNames, 'placeIds');
+    // 기존 인물/장소 데이터를 새로운 UI에 표시
+    this.populateWorkEditExistingData(work, allCharacters, allPlaces);
 
     // 저장 버튼 이벤트 리스너
     document.getElementById('work-save-btn').onclick = () => this.saveWorkEdit(work._id);
@@ -1147,6 +1125,13 @@ class AdminDashboard {
   // 편집 가능한 리스트 채우기
   populateEditableList(containerId, items, fieldType) {
     const container = document.getElementById(containerId);
+    
+    // 요소가 존재하지 않으면 함수 종료
+    if (!container) {
+      console.warn(`요소를 찾을 수 없습니다: ${containerId}`);
+      return;
+    }
+    
     container.innerHTML = '';
     
     items.forEach((item, index) => {
@@ -1921,21 +1906,27 @@ class AdminDashboard {
         alert('작품 제목을 입력해주세요.');
         return;
       }
-      
       if (!type) {
         alert('작품 타입을 선택해주세요.');
         return;
       }
       
-      // 리스트 데이터 수집
-      const characters = Array.from(document.getElementById('work-characters').querySelectorAll('.item-text'))
-        .map(el => el.textContent).filter(text => text.trim());
-      
-      const characterNames = Array.from(document.getElementById('work-characterIds').querySelectorAll('.item-text'))
-        .map(el => el.textContent).filter(text => text.trim());
-      
-      const placeNames = Array.from(document.getElementById('work-placeIds').querySelectorAll('.item-text'))
-        .map(el => el.textContent).filter(text => text.trim());
+      // 인물 데이터 수집
+      const characterIds = [];
+      const characters = [];
+      const characterItems = document.querySelectorAll('#work-character-names .work-character-name-item');
+      characterItems.forEach(item => {
+        const characterId = item.dataset.characterId;
+        const characterName = item.querySelector('.work-title').textContent.trim();
+        const roleName = item.querySelector('.work-character-name-input').value.trim();
+        
+        characterIds.push(characterId);
+        characters.push(`${characterName}(${roleName || '정보 없음'})`);
+      });
+
+      // 장소 데이터 수집
+      const placeIds = Array.from(document.querySelectorAll('#selected-places .selected-work-tag'))
+        .map(tag => tag.dataset.placeId);
 
       const payload = {
         title,
@@ -1944,8 +1935,8 @@ class AdminDashboard {
         description,
         image,
         characters,
-        characterNames, // 서버에서 ID로 변환하도록
-        placeNames      // 서버에서 ID로 변환하도록
+        characterIds,
+        placeIds
       };
 
       const response = await fetch(`/api/admin/works/${workId}`, {
@@ -1960,11 +1951,12 @@ class AdminDashboard {
         this.closeWorkEditModal();
         this.loadWorks(); // 목록 새로고침
       } else {
-        throw new Error('작품 수정에 실패했습니다.');
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || '작품 수정에 실패했습니다.');
       }
     } catch (error) {
       console.error('작품 수정 오류:', error);
-      alert('작품 수정 중 오류가 발생했습니다.');
+      alert(`작품 수정 중 오류가 발생했습니다: ${error.message}`);
     }
   }
 
@@ -2076,6 +2068,352 @@ class AdminDashboard {
       console.error('인물 정보 로드 오류:', error);
       alert('인물 정보를 불러오는데 실패했습니다.');
     }
+  }
+
+  // 작품 수정 모달용 인물 선택 기능 설정
+  setupWorkCharacterSelection(characters) {
+    const selectedCharacters = document.getElementById('selected-characters');
+    const dropdown = document.getElementById('characters-dropdown');
+    const addBtn = document.getElementById('add-character-btn');
+    const nameRow = document.getElementById('work-character-names-row');
+    const nameList = document.getElementById('work-character-names');
+    
+    let allCharacters = characters;
+
+    const getSelectedCharacterIds = () => Array.from(document.querySelectorAll('#selected-characters .selected-work-tag'))
+      .map(tag => tag.dataset.characterId);
+
+    // 기존 이벤트 리스너 제거 및 재설정
+    const newSelectedCharacters = selectedCharacters.cloneNode(true);
+    selectedCharacters.parentNode.replaceChild(newSelectedCharacters, selectedCharacters);
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+
+    newDropdown.innerHTML = `
+      <div class="search-container">
+        <input type="text" id="character-search" placeholder="인물 검색..." class="search-input">
+      </div>
+      <div class="character-options" id="character-options"></div>
+    `;
+
+    const searchInput = newDropdown.querySelector('#character-search');
+
+    const renderCharacterOptions = () => {
+      const selectedIds = new Set(getSelectedCharacterIds());
+      const searchTerm = (newDropdown.querySelector('#character-search')?.value || '').toLowerCase();
+      const filtered = allCharacters.filter(ch => !selectedIds.has(ch._id) && (
+        ch.name.toLowerCase().includes(searchTerm) || (ch.job || '').toLowerCase().includes(searchTerm)
+      ));
+      const optionsContainer = newDropdown.querySelector('#character-options');
+      if (!optionsContainer) return;
+      optionsContainer.innerHTML = filtered.map(character => `
+        <div class="character-option" data-character-id="${character._id}">
+          <div class="character-name">${character.name}</div>
+          <div class="character-job">${character.job || ''}</div>
+        </div>
+      `).join('');
+    };
+
+    // 최초 렌더
+    renderCharacterOptions();
+
+    searchInput.addEventListener('input', () => renderCharacterOptions());
+
+    addBtn.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderCharacterOptions();
+        searchInput.focus();
+      }
+    });
+
+    newSelectedCharacters.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderCharacterOptions();
+        searchInput.focus();
+      }
+    });
+
+    // 컨테이너 위임: 기존/신규 태그의 X 클릭 처리
+    newSelectedCharacters.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.remove');
+      if (!removeBtn) return;
+      e.stopPropagation();
+      const tag = removeBtn.closest('.selected-work-tag');
+      if (!tag) return;
+      const characterId = tag.dataset.characterId;
+      tag.remove();
+      this.removeWorkCharacterNameInput(characterId);
+      if (newSelectedCharacters.children.length === 0) {
+        newSelectedCharacters.innerHTML = '<span class="placeholder">인물을 선택하세요</span>';
+        const nameRow = document.getElementById('work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+      renderCharacterOptions();
+    });
+
+    newDropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.character-option');
+      if (!option) return;
+      const characterId = option.dataset.characterId;
+      const characterName = option.querySelector('.character-name').textContent;
+      this.addSelectedCharacterTag(characterId, characterName);
+      this.addWorkCharacterNameInput(characterId, characterName, nameRow, nameList);
+      newDropdown.style.display = 'none';
+      searchInput.value = '';
+      renderCharacterOptions();
+    });
+  }
+
+  // 작품 수정 모달용 장소 선택 기능 설정
+  setupWorkPlaceSelection(places) {
+    const selectedPlaces = document.getElementById('selected-places');
+    const dropdown = document.getElementById('places-dropdown');
+    const addBtn = document.getElementById('add-place-btn');
+    
+    let allPlaces = places;
+
+    const getSelectedPlaceIds = () => Array.from(document.querySelectorAll('#selected-places .selected-work-tag'))
+      .map(tag => tag.dataset.placeId);
+
+    // 기존 이벤트 리스너 제거 및 재설정
+    const newSelectedPlaces = selectedPlaces.cloneNode(true);
+    selectedPlaces.parentNode.replaceChild(newSelectedPlaces, selectedPlaces);
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+
+    newDropdown.innerHTML = `
+      <div class="search-container">
+        <input type="text" id="place-search" placeholder="장소 검색..." class="search-input">
+      </div>
+      <div class="place-options" id="place-options"></div>
+    `;
+
+    const searchInput = newDropdown.querySelector('#place-search');
+
+    const renderPlaceOptions = () => {
+      const selectedIds = new Set(getSelectedPlaceIds());
+      const searchTerm = (newDropdown.querySelector('#place-search')?.value || '').toLowerCase();
+      const filtered = allPlaces.filter(pl => !selectedIds.has(pl._id) && (
+        (pl.real_name || pl.fictional_name || '').toLowerCase().includes(searchTerm) ||
+        (pl.address || '').toLowerCase().includes(searchTerm)
+      ));
+      const optionsContainer = newDropdown.querySelector('#place-options');
+      if (!optionsContainer) return;
+      optionsContainer.innerHTML = filtered.map(place => `
+        <div class="place-option" data-place-id="${place._id}">
+          <div class="place-name">${place.real_name || place.fictional_name}</div>
+          <div class="place-address">${place.address || ''}</div>
+        </div>
+      `).join('');
+    };
+
+    renderPlaceOptions();
+
+    searchInput.addEventListener('input', () => renderPlaceOptions());
+
+    addBtn.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderPlaceOptions();
+        searchInput.focus();
+      }
+    });
+
+    newSelectedPlaces.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderPlaceOptions();
+        searchInput.focus();
+      }
+    });
+
+    // 컨테이너 위임: 기존/신규 태그의 X 클릭 처리
+    newSelectedPlaces.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.remove');
+      if (!removeBtn) return;
+      e.stopPropagation();
+      const tag = removeBtn.closest('.selected-work-tag');
+      if (!tag) return;
+      const placeId = tag.dataset.placeId;
+      tag.remove();
+      if (newSelectedPlaces.children.length === 0) {
+        newSelectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
+      }
+      // 드롭다운 옵션 갱신
+      renderPlaceOptions();
+    });
+
+    newDropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.place-option');
+      if (!option) return;
+      const placeId = option.dataset.placeId;
+      const placeName = option.querySelector('.place-name').textContent;
+      this.addSelectedPlaceTag(placeId, placeName);
+      newDropdown.style.display = 'none';
+      searchInput.value = '';
+      renderPlaceOptions();
+    });
+  }
+
+  // 선택된 인물 태그 추가
+  addSelectedCharacterTag(characterId, characterName) {
+    const selectedCharacters = document.getElementById('selected-characters');
+    const placeholder = selectedCharacters.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+    const tag = document.createElement('div');
+    tag.className = 'selected-work-tag';
+    tag.setAttribute('data-character-id', characterId);
+    tag.innerHTML = `
+      ${characterName}
+      <span class="remove" data-character-id="${characterId}">&times;</span>
+    `;
+    tag.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      tag.remove();
+      this.removeWorkCharacterNameInput(characterId);
+      if (selectedCharacters.children.length === 0) {
+        selectedCharacters.innerHTML = '<span class="placeholder">인물을 선택하세요</span>';
+        const nameRow = document.getElementById('work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+      // 드롭다운 옵션 갱신
+      const dropdown = document.getElementById('characters-dropdown');
+      const searchInput = dropdown?.querySelector('#character-search');
+      if (searchInput) searchInput.dispatchEvent(new Event('input'));
+    });
+    selectedCharacters.appendChild(tag);
+  }
+
+  // 선택된 장소 태그 추가
+  addSelectedPlaceTag(placeId, placeName) {
+    const selectedPlaces = document.getElementById('selected-places');
+    const placeholder = selectedPlaces.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+    const tag = document.createElement('div');
+    tag.className = 'selected-work-tag';
+    tag.setAttribute('data-place-id', placeId);
+    tag.innerHTML = `
+      ${placeName}
+      <span class="remove" data-place-id="${placeId}">&times;</span>
+    `;
+    tag.querySelector('.remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      tag.remove();
+      if (selectedPlaces.children.length === 0) {
+        selectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
+      }
+      // 드롭다운 옵션 갱신
+      const dropdown = document.getElementById('places-dropdown');
+      const searchInput = dropdown?.querySelector('#place-search');
+      if (searchInput) searchInput.dispatchEvent(new Event('input'));
+    });
+    selectedPlaces.appendChild(tag);
+  }
+
+  // 작품용 작중이름 입력칸 추가
+  addWorkCharacterNameInput(characterId, characterName, nameRow, nameList) {
+    if (nameRow.style.display === 'none') nameRow.style.display = 'block';
+    
+    const item = document.createElement('div');
+    item.className = 'work-character-name-item';
+    item.dataset.characterId = characterId;
+    item.innerHTML = `
+      <div class="work-title">${characterName}</div>
+      <input type="text" class="work-character-name-input" placeholder="작중이름 입력">
+    `;
+    
+    nameList.appendChild(item);
+  }
+
+  // 작품용 작중이름 입력칸 제거
+  removeWorkCharacterNameInput(characterId) {
+    const nameList = document.getElementById('work-character-names');
+    if (nameList) {
+      const item = nameList.querySelector(`[data-character-id="${characterId}"]`);
+      if (item) {
+        item.remove();
+      }
+      
+      // 모든 입력칸이 제거되면 섹션 숨기기
+      if (nameList.children.length === 0) {
+        const nameRow = document.getElementById('work-character-names-row');
+        if (nameRow) nameRow.style.display = 'none';
+      }
+    }
+  }
+
+  // 작품 수정 모달에 기존 데이터 표시
+  populateWorkEditExistingData(work, allCharacters, allPlaces) {
+    const selectedCharacters = document.getElementById('selected-characters');
+    const selectedPlaces = document.getElementById('selected-places');
+    const nameRow = document.getElementById('work-character-names-row');
+    const nameList = document.getElementById('work-character-names');
+    
+    // 기존 내용 초기화
+    selectedCharacters.innerHTML = '<span class="placeholder">인물을 선택하세요</span>';
+    selectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
+    nameList.innerHTML = '';
+    nameRow.style.display = 'none';
+
+    // 기존 인물 데이터 표시
+    if (work.characterIds && work.characterIds.length > 0) {
+      selectedCharacters.innerHTML = ''; // placeholder 제거
+      
+      work.characterIds.forEach((characterRef, index) => {
+        // characterRef가 객체인지 문자열 ID인지 확인
+        const characterId = typeof characterRef === 'object' && characterRef._id ? characterRef._id : characterRef;
+        const character = allCharacters.find(c => c._id === characterId);
+        
+        if (character) {
+          // 인물 태그 추가
+          this.addSelectedCharacterTag(characterId, character.name);
+          
+          // 작중이름 입력칸 추가
+          let characterNameInWork = '';
+          if (work.characters && work.characters[index]) {
+            // "이름(작중이름)" 형태에서 작중이름만 추출
+            const match = work.characters[index].match(/^.+?\((.+)\)$/);
+            if (match && match[1]) {
+              characterNameInWork = match[1];
+            }
+          }
+          this.addWorkCharacterNameInputWithValue(characterId, character.name, characterNameInWork, nameRow, nameList);
+        }
+      });
+    }
+    
+    // 기존 장소 데이터 표시
+    if (work.placeIds && work.placeIds.length > 0) {
+      selectedPlaces.innerHTML = ''; // placeholder 제거
+      
+      work.placeIds.forEach(placeRef => {
+        // placeRef가 객체인지 문자열 ID인지 확인
+        const placeId = typeof placeRef === 'object' && placeRef._id ? placeRef._id : placeRef;
+        const place = allPlaces.find(p => p._id === placeId);
+        
+        if (place) {
+          const placeName = place.real_name || place.fictional_name;
+          this.addSelectedPlaceTag(placeId, placeName);
+        }
+      });
+    }
+  }
+
+  // 작품용 작중이름 입력칸 추가 (기존 값 포함)
+  addWorkCharacterNameInputWithValue(characterId, characterName, existingValue, nameRow, nameList) {
+    if (nameRow.style.display === 'none') nameRow.style.display = 'block';
+    
+    const item = document.createElement('div');
+    item.className = 'work-character-name-item';
+    item.dataset.characterId = characterId;
+    item.innerHTML = `
+      <div class="work-title">${characterName}</div>
+      <input type="text" class="work-character-name-input" placeholder="작중이름 입력" value="${existingValue}">
+    `;
+    
+    nameList.appendChild(item);
   }
 }
 
