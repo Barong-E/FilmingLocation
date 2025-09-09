@@ -947,16 +947,18 @@ body {
 }
 
 /* 작품별 작중이름 입력 영역 */
-#work-character-names {
+#work-character-names,
+#edit-work-character-names {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 .work-character-name-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  padding: 8px 0;
 }
 
 .work-character-name-item .work-title {
@@ -966,10 +968,22 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-right: 8px;
 }
 
 .work-character-name-item input {
   flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--filo-border);
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.work-character-name-item input:focus {
+  outline: none;
+  border-color: var(--filo-mint);
+  box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
 }
 
 .modal-body p {

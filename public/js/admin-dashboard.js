@@ -1614,7 +1614,7 @@ class AdminDashboard {
         console.log(`작중이름: ${characterName}`);
         
         this.addSelectedWorkTagForEdit(workId, workTitle);
-        this.addWorkCharacterNameInputForEdit(workId, workTitle, characterName);
+        this.addWorkCharacterNameInputForEdit(workId, workTitle, nameRow, nameList, characterName);
       } else {
         console.warn(`workId ${workId}에 해당하는 작품을 드롭다운에서 찾을 수 없습니다`);
       }
@@ -1636,15 +1636,22 @@ class AdminDashboard {
     console.log('=== setSelectedWorksForEdit 완료 ===');
   }
 
-  // 수정 모달용 작품 태그 추가
+  // 수정 모달용 작품 태그 추가 (추가 모달과 동일한 스타일)
   addSelectedWorkTagForEdit(workId, workTitle) {
     const selectedWorks = document.getElementById('edit-selected-works');
-    const tag = document.createElement('span');
-    tag.className = 'work-tag';
+    const placeholder = selectedWorks.querySelector('.placeholder');
+    
+    if (placeholder) {
+      placeholder.remove();
+    }
+
+    const tag = document.createElement('div');
+    tag.className = 'selected-work-tag';
+    // 저장 시 수집을 위해 필수: 선택된 태그 자체에 data-work-id 부여
     tag.setAttribute('data-work-id', workId);
     tag.innerHTML = `
-      <span class="work-title">${workTitle}</span>
-      <span class="remove">&times;</span>
+      ${workTitle}
+      <span class="remove" data-work-id="${workId}">&times;</span>
     `;
     
     // 제거 버튼 이벤트
@@ -1664,24 +1671,22 @@ class AdminDashboard {
     selectedWorks.appendChild(tag);
   }
 
-  // 수정 모달용 작중이름 입력칸 추가
-  addWorkCharacterNameInputForEdit(workId, workTitle, characterName = '') {
-    const nameList = document.getElementById('edit-work-character-names');
-    const nameRow = document.getElementById('edit-work-character-names-row');
+  // 수정 모달용 작중이름 입력칸 추가 (추가 모달과 동일한 스타일)
+  addWorkCharacterNameInputForEdit(workId, workTitle, nameRow, nameList, characterName = '') {
+    if (nameRow.style.display === 'none') nameRow.style.display = 'block';
     
     const item = document.createElement('div');
     item.className = 'work-character-name-item';
-    item.setAttribute('data-work-id', workId);
+    item.dataset.workId = workId;
     item.innerHTML = `
-      <span class="work-title">${workTitle}</span>
-      <input type="text" placeholder="작중이름 입력" class="character-name-input" value="${characterName}">
+      <div class="work-title">${workTitle}</div>
+      <input type="text" class="work-character-name-input" placeholder="작중이름 입력" value="${characterName}">
     `;
     
     nameList.appendChild(item);
-    nameRow.style.display = 'block';
   }
 
-  // 수정 모달용 작중이름 입력칸 제거
+  // 수정 모달용 작중이름 입력칸 제거 (추가 모달과 동일한 스타일)
   removeWorkCharacterNameInputForEdit(workId) {
     const nameList = document.getElementById('edit-work-character-names');
     if (nameList) {
@@ -1703,27 +1708,44 @@ class AdminDashboard {
     const selectedWorks = document.getElementById('edit-selected-works');
     const dropdown = document.getElementById('edit-works-dropdown');
     const nameRow = document.getElementById('edit-work-character-names-row');
+    const nameList = document.getElementById('edit-work-character-names');
+    let selectedWorkIds = [];
     
-    // 작품 선택 영역 클릭 이벤트
-    selectedWorks.addEventListener('click', () => {
-      dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    // 기존 이벤트 리스너 제거 (중복 방지)
+    const newSelectedWorks = selectedWorks.cloneNode(true);
+    selectedWorks.parentNode.replaceChild(newSelectedWorks, selectedWorks);
+    
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+    
+    // 드롭다운 토글
+    newSelectedWorks.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
     });
     
-    // 작품 옵션 클릭 이벤트
-    dropdown.addEventListener('click', (e) => {
-      const option = e.target.closest('.work-option');
-      if (option) {
-        const workId = option.getAttribute('data-work-id');
-        const titleEl = option.querySelector('.work-title');
-        const workTitle = titleEl ? titleEl.textContent.trim() : option.textContent.trim();
-        
-        // 이미 선택된 작품인지 확인
-        if (!this.isWorkSelectedForEdit(workId)) {
-          this.addSelectedWorkTagForEdit(workId, workTitle);
-          this.addWorkCharacterNameInputForEdit(workId, workTitle);
-        }
-        
-        dropdown.style.display = 'none';
+    // 작품 선택 (중복 방지 강화)
+    newDropdown.addEventListener('click', (e) => {
+      const workOption = e.target.closest('.work-option');
+      if (!workOption) return;
+
+      const workId = workOption.dataset.workId;
+      const workTitle = workOption.querySelector('.work-title').textContent;
+
+      // 중복 체크 강화
+      if (!selectedWorkIds.includes(workId)) {
+        selectedWorkIds.push(workId);
+        this.addSelectedWorkTagForEdit(workId, workTitle);
+
+        // 작품별 작중이름 입력칸 추가
+        this.addWorkCharacterNameInputForEdit(workId, workTitle, nameRow, nameList, '');
+
+        // 선택된 옵션에 시각적 표시
+        workOption.classList.add('selected');
+
+        // 드롭다운 닫기
+        newDropdown.style.display = 'none';
+      } else {
+        console.log('이미 선택된 작품입니다:', workTitle);
       }
     });
     
@@ -1760,7 +1782,7 @@ class AdminDashboard {
     document.addEventListener('click', clickHandler);
   }
 
-  // 수정 모달에서 작품 선택 여부 확인
+  // 수정 모달에서 작품 선택 여부 확인 (추가 모달과 동일한 스타일)
   isWorkSelectedForEdit(workId) {
     const selectedWorks = document.getElementById('edit-selected-works');
     return selectedWorks.querySelector(`[data-work-id="${workId}"]`) !== null;
@@ -1795,8 +1817,8 @@ class AdminDashboard {
         return;
       }
       
-      // 선택된 작품들 수집
-      const selectedWorkTags = document.querySelectorAll('#edit-selected-works .work-tag');
+      // 선택된 작품들 수집 (수정된 클래스명 사용)
+      const selectedWorkTags = document.querySelectorAll('#edit-selected-works .selected-work-tag');
       const workIds = [];
       const workCharacterNames = {};
       
@@ -1815,6 +1837,13 @@ class AdminDashboard {
       
       characterData.workIds = workIds;
       characterData.workCharacterNames = workCharacterNames;
+      
+      // 디버깅: 수집된 데이터 확인
+      console.log('=== 인물 수정 데이터 수집 ===');
+      console.log('characterId:', characterId);
+      console.log('workIds:', workIds);
+      console.log('workCharacterNames:', workCharacterNames);
+      console.log('전체 characterData:', characterData);
       
       // 서버에 수정 요청
       const response = await fetch(`/api/admin/characters/${characterId}`, {

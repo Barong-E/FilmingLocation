@@ -863,29 +863,33 @@ router.post('/characters', requireAdminAuth, requirePermission('characters'), lo
     
     // 선택된 작품들의 characterIds와 characters에 새 인물 정보 추가
     if (workIds && workIds.length > 0) {
-      // 기본적으로 characterIds만 추가
-      await Work.updateMany(
-        { _id: { $in: workIds } },
-        { $push: { characterIds: character._id } }
-      );
-
-      // 작품별 작중이름 매핑 처리
+      // 작품별로 characterIds와 characters를 동시에 추가 (인덱스 일치 보장)
       const map = Array.isArray(req.body.workCharacterNames) ? req.body.workCharacterNames : [];
-      const updates = map
-        .filter(x => x && x.workId && x.characterName)
-        .map(x => {
-          // 극중이름이 실제이름과 같은 경우 중복 제거
-          let formattedCharName;
-          if (x.characterName === character.name) {
-            formattedCharName = character.name; // 실제이름만
-          } else {
-            formattedCharName = `${character.name}(${x.characterName})`; // 실제이름(극중이름)
-          }
-          
-          return Work.updateOne({ _id: x.workId }, { $push: { characters: formattedCharName } });
-        });
-      if (updates.length > 0) {
-        await Promise.all(updates);
+      
+      for (const workId of workIds) {
+        // 해당 작품의 작중이름 찾기
+        const workCharName = map.find(x => x && x.workId === workId)?.characterName;
+        const charName = workCharName || character.name;
+        
+        // 극중이름이 실제이름과 같은 경우 중복 제거
+        let formattedCharName;
+        if (charName === character.name) {
+          formattedCharName = character.name; // 실제이름만
+        } else {
+          formattedCharName = `${character.name}(${charName})`; // 실제이름(극중이름)
+        }
+        
+        // characterIds와 characters를 동시에 추가 (인덱스 일치 보장)
+        await Work.findByIdAndUpdate(
+          workId,
+          { 
+            $push: { 
+              characterIds: character._id,
+              characters: formattedCharName
+            }
+          },
+          { new: true }
+        );
       }
     }
     
@@ -909,10 +913,19 @@ router.get('/characters/:id', requireAdminAuth, requirePermission('characters'),
 
     console.log(`인물 정보: ${character.name} (${character._id})`);
 
-    // 인물 ObjectId로 정확히 characterIds에 포함된 작품만 조회
-    console.log(`작품 검색 시작 - characterIds에서 ${character._id} 찾기`);
-    const works = await Work.find({ characterIds: character._id })
-      .select('_id title characters characterIds');
+    // 인물 ObjectId로 정확히 characterIds에 포함된 작품 + 이름 기반 fallback 모두 조회
+    console.log(`작품 검색 시작 - characterIds 또는 이름 매칭으로 ${character._id} / ${character.name} 찾기`);
+    let works = await Work.find({
+      $or: [
+        { characterIds: character._id },
+        { characters: { $regex: `^${character.name}\\s*(\\(|$)`, $options: 'i' } }
+      ]
+    }).select('_id title characters characterIds');
+
+    // 중복 제거 (같은 작품이 두 조건에 모두 걸린 경우)
+    const uniqueById = new Map();
+    for (const w of works) uniqueById.set(w._id.toString(), w);
+    works = Array.from(uniqueById.values());
 
     console.log(`Character ${character.name} (${character.id || character._id}) found ${works.length} works`);
 
@@ -947,6 +960,13 @@ router.get('/characters/:id', requireAdminAuth, requirePermission('characters'),
           // 형식: "배우명(작중이름)"이면 괄호 안만 추출, 괄호가 없으면 작중이름 없음으로 처리
           const m = typeof raw === 'string' ? raw.match(/^[^()]*\(([^)]+)\)\s*$/) : null;
           roleName = m ? m[1] : '';
+        } else if (Array.isArray(work.characters)) {
+          // fallback: characterIds에 없지만 characters에 문자열만 있는 경우
+          const rawByName = work.characters.find(s => typeof s === 'string' && s.trim().toLowerCase().startsWith(character.name.toLowerCase()));
+          if (rawByName) {
+            const m2 = rawByName.match(/^[^()]*\(([^)]+)\)\s*$/);
+            roleName = m2 ? m2[1] : '';
+          }
         }
       }
       character.workCharacterNames[work._id.toString()] = roleName;
@@ -966,6 +986,13 @@ router.get('/characters/:id', requireAdminAuth, requirePermission('characters'),
 router.put('/characters/:id', requireAdminAuth, requirePermission('characters'), logAdminActivity('update', 'character'), async (req, res) => {
   try {
     const { workIds, workCharacterNames = {}, ...characterData } = req.body;
+    
+    // 디버깅: 받은 데이터 확인
+    console.log('=== 인물 수정 API 요청 ===');
+    console.log('characterId:', req.params.id);
+    console.log('workIds:', workIds);
+    console.log('workCharacterNames:', workCharacterNames);
+    console.log('characterData:', characterData);
     
     // 인물 정보 업데이트
     const updated = await Character.findByIdAndUpdate(req.params.id, characterData, { new: true });
@@ -991,9 +1018,15 @@ router.put('/characters/:id', requireAdminAuth, requirePermission('characters'),
       
       // 새로운 작품들에 이 인물 추가
       if (workIds.length > 0) {
-        // 각 작품별로 characterIds, characters 갱신
+        console.log('=== 작품 업데이트 시작 ===');
+        console.log('업데이트할 작품 IDs:', workIds);
+        
+        // 각 작품별로 characterIds, characters 갱신 (인덱스 일치 보장)
         for (const workId of workIds) {
           const charName = workCharacterNames[workId] || updated.name; // 없으면 인물명 기본
+          
+          console.log(`작품 ${workId} 처리 중...`);
+          console.log(`  작중이름: ${charName}`);
           
           // 극중이름이 실제이름과 같은 경우 중복 제거
           let formattedCharName;
@@ -1003,15 +1036,38 @@ router.put('/characters/:id', requireAdminAuth, requirePermission('characters'),
             formattedCharName = `${updated.name}(${charName})`; // 실제이름(극중이름)
           }
           
-          await Work.findByIdAndUpdate(
-            workId,
-            { 
-              $addToSet: { characterIds: updated._id },
-              $push: { characters: formattedCharName }
-            },
-            { new: true }
-          );
+          console.log(`  포맷된 이름: ${formattedCharName}`);
+          
+          // 먼저 해당 인물이 이미 있는지 확인
+          const work = await Work.findById(workId);
+          if (work && !work.characterIds.some(id => id.toString() === updated._id.toString())) {
+            console.log(`  작품에 인물 추가: ${work.title}`);
+            // 없으면 characterIds와 characters를 동시에 추가
+            await Work.findByIdAndUpdate(
+              workId,
+              { 
+                $push: { 
+                  characterIds: updated._id,
+                  characters: formattedCharName
+                }
+              },
+              { new: true }
+            );
+            console.log(`  작품 업데이트 완료: ${work.title}`);
+          } else if (work) {
+            console.log(`  작품에 이미 존재, 이름 업데이트: ${work.title}`);
+            // 이미 있으면 characters 배열에서 해당 인물의 극중이름만 업데이트
+            const charIndex = work.characterIds.findIndex(id => id.toString() === updated._id.toString());
+            if (charIndex !== -1) {
+              work.characters[charIndex] = formattedCharName;
+              await work.save();
+              console.log(`  작품 이름 업데이트 완료: ${work.title}`);
+            }
+          } else {
+            console.log(`  작품을 찾을 수 없음: ${workId}`);
+          }
         }
+        console.log('=== 작품 업데이트 완료 ===');
       }
     }
     
