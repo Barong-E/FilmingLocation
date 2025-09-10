@@ -843,6 +843,106 @@ body {
   font-size: 14px;
 }
 
+/* 통합 인물 카드 컨테이너 */
+.integrated-character-container {
+  position: relative;
+}
+
+.character-cards {
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  padding: 12px 15px;
+  background: var(--filo-white);
+  min-height: 45px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s;
+}
+
+.character-cards:hover {
+  border-color: var(--filo-mint);
+}
+
+.character-cards .empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.character-cards .empty-state .placeholder {
+  color: var(--filo-text-light);
+  font-style: italic;
+}
+
+.character-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--filo-gray-light);
+  border-radius: 6px;
+  border: 1px solid var(--filo-border);
+  transition: all 0.2s ease;
+}
+
+.character-card:hover {
+  background: var(--filo-mint-light);
+  border-color: var(--filo-mint);
+}
+
+.character-card .character-name {
+  min-width: 120px;
+  font-weight: 600;
+  color: var(--filo-text-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.character-card .character-role-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--filo-border);
+  border-radius: 4px;
+  font-size: 14px;
+  background: var(--filo-white);
+  transition: border-color 0.2s ease;
+}
+
+.character-card .character-role-input:focus {
+  outline: none;
+  border-color: var(--filo-mint);
+  box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
+}
+
+.character-card .character-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.character-card .btn-remove {
+  background: var(--filo-red);
+  color: var(--filo-white);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.character-card .btn-remove:hover {
+  background: var(--filo-red-dark);
+  transform: scale(1.05);
+}
+
 /* 멀티셀렉트 드롭다운 스타일 */
 .multi-select-container {
   position: relative;

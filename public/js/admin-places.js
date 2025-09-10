@@ -83,8 +83,6 @@ class AdminPlaces {
       return `
         <tr>
           <td>${displayName}</td>
-          <td>${place.address || 'N/A'}</td>
-          <td>${new Date(place.createdAt).toLocaleDateString()}</td>
           <td>
             <div class="action-buttons">
               <button class="btn-action btn-view" onclick="adminPlaces.editPlace('${place._id}')">수정</button>
@@ -143,7 +141,7 @@ class AdminPlaces {
     const res = await fetch('/api/admin/places?page=1&limit=500', { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json();
-    const rows = [[ '실제명', '가명', '주소', '등록일' ], ...data.places.map(p => [p.real_name || '', p.fictional_name || '', p.address || '', new Date(p.createdAt).toLocaleString()])];
+    const rows = [[ '실제명', '가명' ], ...data.places.map(p => [p.real_name || '', p.fictional_name || ''])];
     this.exportCSV('places.csv', rows);
   }
 

@@ -208,8 +208,6 @@
             <thead>
               <tr>
                 <th>장소명</th>
-                <th>주소</th>
-                <th>등록일</th>
                 <th>작업</th>
               </tr>
             </thead>
@@ -428,9 +426,11 @@
         </div>
         <div class="form-row">
           <label>등장인물</label>
-          <div class="multi-select-container">
-            <div class="selected-characters" id="selected-characters">
-              <span class="placeholder">인물을 선택하세요</span>
+          <div class="integrated-character-container">
+            <div class="character-cards" id="character-cards">
+              <div class="empty-state">
+                <span class="placeholder">인물을 선택하세요</span>
+              </div>
             </div>
             <div class="characters-dropdown" id="characters-dropdown" style="display: none;">
               <!-- 인물 목록이 여기에 동적으로 추가됩니다 -->
@@ -439,11 +439,6 @@
               <i class="fas fa-plus"></i> 인물 추가
             </button>
           </div>
-        </div>
-        <div class="form-row" id="work-character-names-row" style="display: none;">
-          <label>작중이름</label>
-          <div id="work-character-names"></div>
-          <small class="form-help">인물을 선택하면 해당 인물별 작중이름 입력 칸이 나타납니다.</small>
         </div>
         <div class="form-row">
           <label>촬영 장소</label>

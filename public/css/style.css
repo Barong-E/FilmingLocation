@@ -936,6 +936,23 @@ body.login-page .gsi-material-button {
   color: #00a67d;
 }
 
+/* 여러 작품 표시 스타일 */
+#detail-works {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+#detail-works .work-link {
+  white-space: nowrap;
+}
+
+#detail-works .no-works {
+  color: #999;
+  font-style: italic;
+}
+
 /* ===== 작품 그리드 스타일 ===== */
 .works-grid {
   display: grid;

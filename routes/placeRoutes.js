@@ -77,11 +77,11 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: '해당하는 장소를 찾을 수 없습니다.' });
     }
 
-    // 이 장소를 포함하는 작품을 찾고, 등장인물 정보를 populate 함
-    const work = await Work.findOne({ placeIds: place._id }).populate('characterIds');
+    // 이 장소를 포함하는 모든 작품을 찾고, 등장인물 정보를 populate 함
+    const works = await Work.find({ placeIds: place._id }).populate('characterIds');
 
     const placeObject = place.toObject();
-    placeObject.work = work;
+    placeObject.works = works; // 단일 work → works 배열로 변경
 
     return res.json(placeObject);
 

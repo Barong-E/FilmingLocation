@@ -450,7 +450,7 @@ class AdminDashboard {
     const res = await fetch('/api/admin/places?page=1&limit=500', { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json();
-    const rows = [[ '실제명', '가명', '주소', '등록일' ], ...data.places.map(p => [p.real_name || '', p.fictional_name || '', p.address || '', new Date(p.createdAt).toLocaleString()])];
+    const rows = [[ '실제명', '가명' ], ...data.places.map(p => [p.real_name || '', p.fictional_name || ''])];
     this.exportCSV('places.csv', rows);
   }
 
@@ -771,8 +771,6 @@ class AdminDashboard {
       return `
         <tr>
           <td>${displayName}</td>
-          <td>${place.address || 'N/A'}</td>
-          <td>${new Date(place.createdAt).toLocaleDateString()}</td>
           <td>
             <div class="action-buttons">
               <button class="btn-action btn-view" onclick="dashboard.editPlace('${place._id}')">수정</button>
@@ -1013,7 +1011,7 @@ class AdminDashboard {
       // 모달에 데이터 채우기
       this.populateWorkEditModal(work, charactersData.characters, placesData.places);
       
-      // 인물/장소 선택 기능 설정
+      // 인물/장소 선택 기능 설정 (기존 데이터 표시 후)
       this.setupWorkCharacterSelection(charactersData.characters);
       this.setupWorkPlaceSelection(placesData.places);
       
@@ -1911,14 +1909,14 @@ class AdminDashboard {
         return;
       }
       
-      // 인물 데이터 수집
+      // 인물 데이터 수집 (통합 카드형)
       const characterIds = [];
       const characters = [];
-      const characterItems = document.querySelectorAll('#work-character-names .work-character-name-item');
-      characterItems.forEach(item => {
-        const characterId = item.dataset.characterId;
-        const characterName = item.querySelector('.work-title').textContent.trim();
-        const roleName = item.querySelector('.work-character-name-input').value.trim();
+      const characterCards = document.querySelectorAll('#character-cards .character-card');
+      characterCards.forEach(card => {
+        const characterId = card.dataset.characterId;
+        const characterName = card.querySelector('.character-name').textContent.trim();
+        const roleName = card.querySelector('.character-role-input').value.trim();
         
         characterIds.push(characterId);
         characters.push(`${characterName}(${roleName || '정보 없음'})`);
@@ -2070,22 +2068,18 @@ class AdminDashboard {
     }
   }
 
-  // 작품 수정 모달용 인물 선택 기능 설정
+  // 작품 수정 모달용 인물 선택 기능 설정 (통합 카드형)
   setupWorkCharacterSelection(characters) {
-    const selectedCharacters = document.getElementById('selected-characters');
+    const characterCards = document.getElementById('character-cards');
     const dropdown = document.getElementById('characters-dropdown');
     const addBtn = document.getElementById('add-character-btn');
-    const nameRow = document.getElementById('work-character-names-row');
-    const nameList = document.getElementById('work-character-names');
     
     let allCharacters = characters;
 
-    const getSelectedCharacterIds = () => Array.from(document.querySelectorAll('#selected-characters .selected-work-tag'))
-      .map(tag => tag.dataset.characterId);
+    const getSelectedCharacterIds = () => Array.from(document.querySelectorAll('#character-cards .character-card'))
+      .map(card => card.dataset.characterId);
 
     // 기존 이벤트 리스너 제거 및 재설정
-    const newSelectedCharacters = selectedCharacters.cloneNode(true);
-    selectedCharacters.parentNode.replaceChild(newSelectedCharacters, selectedCharacters);
     const newDropdown = dropdown.cloneNode(true);
     dropdown.parentNode.replaceChild(newDropdown, dropdown);
 
@@ -2127,29 +2121,16 @@ class AdminDashboard {
       }
     });
 
-    newSelectedCharacters.addEventListener('click', () => {
-      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
-      if (newDropdown.style.display === 'block') {
-        renderCharacterOptions();
-        searchInput.focus();
-      }
-    });
-
-    // 컨테이너 위임: 기존/신규 태그의 X 클릭 처리
-    newSelectedCharacters.addEventListener('click', (e) => {
-      const removeBtn = e.target.closest('.remove');
+    // 통합 카드 컨테이너의 삭제 버튼 이벤트 위임
+    characterCards.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.btn-remove');
       if (!removeBtn) return;
       e.stopPropagation();
-      const tag = removeBtn.closest('.selected-work-tag');
-      if (!tag) return;
-      const characterId = tag.dataset.characterId;
-      tag.remove();
-      this.removeWorkCharacterNameInput(characterId);
-      if (newSelectedCharacters.children.length === 0) {
-        newSelectedCharacters.innerHTML = '<span class="placeholder">인물을 선택하세요</span>';
-        const nameRow = document.getElementById('work-character-names-row');
-        if (nameRow) nameRow.style.display = 'none';
-      }
+      const card = removeBtn.closest('.character-card');
+      if (!card) return;
+      const characterId = card.dataset.characterId;
+      card.remove();
+      this.updateCharacterCardsEmptyState();
       renderCharacterOptions();
     });
 
@@ -2158,8 +2139,7 @@ class AdminDashboard {
       if (!option) return;
       const characterId = option.dataset.characterId;
       const characterName = option.querySelector('.character-name').textContent;
-      this.addSelectedCharacterTag(characterId, characterName);
-      this.addWorkCharacterNameInput(characterId, characterName, nameRow, nameList);
+      this.addCharacterCard(characterId, characterName);
       newDropdown.style.display = 'none';
       searchInput.value = '';
       renderCharacterOptions();
@@ -2346,43 +2326,13 @@ class AdminDashboard {
 
   // 작품 수정 모달에 기존 데이터 표시
   populateWorkEditExistingData(work, allCharacters, allPlaces) {
-    const selectedCharacters = document.getElementById('selected-characters');
     const selectedPlaces = document.getElementById('selected-places');
-    const nameRow = document.getElementById('work-character-names-row');
-    const nameList = document.getElementById('work-character-names');
     
     // 기존 내용 초기화
-    selectedCharacters.innerHTML = '<span class="placeholder">인물을 선택하세요</span>';
     selectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
-    nameList.innerHTML = '';
-    nameRow.style.display = 'none';
 
-    // 기존 인물 데이터 표시
-    if (work.characterIds && work.characterIds.length > 0) {
-      selectedCharacters.innerHTML = ''; // placeholder 제거
-      
-      work.characterIds.forEach((characterRef, index) => {
-        // characterRef가 객체인지 문자열 ID인지 확인
-        const characterId = typeof characterRef === 'object' && characterRef._id ? characterRef._id : characterRef;
-        const character = allCharacters.find(c => c._id === characterId);
-        
-        if (character) {
-          // 인물 태그 추가
-          this.addSelectedCharacterTag(characterId, character.name);
-          
-          // 작중이름 입력칸 추가
-          let characterNameInWork = '';
-          if (work.characters && work.characters[index]) {
-            // "이름(작중이름)" 형태에서 작중이름만 추출
-            const match = work.characters[index].match(/^.+?\((.+)\)$/);
-            if (match && match[1]) {
-              characterNameInWork = match[1];
-            }
-          }
-          this.addWorkCharacterNameInputWithValue(characterId, character.name, characterNameInWork, nameRow, nameList);
-        }
-      });
-    }
+    // 기존 인물 데이터를 통합 카드형으로 표시
+    this.populateWorkEditExistingCharacters(work, allCharacters);
     
     // 기존 장소 데이터 표시
     if (work.placeIds && work.placeIds.length > 0) {
@@ -2414,6 +2364,78 @@ class AdminDashboard {
     `;
     
     nameList.appendChild(item);
+  }
+
+  // 통합 카드형 UI 헬퍼 함수들
+  
+  // 인물 카드 추가
+  addCharacterCard(characterId, characterName, roleName = '') {
+    const characterCards = document.getElementById('character-cards');
+    
+    // 빈 상태 제거
+    const emptyState = characterCards.querySelector('.empty-state');
+    if (emptyState) {
+      emptyState.remove();
+    }
+    
+    // 새 카드 생성
+    const card = document.createElement('div');
+    card.className = 'character-card';
+    card.dataset.characterId = characterId;
+    card.innerHTML = `
+      <div class="character-name">${characterName}</div>
+      <input type="text" class="character-role-input" placeholder="작중이름을 입력하세요" value="${roleName}">
+      <div class="character-actions">
+        <button type="button" class="btn-remove" title="제거">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    characterCards.appendChild(card);
+  }
+  
+  // 인물 카드들 빈 상태 업데이트
+  updateCharacterCardsEmptyState() {
+    const characterCards = document.getElementById('character-cards');
+    const existingCards = characterCards.querySelectorAll('.character-card');
+    
+    if (existingCards.length === 0) {
+      characterCards.innerHTML = `
+        <div class="empty-state">
+          <span class="placeholder">인물을 선택하세요</span>
+        </div>
+      `;
+    }
+  }
+  
+  // 기존 인물 데이터를 통합 카드형으로 표시
+  populateWorkEditExistingCharacters(work, allCharacters) {
+    const characterCards = document.getElementById('character-cards');
+    
+    // 기존 내용 초기화
+    characterCards.innerHTML = '';
+    
+    if (!work.characterIds || work.characterIds.length === 0) {
+      this.updateCharacterCardsEmptyState();
+      return;
+    }
+    
+    work.characterIds.forEach((characterRef, index) => {
+      const characterId = typeof characterRef === 'object' && characterRef._id ? characterRef._id : characterRef;
+      const character = allCharacters.find(c => c._id === characterId);
+      
+      if (character) {
+        let roleName = '';
+        if (work.characters && work.characters[index]) {
+          const match = work.characters[index].match(/^.+?\((.+)\)$/);
+          if (match && match[1]) {
+            roleName = match[1];
+          }
+        }
+        this.addCharacterCard(characterId, character.name, roleName);
+      }
+    });
   }
 }
 

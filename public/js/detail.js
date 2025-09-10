@@ -28,12 +28,13 @@ async function renderDetailPage() {
     if (!res.ok) throw new Error('장소 정보를 불러오는 데 실패했습니다.');
     
     const place = await res.json();
-    const work = place.work;
+    const works = place.works || []; // works 배열로 변경
 
     const displayName = formatPlaceName(place.real_name, place.fictional_name);
 
-    if (work && displayName) {
-      document.title = `${work.title}_${displayName}`;
+    // 페이지 제목 설정 (첫 번째 작품 기준)
+    if (works.length > 0 && displayName) {
+      document.title = `${works[0].title}_${displayName}`;
     }
 
     const imgEl = document.getElementById('detail-img');
@@ -42,16 +43,20 @@ async function renderDetailPage() {
 
     document.getElementById('detail-name').textContent = displayName;
     
-    // 작품명 링크 설정
-    const workLink = document.getElementById('detail-work-link');
-    const workText = document.getElementById('detail-work');
-    if (work && work.id) {
-      workLink.href = `work?id=${work.id}`;
-      workText.textContent = work.title;
-      workLink.style.display = 'inline';
+    // 작품명들 링크 설정 (여러 작품 지원)
+    const worksContainer = document.getElementById('detail-works');
+    if (works && works.length > 0) {
+      worksContainer.innerHTML = works.map((work, index) => {
+        const workId = work.id || work._id;
+        return `
+          <a href="work?id=${workId}" class="work-link">
+            ${work.title}
+          </a>
+          ${index < works.length - 1 ? ', ' : ''}
+        `;
+      }).join('');
     } else {
-      workText.textContent = '알 수 없음';
-      workLink.style.display = 'none';
+      worksContainer.innerHTML = '<span class="no-works">알 수 없음</span>';
     }
 
 
