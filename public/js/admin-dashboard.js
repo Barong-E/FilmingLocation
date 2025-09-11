@@ -500,25 +500,108 @@ class AdminDashboard {
     };
   }
 
-  openWorkModal(work = null) {
+  async openWorkModal(work = null) {
     const body = document.getElementById('modalBody');
     document.getElementById('modal').style.display = 'flex';
     document.getElementById('modalTitle').textContent = work ? '작품 수정' : '작품 추가';
+    
+    // 인물과 장소 데이터 가져오기
+    const [charactersRes, placesRes] = await Promise.all([
+      fetch('/api/admin/characters?page=1&limit=1000', { credentials: 'include' }),
+      fetch('/api/admin/places?page=1&limit=1000', { credentials: 'include' })
+    ]);
+    
+    const charactersData = charactersRes.ok ? await charactersRes.json() : { characters: [] };
+    const placesData = placesRes.ok ? await placesRes.json() : { places: [] };
+    
     body.innerHTML = `
-      <div class="form-row"><label>제목</label><input id="w-title" value="${work?.title || ''}"></div>
-      <div class="form-row"><label>타입</label><input id="w-type" value="${work?.type || ''}"></div>
-      <div class="form-row"><label>공개일</label><input id="w-date" value="${work?.releaseDate || ''}"></div>
-      <div class="form-row"><label>설명</label><textarea id="w-desc">${work?.description || ''}</textarea></div>
+      <div class="form-row">
+        <label>제목</label>
+        <input type="text" id="w-title" value="${work?.title || ''}">
+      </div>
+      <div class="form-row">
+        <label>타입</label>
+        <select id="w-type">
+          <option value="">타입을 선택하세요</option>
+          <option value="드라마" ${work?.type === '드라마' ? 'selected' : ''}>드라마</option>
+          <option value="영화" ${work?.type === '영화' ? 'selected' : ''}>영화</option>
+          <option value="앨범" ${work?.type === '앨범' ? 'selected' : ''}>앨범</option>
+          <option value="MV" ${work?.type === 'MV' ? 'selected' : ''}>MV</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>공개일</label>
+        <div class="date-input-container">
+          <input type="text" id="w-releaseDate" class="date-input" value="${work?.releaseDate || ''}" placeholder="YYYY-MM-DD 또는 클릭하여 선택">
+          <i class="fas fa-calendar-alt date-picker-icon" id="w-date-picker-icon"></i>
+          <div class="date-picker-popup" id="w-date-picker-popup">
+            <!-- 달력이 여기에 동적으로 생성됩니다 -->
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>설명</label>
+        <textarea id="w-description" rows="3">${work?.description || ''}</textarea>
+      </div>
+      <div class="form-row">
+        <label>이미지 경로</label>
+        <input type="text" id="w-image" value="${work?.image || ''}">
+      </div>
+      <div class="form-row">
+        <label>등장인물</label>
+        <div class="integrated-character-container">
+          <div class="character-cards" id="w-character-cards">
+            <div class="empty-state">
+              <span class="placeholder">인물을 선택하세요</span>
+            </div>
+          </div>
+          <div class="characters-dropdown" id="w-characters-dropdown" style="display: none;">
+            <!-- 인물 목록이 여기에 동적으로 추가됩니다 -->
+          </div>
+          <button type="button" id="w-add-character-btn" class="btn-add-item">
+            <i class="fas fa-plus"></i> 인물 추가
+          </button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>촬영 장소</label>
+        <div class="multi-select-container">
+          <div class="selected-places" id="w-selected-places">
+            <span class="placeholder">장소를 선택하세요</span>
+          </div>
+          <div class="places-dropdown" id="w-places-dropdown" style="display: none;">
+            <!-- 장소 목록이 여기에 동적으로 추가됩니다 -->
+          </div>
+          <button type="button" id="w-add-place-btn" class="btn-add-item">
+            <i class="fas fa-plus"></i> 장소 추가
+          </button>
+        </div>
+      </div>
       <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
         <button id="modalSave" class="btn-primary">저장</button>
+        <button id="modalCancel" class="btn-secondary">취소</button>
       </div>
     `;
+    
+    // 기존 데이터가 있으면 표시 (수정 모드)
+    if (work) {
+      this.populateWorkAddModalExistingData(work, charactersData.characters, placesData.places);
+    }
+    
+    // 인물/장소 선택 기능 설정
+    this.setupWorkAddModalCharacterSelection(charactersData.characters);
+    this.setupWorkAddModalPlaceSelection(placesData.places);
+    
+    // 날짜 선택기 설정
+    this.setupDatePicker('w-releaseDate', 'w-date-picker-icon', 'w-date-picker-popup');
+    
+    // 이벤트 리스너 설정
     document.getElementById('modalSave').onclick = async () => {
-      const payload = { title: document.getElementById('w-title').value, type: document.getElementById('w-type').value, releaseDate: document.getElementById('w-date').value, description: document.getElementById('w-desc').value };
-      const url = work ? `/api/admin/works/${work._id}` : '/api/admin/works';
-      const method = work ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
-      if (res.ok) { this.closeModal(); this.loadWorks(); } else { alert('저장 실패'); }
+      await this.saveWorkAddModal(work);
+    };
+    
+    document.getElementById('modalCancel').onclick = () => {
+      this.closeModal();
     };
   }
 
@@ -796,7 +879,7 @@ class AdminDashboard {
     `).join('');
   }
   
-  // 인물 테이블 렌더링
+  // 인물 목록 테이블 렌더링
   renderCharactersTable(characters) {
     const tbody = document.getElementById('charactersTableBody');
     tbody.innerHTML = characters.map(character => `
@@ -805,6 +888,7 @@ class AdminDashboard {
         <td>
           <div class="action-buttons">
             <button class="btn-action btn-view" onclick="dashboard.editCharacter('${character._id}')">수정</button>
+            <button class="btn-action btn-delete" onclick="dashboard.deleteCharacter('${character._id}', '${character.name}')">삭제</button>
           </div>
         </td>
       </tr>
@@ -1015,6 +1099,9 @@ class AdminDashboard {
       this.setupWorkCharacterSelection(charactersData.characters);
       this.setupWorkPlaceSelection(placesData.places);
       
+      // 날짜 선택기 설정
+      this.setupDatePicker('work-releaseDate', 'work-date-picker-icon', 'work-date-picker-popup');
+      
       // 모달 표시
       document.getElementById('workEditModal').style.display = 'flex';
       
@@ -1206,16 +1293,24 @@ class AdminDashboard {
     }
   }
 
-  // 작품 드롭다운 채우기
+  // 작품 드롭다운 채우기 (검색 포함 - FiLo 스타일)
   populateWorksDropdown(works, dropdownId = 'works-dropdown') {
     this.allWorks = works; // 작품 전체 목록을 보관
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = works.map(work => `
-      <div class=\"work-option\" data-work-id=\"${work._id}\">
-        <div class=\"work-title\">${work.title}</div>
-        <div class=\"work-type\">${work.type || '타입 미지정'}</div>
+    if (!dropdown) return;
+    dropdown.innerHTML = `
+      <div class=\"search-container\">
+        <input type=\"text\" class=\"search-input\" placeholder=\"작품 검색...\" />
       </div>
-    `).join('');
+      <div class=\"options\">
+        ${works.map(work => `
+          <div class=\"work-option\" data-work-id=\"${work._id}\">
+            <div class=\"work-title\">${work.title}</div>
+            <div class=\"work-type\">${work.type || '타입 미지정'}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
   }
 
   // 인물 추가 모달 이벤트 설정
@@ -1263,6 +1358,20 @@ class AdminDashboard {
         console.log('이미 선택된 작품입니다:', workTitle);
       }
     });
+
+    // 검색 필터링
+    const searchInput = newDropdown.querySelector('.search-input');
+    const optionsContainer = newDropdown.querySelector('.options');
+    if (searchInput && optionsContainer) {
+      searchInput.oninput = () => {
+        const q = searchInput.value.trim().toLowerCase();
+        optionsContainer.querySelectorAll('.work-option').forEach(opt => {
+          const title = opt.querySelector('.work-title')?.textContent?.toLowerCase() || '';
+          const typeText = opt.querySelector('.work-type')?.textContent?.toLowerCase() || '';
+          opt.style.display = (title.includes(q) || typeText.includes(q)) ? '' : 'none';
+        });
+      };
+    }
 
     // 저장 버튼 (중복 방지)
     const saveBtn = document.getElementById('character-save-btn');
@@ -1395,20 +1504,26 @@ class AdminDashboard {
       const weightKg = document.getElementById('character-weightKg').value;
       const description = document.getElementById('character-description').value.trim();
       const image = document.getElementById('character-image').value.trim();
-      const characterName = document.getElementById('character-characterName').value.trim();
+      // character-characterName 필드는 존재하지 않으므로 제거
 
       if (!name) {
         alert('인물명을 입력해주세요.');
         return;
       }
 
-      // 작품별 작중이름 수집 (workId -> name)
-      const perWorkNames = Array.from(document.querySelectorAll('.work-character-name-item'))
+      // 작품별 작중이름 수집 (workId -> name) — 추가 모달 스코프로 한정
+      const perWorkNames = Array.from(document.querySelectorAll('#work-character-names .work-character-name-item'))
         .map(item => ({
           workId: item.dataset.workId,
           characterName: item.querySelector('.work-character-name-input').value.trim()
         }))
         .filter(x => x.characterName);
+
+      // 백엔드 호환을 위해 객체 매핑도 생성
+      const workCharacterNamesMap = {};
+      perWorkNames.forEach(({ workId, characterName }) => {
+        workCharacterNamesMap[workId] = characterName;
+      });
 
       const characterData = {
         name,
@@ -1421,9 +1536,9 @@ class AdminDashboard {
         weightKg: weightKg ? parseInt(weightKg) : undefined,
         description: description || undefined,
         image: image || undefined,
-        characterName: characterName || undefined, // 단일 입력값(하위호환)
+        // characterName 필드 제거 (존재하지 않는 필드)
         workIds: selectedWorkIds, // 선택된 작품 ID들
-        workCharacterNames: perWorkNames // 작품별 작중이름 목록
+        workCharacterNames: workCharacterNamesMap // 작품별 작중이름 (workId -> name)
       };
 
       console.log('인물 데이터:', characterData);
@@ -1467,7 +1582,6 @@ class AdminDashboard {
       document.getElementById('character-weightKg').value = '';
       document.getElementById('character-description').value = '';
       document.getElementById('character-image').value = '';
-      document.getElementById('character-characterName').value = '';
       document.getElementById('selected-works').innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
       // 작품별 작중이름 입력 목록 초기화
       const nameRow = document.getElementById('work-character-names-row');
@@ -1551,72 +1665,47 @@ class AdminDashboard {
       }, 100);
     } else {
       console.log('>>> 관련 작품이 없음');
+      // [수정] 작품이 없는 경우에도 UI를 초기화합니다.
+      this.setSelectedWorksForEdit([], {});
     }
   }
 
-  // 수정 모달용 작품 선택 설정
+  // [수정] 이전 버전의 로직 복원 및 개선
   setSelectedWorksForEdit(workIds, workCharacterNames = {}) {
-    console.log('=== setSelectedWorksForEdit 시작 ===');
-    console.log('받은 workIds:', workIds);
-    console.log('받은 workCharacterNames:', workCharacterNames);
-    
-    const selectedWorks = document.getElementById('edit-selected-works');
+    const selectedWorksContainer = document.getElementById('edit-selected-works');
     const nameRow = document.getElementById('edit-work-character-names-row');
     const nameList = document.getElementById('edit-work-character-names');
     
-    console.log('DOM 요소들:', {
-      selectedWorks: !!selectedWorks,
-      nameRow: !!nameRow,
-      nameList: !!nameList
-    });
-    
-    if (!selectedWorks) {
-      console.error('edit-selected-works 요소를 찾을 수 없습니다!');
+    if (!selectedWorksContainer || !nameRow || !nameList) {
+      console.error('인물 수정 모달의 필수 DOM 요소를 찾을 수 없습니다.');
       return;
     }
     
     // 기존 선택 초기화
-    selectedWorks.innerHTML = '';
-    if (nameList) nameList.innerHTML = '';
-    if (nameRow) nameRow.style.display = 'none';
+    selectedWorksContainer.innerHTML = '';
+    nameList.innerHTML = '';
     
-    // 선택된 작품들 표시
-    console.log('작품 처리 시작, workIds 개수:', workIds.length);
-    workIds.forEach((workId, index) => {
-      console.log(`작품 ${index}: workId=${workId}`);
-      const workOption = document.querySelector(`#edit-works-dropdown [data-work-id="${workId}"]`);
-      console.log(`workOption 찾음:`, !!workOption);
-      
+    if (!workIds || workIds.length === 0) {
+      selectedWorksContainer.innerHTML = '<span class="placeholder">작품을 선택하세요</span>';
+      nameRow.style.display = 'none';
+      return;
+    }
+    
+    // 선택된 작품들을 기반으로 UI 구성
+    workIds.forEach(workId => {
+      const workOption = document.querySelector(`#edit-works-dropdown .work-option[data-work-id="${workId}"]`);
       if (workOption) {
-        // 작품 제목만 가져오기 (타입 제외)
-        const workTitleElement = workOption.querySelector('.work-title');
-        const workTitle = workTitleElement ? workTitleElement.textContent.trim() : workOption.textContent.trim();
-        console.log(`작품 제목: ${workTitle}`);
-        
-        const characterName = workCharacterNames[workId];
-        console.log(`작중이름: ${characterName}`);
+        const workTitle = workOption.querySelector('.work-title').textContent.trim();
+        const roleName = workCharacterNames[workId] || '';
         
         this.addSelectedWorkTagForEdit(workId, workTitle);
-        this.addWorkCharacterNameInputForEdit(workId, workTitle, nameRow, nameList, characterName);
+        this.addWorkCharacterNameInputForEdit(workId, workTitle, nameRow, nameList, roleName);
       } else {
-        console.warn(`workId ${workId}에 해당하는 작품을 드롭다운에서 찾을 수 없습니다`);
+        console.warn(`ID '${workId}'에 해당하는 작품을 드롭다운에서 찾지 못했습니다.`);
       }
     });
-    
-    // 작품이 선택되었으면 작중이름 섹션 표시
-    if (workIds.length > 0) {
-      console.log('작중이름 섹션 표시');
-      if (nameRow) nameRow.style.display = 'block';
-    }
-    
-    // placeholder 제거
-    const placeholder = selectedWorks.querySelector('.placeholder');
-    if (placeholder) {
-      console.log('placeholder 제거');
-      placeholder.remove();
-    }
-    
-    console.log('=== setSelectedWorksForEdit 완료 ===');
+
+    nameRow.style.display = 'block';
   }
 
   // 수정 모달용 작품 태그 추가 (추가 모달과 동일한 스타일)
@@ -1800,23 +1889,31 @@ class AdminDashboard {
         return;
       }
       
-      // 선택된 작품들 수집 (수정된 클래스명 사용)
-      const selectedWorkTags = document.querySelectorAll('#edit-selected-works .selected-work-tag');
-      const workIds = [];
+      // 선택된 작품과 작중이름 수집을 안정적으로 처리
+      const workIdsSet = new Set();
       const workCharacterNames = {};
-      
-      selectedWorkTags.forEach(tag => {
-        const workId = tag.getAttribute('data-work-id');
-        if (workId) {
-          workIds.push(workId);
-          
-          // 해당 작품의 작중이름 입력값 수집
-          const nameInput = document.querySelector(`#edit-work-character-names [data-work-id="${workId}"] input`);
-          if (nameInput && nameInput.value.trim()) {
-            workCharacterNames[workId] = nameInput.value.trim();
-          }
+
+      // 1) 작중이름 입력 아이템에서 먼저 수집 (UI 상 항상 쌍으로 존재)
+      const nameItems = document.querySelectorAll('#edit-work-character-names .work-character-name-item');
+      nameItems.forEach(item => {
+        const workId = item.getAttribute('data-work-id');
+        if (!workId) return;
+        workIdsSet.add(workId);
+        const input = item.querySelector('input.work-character-name-input');
+        const value = (input?.value || '').trim();
+        if (value) {
+          workCharacterNames[workId] = value;
         }
       });
+
+      // 2) 선택된 작품 뱃지에서도 보강 수집 (혹시 아이템 누락 대비)
+      const selectedWorkTags = document.querySelectorAll('#edit-selected-works .selected-work-tag');
+      selectedWorkTags.forEach(tag => {
+        const workId = tag.getAttribute('data-work-id');
+        if (workId) workIdsSet.add(workId);
+      });
+
+      const workIds = Array.from(workIdsSet);
       
       characterData.workIds = workIds;
       characterData.workCharacterNames = workCharacterNames;
@@ -1824,8 +1921,8 @@ class AdminDashboard {
       // 디버깅: 수집된 데이터 확인
       console.log('=== 인물 수정 데이터 수집 ===');
       console.log('characterId:', characterId);
-      console.log('workIds:', workIds);
-      console.log('workCharacterNames:', workCharacterNames);
+      console.log('workIds (collected):', workIds);
+      console.log('workCharacterNames (collected):', workCharacterNames);
       console.log('전체 characterData:', characterData);
       
       // 서버에 수정 요청
@@ -2437,6 +2534,587 @@ class AdminDashboard {
       }
     });
   }
+
+  // 작품 추가 모달용 헬퍼 함수들
+  
+  // 작품 추가 모달에 기존 데이터 표시 (수정 모드용)
+  populateWorkAddModalExistingData(work, allCharacters, allPlaces) {
+    const selectedPlaces = document.getElementById('w-selected-places');
+    
+    // 기존 내용 초기화
+    selectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
+
+    // 기존 인물 데이터를 통합 카드형으로 표시
+    this.populateWorkAddModalExistingCharacters(work, allCharacters);
+    
+    // 기존 장소 데이터 표시
+    if (work.placeIds && work.placeIds.length > 0) {
+      selectedPlaces.innerHTML = ''; // placeholder 제거
+      
+      work.placeIds.forEach(placeRef => {
+        // placeRef가 객체인지 문자열 ID인지 확인
+        const placeId = typeof placeRef === 'object' && placeRef._id ? placeRef._id : placeRef;
+        const place = allPlaces.find(p => p._id === placeId);
+        
+        if (place) {
+          const placeName = place.real_name || place.fictional_name;
+          this.addWorkAddModalSelectedPlaceTag(placeId, placeName);
+        }
+      });
+    }
+  }
+  
+  // 작품 추가 모달용 기존 인물 데이터 표시
+  populateWorkAddModalExistingCharacters(work, allCharacters) {
+    const characterCards = document.getElementById('w-character-cards');
+    
+    // 기존 내용 초기화
+    characterCards.innerHTML = '';
+    
+    if (!work.characterIds || work.characterIds.length === 0) {
+      this.updateWorkAddModalCharacterCardsEmptyState();
+      return;
+    }
+    
+    work.characterIds.forEach((characterRef, index) => {
+      const characterId = typeof characterRef === 'object' && characterRef._id ? characterRef._id : characterRef;
+      const character = allCharacters.find(c => c._id === characterId);
+      
+      if (character) {
+        let roleName = '';
+        if (work.characters && work.characters[index]) {
+          const match = work.characters[index].match(/^.+?\((.+)\)$/);
+          if (match && match[1]) {
+            roleName = match[1];
+          }
+        }
+        this.addWorkAddModalCharacterCard(characterId, character.name, roleName);
+      }
+    });
+  }
+  
+  // 작품 추가 모달용 인물 카드 추가
+  addWorkAddModalCharacterCard(characterId, characterName, roleName = '') {
+    const characterCards = document.getElementById('w-character-cards');
+    
+    // 빈 상태 제거
+    const emptyState = characterCards.querySelector('.empty-state');
+    if (emptyState) {
+      emptyState.remove();
+    }
+    
+    // 새 카드 생성
+    const card = document.createElement('div');
+    card.className = 'character-card';
+    card.dataset.characterId = characterId;
+    card.innerHTML = `
+      <div class="character-name">${characterName}</div>
+      <input type="text" class="character-role-input" placeholder="작중이름을 입력하세요" value="${roleName}">
+      <div class="character-actions">
+        <button type="button" class="btn-remove" title="제거">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    characterCards.appendChild(card);
+  }
+  
+  // 작품 추가 모달용 인물 카드들 빈 상태 업데이트
+  updateWorkAddModalCharacterCardsEmptyState() {
+    const characterCards = document.getElementById('w-character-cards');
+    const existingCards = characterCards.querySelectorAll('.character-card');
+    
+    if (existingCards.length === 0) {
+      characterCards.innerHTML = `
+        <div class="empty-state">
+          <span class="placeholder">인물을 선택하세요</span>
+        </div>
+      `;
+    }
+  }
+  
+  // 작품 추가 모달용 인물 선택 기능 설정
+  setupWorkAddModalCharacterSelection(characters) {
+    const characterCards = document.getElementById('w-character-cards');
+    const dropdown = document.getElementById('w-characters-dropdown');
+    const addBtn = document.getElementById('w-add-character-btn');
+    
+    let allCharacters = characters;
+
+    const getSelectedCharacterIds = () => Array.from(document.querySelectorAll('#w-character-cards .character-card'))
+      .map(card => card.dataset.characterId);
+
+    // 기존 이벤트 리스너 제거 및 재설정
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+
+    newDropdown.innerHTML = `
+      <div class="search-container">
+        <input type="text" id="w-character-search" placeholder="인물 검색..." class="search-input">
+      </div>
+      <div class="character-options" id="w-character-options"></div>
+    `;
+
+    const searchInput = newDropdown.querySelector('#w-character-search');
+
+    const renderCharacterOptions = () => {
+      const selectedIds = new Set(getSelectedCharacterIds());
+      const searchTerm = (newDropdown.querySelector('#w-character-search')?.value || '').toLowerCase();
+      const filtered = allCharacters.filter(ch => !selectedIds.has(ch._id) && (
+        ch.name.toLowerCase().includes(searchTerm) || (ch.job || '').toLowerCase().includes(searchTerm)
+      ));
+      const optionsContainer = newDropdown.querySelector('#w-character-options');
+      if (!optionsContainer) return;
+      optionsContainer.innerHTML = filtered.map(character => `
+        <div class="character-option" data-character-id="${character._id}">
+          <div class="character-name">${character.name}</div>
+          <div class="character-job">${character.job || ''}</div>
+        </div>
+      `).join('');
+    };
+
+    // 최초 렌더
+    renderCharacterOptions();
+
+    searchInput.addEventListener('input', () => renderCharacterOptions());
+
+    addBtn.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderCharacterOptions();
+        searchInput.focus();
+      }
+    });
+
+    // 통합 카드 컨테이너의 삭제 버튼 이벤트 위임
+    characterCards.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.btn-remove');
+      if (!removeBtn) return;
+      e.stopPropagation();
+      const card = removeBtn.closest('.character-card');
+      if (!card) return;
+      const characterId = card.dataset.characterId;
+      card.remove();
+      this.updateWorkAddModalCharacterCardsEmptyState();
+      renderCharacterOptions();
+    });
+
+    newDropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.character-option');
+      if (!option) return;
+      const characterId = option.dataset.characterId;
+      const characterName = option.querySelector('.character-name').textContent;
+      this.addWorkAddModalCharacterCard(characterId, characterName);
+      newDropdown.style.display = 'none';
+      searchInput.value = '';
+      renderCharacterOptions();
+    });
+  }
+  
+  // 작품 추가 모달용 장소 선택 기능 설정
+  setupWorkAddModalPlaceSelection(places) {
+    const selectedPlaces = document.getElementById('w-selected-places');
+    const dropdown = document.getElementById('w-places-dropdown');
+    const addBtn = document.getElementById('w-add-place-btn');
+    
+    let allPlaces = places;
+
+    const getSelectedPlaceIds = () => Array.from(document.querySelectorAll('#w-selected-places .selected-work-tag'))
+      .map(tag => tag.dataset.placeId);
+
+    // 기존 이벤트 리스너 제거 및 재설정
+    const newSelectedPlaces = selectedPlaces.cloneNode(true);
+    selectedPlaces.parentNode.replaceChild(newSelectedPlaces, selectedPlaces);
+    const newDropdown = dropdown.cloneNode(true);
+    dropdown.parentNode.replaceChild(newDropdown, dropdown);
+
+    newDropdown.innerHTML = `
+      <div class="search-container">
+        <input type="text" id="w-place-search" placeholder="장소 검색..." class="search-input">
+      </div>
+      <div class="place-options" id="w-place-options"></div>
+    `;
+
+    const searchInput = newDropdown.querySelector('#w-place-search');
+
+    const renderPlaceOptions = () => {
+      const selectedIds = new Set(getSelectedPlaceIds());
+      const searchTerm = (newDropdown.querySelector('#w-place-search')?.value || '').toLowerCase();
+      const filtered = allPlaces.filter(place => !selectedIds.has(place._id) && (
+        (place.real_name || '').toLowerCase().includes(searchTerm) || 
+        (place.fictional_name || '').toLowerCase().includes(searchTerm)
+      ));
+      const optionsContainer = newDropdown.querySelector('#w-place-options');
+      if (!optionsContainer) return;
+      optionsContainer.innerHTML = filtered.map(place => `
+        <div class="place-option" data-place-id="${place._id}">
+          <div class="place-name">${place.real_name || place.fictional_name}</div>
+        </div>
+      `).join('');
+    };
+
+    // 최초 렌더
+    renderPlaceOptions();
+
+    searchInput.addEventListener('input', () => renderPlaceOptions());
+
+    addBtn.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderPlaceOptions();
+        searchInput.focus();
+      }
+    });
+
+    newSelectedPlaces.addEventListener('click', () => {
+      newDropdown.style.display = newDropdown.style.display === 'none' ? 'block' : 'none';
+      if (newDropdown.style.display === 'block') {
+        renderPlaceOptions();
+        searchInput.focus();
+      }
+    });
+
+    // 컨테이너 위임: 기존/신규 태그의 X 클릭 처리
+    newSelectedPlaces.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.remove');
+      if (!removeBtn) return;
+      e.stopPropagation();
+      const tag = removeBtn.closest('.selected-work-tag');
+      if (!tag) return;
+      const placeId = tag.dataset.placeId;
+      tag.remove();
+      if (newSelectedPlaces.children.length === 0) {
+        newSelectedPlaces.innerHTML = '<span class="placeholder">장소를 선택하세요</span>';
+      }
+      renderPlaceOptions();
+    });
+
+    newDropdown.addEventListener('click', (e) => {
+      const option = e.target.closest('.place-option');
+      if (!option) return;
+      const placeId = option.dataset.placeId;
+      const placeName = option.querySelector('.place-name').textContent;
+      this.addWorkAddModalSelectedPlaceTag(placeId, placeName);
+      newDropdown.style.display = 'none';
+      searchInput.value = '';
+      renderPlaceOptions();
+    });
+  }
+  
+  // 작품 추가 모달용 선택된 장소 태그 추가
+  addWorkAddModalSelectedPlaceTag(placeId, placeName) {
+    const selectedPlaces = document.getElementById('w-selected-places');
+    const placeholder = selectedPlaces.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+    const tag = document.createElement('div');
+    tag.className = 'selected-work-tag';
+    tag.setAttribute('data-place-id', placeId);
+    tag.innerHTML = `
+      ${placeName}
+      <span class="remove" data-place-id="${placeId}">&times;</span>
+    `;
+    selectedPlaces.appendChild(tag);
+  }
+  
+  // 작품 추가 모달 저장
+  async saveWorkAddModal(work = null) {
+    try {
+      // 폼 데이터 수집
+      const title = document.getElementById('w-title').value;
+      const type = document.getElementById('w-type').value;
+      const releaseDate = document.getElementById('w-releaseDate').value;
+      const description = document.getElementById('w-description').value;
+      const image = document.getElementById('w-image').value;
+      
+      // 필수 필드 검증
+      if (!title.trim()) {
+        alert('작품 제목을 입력해주세요.');
+        return;
+      }
+      if (!type) {
+        alert('작품 타입을 선택해주세요.');
+        return;
+      }
+      
+      // 인물 데이터 수집 (통합 카드형)
+      const characterIds = [];
+      const characters = [];
+      const characterCards = document.querySelectorAll('#w-character-cards .character-card');
+      characterCards.forEach(card => {
+        const characterId = card.dataset.characterId;
+        const characterName = card.querySelector('.character-name').textContent.trim();
+        const roleName = card.querySelector('.character-role-input').value.trim();
+        
+        characterIds.push(characterId);
+        characters.push(`${characterName}(${roleName || '정보 없음'})`);
+      });
+
+      // 장소 데이터 수집
+      const placeIds = Array.from(document.querySelectorAll('#w-selected-places .selected-work-tag'))
+        .map(tag => tag.dataset.placeId);
+
+      const payload = {
+        title,
+        type,
+        releaseDate,
+        description,
+        image,
+        characters,
+        characterIds,
+        placeIds
+      };
+
+      const url = work ? `/api/admin/works/${work._id}` : '/api/admin/works';
+      const method = work ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        alert(work ? '작품이 성공적으로 수정되었습니다.' : '작품이 성공적으로 추가되었습니다.');
+        this.closeModal();
+        this.loadWorks();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || '작품 저장에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('작품 저장 오류:', error);
+      alert(`작품 저장 중 오류가 발생했습니다: ${error.message}`);
+    }
+  }
+
+  // 세련된 날짜 선택기 설정
+  setupDatePicker(inputId, iconId, popupId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    const popup = document.getElementById(popupId);
+    
+    if (!input || !icon || !popup) return;
+
+    let currentDate = new Date();
+    let selectedDate = null;
+
+    // 달력 아이콘 클릭 이벤트
+    icon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDatePicker();
+    });
+
+    // 입력 필드 포커스 이벤트
+    input.addEventListener('focus', () => {
+      // 포커스 시 달력이 열려있지 않으면 달력 열기
+      if (!popup.classList.contains('show')) {
+        toggleDatePicker();
+      }
+    });
+
+    // 입력 필드에서 날짜 형식 자동 포맷팅
+    input.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, ''); // 숫자만 추출
+      
+      if (value.length >= 8) {
+        // YYYYMMDD 형식으로 자동 포맷팅
+        const year = value.substring(0, 4);
+        const month = value.substring(4, 6);
+        const day = value.substring(6, 8);
+        
+        if (year && month && day) {
+          const formattedDate = `${year}-${month}-${day}`;
+          if (isValidDate(formattedDate)) {
+            input.value = formattedDate;
+            selectedDate = new Date(year, month - 1, day);
+            updateDatePicker();
+          }
+        }
+      }
+    });
+
+    // 달력 토글 함수
+    function toggleDatePicker() {
+      if (popup.classList.contains('show')) {
+        hideDatePicker();
+      } else {
+        showDatePicker();
+      }
+    }
+
+    // 달력 표시
+    function showDatePicker() {
+      // 현재 입력된 날짜가 있으면 해당 날짜로 설정
+      if (input.value && isValidDate(input.value)) {
+        selectedDate = new Date(input.value);
+        currentDate = new Date(selectedDate);
+      }
+      
+      renderDatePicker();
+      popup.classList.add('show');
+      
+      // 외부 클릭 시 달력 닫기
+      setTimeout(() => {
+        document.addEventListener('click', hideDatePickerOnOutsideClick);
+      }, 100);
+    }
+
+    // 달력 숨기기
+    function hideDatePicker() {
+      popup.classList.remove('show');
+      document.removeEventListener('click', hideDatePickerOnOutsideClick);
+    }
+
+    // 외부 클릭 시 달력 닫기
+    function hideDatePickerOnOutsideClick(e) {
+      if (!popup.contains(e.target) && !input.contains(e.target) && !icon.contains(e.target)) {
+        hideDatePicker();
+      }
+    }
+
+    // 달력 렌더링
+    function renderDatePicker() {
+      // 기존 내용 완전히 제거
+      popup.innerHTML = '';
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      
+      // 달력 헤더
+      const header = document.createElement('div');
+      header.className = 'date-picker-header';
+      header.innerHTML = `
+        <button class="date-picker-nav" data-direction="-1">‹</button>
+        <div class="date-picker-month-year">${year}년 ${monthNames[month]}</div>
+        <button class="date-picker-nav" data-direction="1">›</button>
+      `;
+      
+      // 달력 그리드
+      const grid = document.createElement('div');
+      grid.className = 'date-picker-grid';
+      
+      // 요일 헤더
+      dayNames.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'date-picker-day-header';
+        dayHeader.textContent = day;
+        grid.appendChild(dayHeader);
+      });
+      
+      // 날짜들
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      const today = new Date();
+      
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const dayElement = document.createElement('div');
+        dayElement.className = 'date-picker-day';
+        dayElement.textContent = date.getDate();
+        
+        // 다른 달의 날짜
+        if (date.getMonth() !== month) {
+          dayElement.classList.add('other-month');
+        }
+        
+        // 오늘
+        if (date.toDateString() === today.toDateString()) {
+          dayElement.classList.add('today');
+        }
+        
+        // 선택된 날짜
+        if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+          dayElement.classList.add('selected');
+        }
+        
+        // 날짜 클릭 이벤트
+        dayElement.addEventListener('click', () => {
+          selectDate(date);
+        });
+        
+        grid.appendChild(dayElement);
+      }
+      
+      popup.appendChild(header);
+      popup.appendChild(grid);
+      
+      // 이벤트 리스너 추가 (전역 함수 대신 직접 이벤트 리스너 사용)
+      // 월 변경 버튼들
+      popup.querySelectorAll('.date-picker-nav').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const direction = parseInt(e.target.dataset.direction);
+          currentDate.setMonth(currentDate.getMonth() + direction);
+          renderDatePicker();
+        });
+      });
+    }
+
+    // 날짜 선택
+    function selectDate(date) {
+      selectedDate = new Date(date);
+      input.value = formatDate(selectedDate);
+      hideDatePicker();
+    }
+
+    // 달력 업데이트 (월 변경 시에만 사용)
+    function updateDatePicker() {
+      renderDatePicker();
+    }
+
+    // 날짜 유효성 검사
+    function isValidDate(dateString) {
+      const date = new Date(dateString);
+      return date instanceof Date && !isNaN(date) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+    }
+
+    // 날짜 포맷팅
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+  }
+
+  // 인물 삭제
+  async deleteCharacter(characterId, characterName) {
+    // 사용자에게 삭제 여부 확인
+    if (!confirm(`'${characterName}' 인물을 정말로 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/characters/${characterId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        alert(`'${characterName}' 인물이 성공적으로 삭제되었습니다.`);
+        this.loadCharacters(); // 목록 새로고침
+      } else {
+        const error = await response.json();
+        throw new Error(error.error?.message || '인물 삭제에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('인물 삭제 오류:', error);
+      alert(`오류: ${error.message}`);
+    }
+  }
+
+  
 }
 
 // 전역 변수로 대시보드 인스턴스 생성

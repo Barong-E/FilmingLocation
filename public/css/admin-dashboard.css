@@ -561,6 +561,21 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.btn-action.btn-view {
+  background-color: var(--filo-mint);
+  color: var(--filo-white);
+}
+
+.btn-action.btn-delete {
+  background-color: #e74c3c;
+  color: var(--filo-white);
+}
+
+.btn-action.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+
 /* 페이지네이션 */
 .pagination {
   display: flex;
@@ -1181,7 +1196,7 @@ body {
 
 /* 검색 입력창 스타일 */
 .search-container {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid var(--filo-border);
   background: var(--filo-gray-light);
 }
@@ -1443,6 +1458,170 @@ body {
 #otpToken {
   color: #1f2937 !important; /* 진한 검정색 */
 }
+
+/* 세련된 날짜 입력 필드 스타일 */
+.date-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.date-input {
+  width: 100%;
+  padding: 12px 45px 12px 15px;
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--filo-white);
+  transition: all 0.3s ease;
+  color: var(--filo-text-dark);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--filo-mint);
+  box-shadow: 0 0 0 2px rgba(0, 200, 150, 0.1);
+}
+
+.date-input::placeholder {
+  color: var(--filo-text-light);
+  font-style: italic;
+}
+
+.date-picker-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--filo-text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  z-index: 2;
+}
+
+.date-picker-icon:hover {
+  color: var(--filo-mint);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.date-picker-icon:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* 달력 팝업 스타일 */
+.date-picker-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--filo-white);
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-top: 4px;
+  padding: 16px;
+  display: none;
+}
+
+.date-picker-popup.show {
+  display: block;
+  animation: datePickerFadeIn 0.2s ease-out;
+}
+
+@keyframes datePickerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.date-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--filo-border);
+}
+
+.date-picker-nav {
+  background: none;
+  border: none;
+  color: var(--filo-text-light);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 16px;
+}
+
+.date-picker-nav:hover {
+  background: var(--filo-gray-light);
+  color: var(--filo-mint);
+}
+
+.date-picker-month-year {
+  font-weight: 600;
+  color: var(--filo-text-dark);
+  font-size: 16px;
+}
+
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.date-picker-day-header {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--filo-text-light);
+  padding: 8px 4px;
+}
+
+.date-picker-day {
+  text-align: center;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: var(--filo-text-dark);
+}
+
+.date-picker-day:hover {
+  background: var(--filo-mint-light);
+  color: var(--filo-mint);
+}
+
+.date-picker-day.selected {
+  background: var(--filo-mint);
+  color: var(--filo-white);
+  font-weight: 600;
+}
+
+.date-picker-day.other-month {
+  color: var(--filo-text-light);
+  opacity: 0.5;
+}
+
+.date-picker-day.today {
+  background: var(--filo-gray-light);
+  font-weight: 600;
+}
+
+.date-picker-day.today.selected {
+  background: var(--filo-mint);
+  color: var(--filo-white);
+}
+
 
 .btn-login {
   width: 100%;

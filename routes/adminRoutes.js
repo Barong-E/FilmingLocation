@@ -724,9 +724,16 @@ router.get('/works/summary', requireAdminAuth, async (req, res) => {
 
 router.post('/works', requireAdminAuth, requirePermission('works'), logAdminActivity('create', 'work'), async (req, res) => {
   try {
-    const doc = await Work.create(req.body);
+    // id 필드가 없으면 자동 생성
+    const workData = { ...req.body };
+    if (!workData.id) {
+      workData.id = `work_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
+    const doc = await Work.create(workData);
     res.status(201).json({ success: true, work: doc });
   } catch (error) {
+    console.error('작품 생성 오류:', error);
     res.status(400).json({ error: { code: 'WORK_CREATE_ERROR', message: '작품 생성 실패', details: error.message } });
   }
 });
@@ -857,12 +864,13 @@ router.get('/characters', requireAdminAuth, requirePermission('characters'), asy
 
 router.post('/characters', requireAdminAuth, requirePermission('characters'), logAdminActivity('create', 'character'), async (req, res) => {
   try {
-    const { workIds, ...characterData } = req.body;
+    // [수정] workCharacterNames를 명확하게 분리하여 데이터 오염 방지
+    const { workIds, workCharacterNames, ...characterDataOnly } = req.body;
     
     // id 필드 자동 생성 (영문 고유값)
-    if (!characterData.id) {
+    if (!characterDataOnly.id) {
       // 이름을 기반으로 영문 ID 생성
-      const nameToId = characterData.name
+      const nameToId = (characterDataOnly.name || '')
         .toLowerCase()
         .replace(/[^a-z0-9가-힣]/g, '') // 특수문자 제거
         .replace(/[가-힣]/g, (char) => {
@@ -875,32 +883,44 @@ router.post('/characters', requireAdminAuth, requirePermission('characters'), lo
         });
       
       // 중복 방지를 위해 타임스탬프 추가
-      characterData.id = `${nameToId}_${Date.now()}`;
+      characterDataOnly.id = `${nameToId}_${Date.now()}`;
     }
     
-    console.log('생성할 인물 데이터:', characterData);
+    console.log('생성할 인물 데이터:', characterDataOnly);
     
-    // 인물 생성
-    const character = await Character.create(characterData);
+    // [수정] 순수 인물 데이터만으로 Character 생성
+    const character = await Character.create(characterDataOnly);
     
     // 선택된 작품들의 characterIds와 characters에 새 인물 정보 추가
     if (workIds && workIds.length > 0) {
-      // 작품별로 characterIds와 characters를 동시에 추가 (인덱스 일치 보장)
-      const map = Array.isArray(req.body.workCharacterNames) ? req.body.workCharacterNames : [];
-      
-      for (const workId of workIds) {
-        // 해당 작품의 작중이름 찾기
-        const workCharName = map.find(x => x && x.workId === workId)?.characterName;
-        const charName = workCharName || character.name;
-        
-        // 극중이름이 실제이름과 같은 경우 중복 제거
-        let formattedCharName;
-        if (charName === character.name) {
-          formattedCharName = character.name; // 실제이름만
-        } else {
-          formattedCharName = `${character.name}(${charName})`; // 실제이름(극중이름)
+      // [보강] workCharacterNames가 객체인지 확인하고 키 매칭을 견고하게 처리
+      const workCharNameMap = (workCharacterNames && typeof workCharacterNames === 'object') ? workCharacterNames : {};
+
+      for (const rawWorkId of workIds) {
+        const workId = (rawWorkId && rawWorkId._id) ? String(rawWorkId._id) : String(rawWorkId);
+
+        // 가능한 키 후보들을 순서대로 검사 (문자열/문자열화)
+        const candidateKeys = [workId, String(workId)];
+        let roleNameRaw = '';
+        for (const key of candidateKeys) {
+          if (key && Object.prototype.hasOwnProperty.call(workCharNameMap, key)) {
+            roleNameRaw = workCharNameMap[key];
+            break;
+          }
         }
-        
+        // 예외 처리: 단일 선택인데 'undefined' 키로 온 경우 보정
+        if (!roleNameRaw && workIds.length === 1 && Object.prototype.hasOwnProperty.call(workCharNameMap, 'undefined')) {
+          roleNameRaw = workCharNameMap['undefined'];
+        }
+
+        const roleName = typeof roleNameRaw === 'string' ? roleNameRaw.trim() : '';
+        const formattedCharName = roleName && roleName !== character.name
+          ? `${character.name}(${roleName})`
+          : character.name;
+
+        // 디버깅 로그
+        console.log('[CHAR_CREATE] workId:', workId, 'roleName:', roleName, 'formatted:', formattedCharName);
+
         // characterIds와 characters를 동시에 추가 (인덱스 일치 보장)
         await Work.findByIdAndUpdate(
           workId,
@@ -1104,6 +1124,18 @@ router.delete('/characters/:id', requireAdminAuth, requirePermission('characters
   try {
     const deleted = await Character.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ error: { code: 'CHAR_NOT_FOUND', message: '인물 없음' } });
+
+    // [수정] 이 인물이 출연했던 모든 작품을 찾아서 출연 정보를 제거합니다.
+    const worksToUpdate = await Work.find({ characterIds: deleted._id });
+    for (const work of worksToUpdate) {
+      const indexToRemove = work.characterIds.findIndex(id => id.toString() === deleted._id.toString());
+      if (indexToRemove > -1) {
+        work.characterIds.splice(indexToRemove, 1);
+        work.characters.splice(indexToRemove, 1);
+        await work.save();
+      }
+    }
+
     res.json({ success: true, message: '삭제 완료' });
   } catch (error) {
     res.status(500).json({ error: { code: 'CHAR_DELETE_ERROR', message: '인물 삭제 실패', details: error.message } });

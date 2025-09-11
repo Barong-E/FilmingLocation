@@ -414,7 +414,13 @@
         </div>
         <div class="form-row">
           <label>공개일</label>
-          <input type="text" id="work-releaseDate" value="">
+          <div class="date-input-container">
+            <input type="text" id="work-releaseDate" class="date-input" value="" placeholder="YYYY-MM-DD 또는 클릭하여 선택">
+            <i class="fas fa-calendar-alt date-picker-icon" id="work-date-picker-icon"></i>
+            <div class="date-picker-popup" id="work-date-picker-popup">
+              <!-- 달력이 여기에 동적으로 생성됩니다 -->
+            </div>
+          </div>
         </div>
         <div class="form-row">
           <label>설명</label>
