@@ -31,7 +31,10 @@ export function renderPlaces(places, searchQuery = '') {
   
   places.forEach(place => {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
-    const workTitle = place.relatedWorks?.[0]?.title || place.workInfo?.title || '알 수 없음'; // 검색 API와 호환
+    // 모든 연결 작품을 쉼표로 구분하여 표시
+    const workTitle = place.relatedWorks && place.relatedWorks.length > 0 
+      ? place.relatedWorks.map(work => work.title).join(', ')
+      : place.workInfo?.title || '알 수 없음';
     const card = document.createElement('a');
     const pid = place.id || place._id; // 집계 결과에서 _id만 오는 경우 대비
     card.href = `/place?id=${pid}`;

@@ -8,31 +8,23 @@ import Work from '../models/Work.js';
 const router = express.Router();
 
 /**
- * 1) 전체 장소 조회 (새로운 구조)
+ * 1) 전체 장소 조회 (중복 제거 및 작품 배열 포함)
  */
 router.get('/', async (req, res) => {
   try {
     const { query } = req.query;
 
-    // 1. 기본적으로 Place와 Work 정보를 합친다.
-    let aggregationPipeline = [
+    const aggregationPipeline = [
       {
         $lookup: {
           from: 'works',
           localField: '_id',
           foreignField: 'placeIds',
-          as: 'workInfo'
-        }
-      },
-      {
-        $unwind: {
-          path: '$workInfo',
-          preserveNullAndEmptyArrays: true // 작품 정보가 없는 장소도 포함
+          as: 'relatedWorks'
         }
       }
     ];
 
-    // 2. 검색어가 있으면, 합쳐진 데이터를 대상으로 필터링한다.
     if (query) {
       const regex = new RegExp(query, 'i');
       aggregationPipeline.push({
@@ -41,11 +33,31 @@ router.get('/', async (req, res) => {
             { real_name: regex },
             { fictional_name: regex },
             { address: regex },
-            { 'workInfo.title': regex } // Join된 작품 제목으로 검색
+            { 'relatedWorks.title': regex }
           ]
         }
       });
     }
+
+    // 필요한 필드만 반환 + 작품 요약화
+    aggregationPipeline.push({
+      $project: {
+        id: 1,
+        real_name: 1,
+        fictional_name: 1,
+        address: 1,
+        image: 1,
+        mapUrl: 1,
+        createdAt: 1,
+        relatedWorks: {
+          $map: {
+            input: '$relatedWorks',
+            as: 'w',
+            in: { _id: '$$w._id', id: '$$w.id', title: '$$w.title' }
+          }
+        }
+      }
+    });
 
     const places = await Place.aggregate(aggregationPipeline);
     return res.json(places);

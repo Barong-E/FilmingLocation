@@ -1667,6 +1667,113 @@ body {
   color: #dc3545;
 }
 
+/* ─── 모달 ────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 62, 80, 0.6);
+  display: none; /* 기본 숨김 */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay.active {
+  display: flex; /* 활성화 시 보임 */
+}
+
+.modal-content {
+  background: var(--filo-white);
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 5px 25px rgba(44, 62, 80, 0.2);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  padding: 20px 25px;
+  border-bottom: 1px solid var(--filo-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  color: var(--filo-text-dark);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--filo-text-light);
+  transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+  color: var(--filo-text-dark);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 25px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--filo-text-dark);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--filo-border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--filo-white);
+  transition: all 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--filo-mint);
+  box-shadow: 0 0 0 3px var(--filo-mint-light);
+}
+
+.modal-footer {
+  padding: 20px 25px;
+  border-top: 1px solid var(--filo-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: var(--filo-gray-light);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .dashboard-header {
@@ -1723,4 +1830,38 @@ body {
     width: 95%;
     margin: 20px;
   }
+}
+
+/* 개선된 작품 선택 박스 */
+.works-select-box {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--filo-border);
+  border-radius: 10px;
+  padding: 0; /* 내부 여백 제거 */
+  background: var(--filo-white);
+}
+.work-option-row {
+  display: flex;
+  align-items: center; /* 수직 가운데 */
+  gap: 12px; /* 체크박스와 작품명 간격 */
+  height: 40px; /* 균일한 높이 */
+  padding: 0 10px; /* 좌우만 여백 */
+  margin: 0; /* 마진 제거 */
+  border-bottom: 1px solid #f0f0f0; /* 작품 간 구분선 */
+  background: #fff;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.work-option-row:hover { background: var(--filo-mint-light); }
+.work-option-row.selected { background: var(--filo-mint-light); box-shadow: 0 0 0 2px rgba(0,200,150,0.08); }
+.work-option-row input[type="checkbox"] { flex-shrink: 0; margin: 0; width: 16px; height: 16px; accent-color: var(--filo-mint); }
+.work-title-text { 
+  flex: 1; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+  line-height: 1.2;
+  margin: 0 !important; /* 다른 label 스타일 덮어쓰기 */
+  padding: 0; /* 패딩 제거 */
+  cursor: pointer; /* 클릭 가능 표시 */
 }

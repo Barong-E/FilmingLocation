@@ -479,24 +479,97 @@ class AdminDashboard {
   }
 
   // 간단한 생성/수정 모달 (최소 구현)
-  openPlaceModal(place = null) {
+  async openPlaceModal(place = null, allWorks = null, selectedWorkIds = []) {
+    // 필요시 전체 작품 목록 조회
+    if (!allWorks) {
+      const worksRes = await fetch('/api/admin/works?page=1&limit=1000', { credentials: 'include' });
+      const worksData = worksRes.ok ? await worksRes.json() : { works: [] };
+      allWorks = worksData.works || [];
+    }
+
     const body = document.getElementById('modalBody');
     document.getElementById('modal').style.display = 'flex';
     document.getElementById('modalTitle').textContent = place ? '장소 수정' : '장소 추가';
+    const safe = (v) => (v || '').toString().replaceAll('"', '&quot;');
+
+    const worksOptions = allWorks.map(w => {
+      const checked = selectedWorkIds.includes(String(w._id)) ? 'checked' : '';
+      const checkboxId = `w-check-${w._id}`;
+      return `
+        <div class="work-option-row">
+          <input type="checkbox" class="w-check" id="${checkboxId}" value="${w._id}" ${checked}>
+          <label for="${checkboxId}" class="work-title-text">${safe(w.title)}</label>
+        </div>
+      `;
+    }).join('') || '<div class="form-help">등록된 작품이 없습니다.</div>';
+
     body.innerHTML = `
-      <div class="form-row"><label>실제명</label><input id="f-real" value="${place?.real_name || ''}"></div>
-      <div class="form-row"><label>가명</label><input id="f-fic" value="${place?.fictional_name || ''}"></div>
-      <div class="form-row"><label>주소</label><input id="f-addr" value="${place?.address || ''}"></div>
+      <div class="form-row"><label>실제명</label><input id="f-real" value="${safe(place?.real_name)}" placeholder="실제 장소명"></div>
+      <div class="form-row"><label>가명</label><input id="f-fic" value="${safe(place?.fictional_name)}" placeholder="작품 속 장소명"></div>
+      <div class="form-row"><label>주소</label><input id="f-addr" value="${safe(place?.address)}" placeholder="도로명 주소"></div>
+      <div class="form-row"><label>이미지 경로</label><input id="f-image" value="${safe(place?.image)}" placeholder="/images/places/sample.jpg"></div>
+      <div class="form-row"><label>지도 URL</label><input id="f-map" value="${safe(place?.mapUrl)}" placeholder="https://maps.google.com/..." ></div>
+      <div class="form-row"><label>연결 작품</label>
+        <div class="search-container"><input type="text" id="w-search" class="search-input" placeholder="작품명 검색"></div>
+        <div id="works-list" class="works-select-box">${worksOptions}</div>
+        <small class="form-help">체크한 작품과 이 장소를 연결합니다.</small>
+      </div>
       <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
         <button id="modalSave" class="btn-primary">저장</button>
+        <button id="modalCancel" class="btn-secondary">취소</button>
       </div>
     `;
+
+    // 검색 필터링
+    const listEl = document.getElementById('works-list');
+    const searchEl = document.getElementById('w-search');
+    if (searchEl) {
+      searchEl.addEventListener('input', (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        listEl.querySelectorAll('.work-option-row').forEach(row => {
+          const title = row.querySelector('.work-title-text')?.textContent?.toLowerCase() || '';
+          row.style.display = title.includes(q) ? '' : 'none';
+        });
+      });
+    }
+
+    // 선택 상태 시각화
+    listEl.querySelectorAll('.w-check').forEach(chk => {
+      const row = chk.closest('.work-option-row');
+      const setSel = () => row.classList.toggle('selected', chk.checked);
+      setSel();
+      chk.addEventListener('change', setSel);
+      // 행 전체 클릭으로 토글
+      row.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'INPUT') { // input 직접 클릭이 아닐 때만
+          chk.checked = !chk.checked;
+          setSel();
+        }
+      });
+    });
+
+    document.getElementById('modalCancel').onclick = () => this.closeModal();
     document.getElementById('modalSave').onclick = async () => {
-      const payload = { real_name: document.getElementById('f-real').value, fictional_name: document.getElementById('f-fic').value, address: document.getElementById('f-addr').value };
+      const payload = {
+        real_name: document.getElementById('f-real').value.trim(),
+        fictional_name: document.getElementById('f-fic').value.trim(),
+        address: document.getElementById('f-addr').value.trim(),
+        image: document.getElementById('f-image').value.trim(),
+        mapUrl: document.getElementById('f-map').value.trim(),
+        workIds: Array.from(document.querySelectorAll('#works-list .w-check:checked')).map(el => el.value)
+      };
+      if (!payload.real_name || !payload.address) {
+        alert('실제명과 주소는 필수입니다.');
+        return;
+      }
       const url = place ? `/api/admin/places/${place._id}` : '/api/admin/places';
       const method = place ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
-      if (res.ok) { this.closeModal(); this.loadPlaces(); } else { alert('저장 실패'); }
+      if (res.ok) { this.closeModal(); this.loadPlaces(); }
+      else {
+        const err = await res.json().catch(()=>({}));
+        alert(err.error?.message || '저장 실패');
+      }
     };
   }
 
@@ -848,15 +921,17 @@ class AdminDashboard {
   renderPlacesTable(places) {
     const tbody = document.getElementById('placesTableBody');
     tbody.innerHTML = places.map(place => {
-      // 장소명 표시 로직: 실제명이 있으면 실제명, 없으면 가명, 둘 다 없으면 '이름 없음'
       const displayName = place.real_name || place.fictional_name || '이름 없음';
-      
+      const displayAddress = place.address || '주소 없음';
+      const created = place.createdAt ? new Date(place.createdAt).toLocaleDateString() : '';
       return `
         <tr>
           <td>${displayName}</td>
+          <td>${displayAddress}</td>
+          <td>${created}</td>
           <td>
             <div class="action-buttons">
-              <button class="btn-action btn-view" onclick="dashboard.editPlace('${place._id}')">수정</button>
+              <button class="btn-action btn-view" onclick="dashboard.openPlaceEditModal('${place._id}')">수정</button>
             </div>
           </td>
         </tr>
@@ -3114,6 +3189,24 @@ class AdminDashboard {
     }
   }
 
+  // 장소 수정 버튼 동작: 서버에서 상세 조회 후 모달 오픈
+  async openPlaceEditModal(placeId) {
+    try {
+      const res = await fetch(`/api/admin/places/${placeId}`, { credentials: 'include' });
+      if (!res.ok) throw new Error('장소 정보를 불러오지 못했습니다.');
+      const data = await res.json();
+      const place = data.place;
+      const linkedWorks = data.works || [];
+
+      // 전체 작품 목록도 가져와서 선택 가능하게 함
+      const worksRes = await fetch('/api/admin/works?page=1&limit=1000', { credentials: 'include' });
+      const worksData = worksRes.ok ? await worksRes.json() : { works: [] };
+
+      this.openPlaceModal(place, worksData.works, linkedWorks.map(w => w._id));
+    } catch (e) {
+      alert(e.message || '장소 정보를 불러오지 못했습니다.');
+    }
+  }
   
 }
 

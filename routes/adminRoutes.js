@@ -600,7 +600,7 @@ router.get('/places', requireAdminAuth, requirePermission('places'), async (req,
     }
     
     const places = await Place.find(query)
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(parseInt(limit));
     
@@ -630,7 +630,21 @@ router.get('/places', requireAdminAuth, requirePermission('places'), async (req,
 // 장소 생성
 router.post('/places', requireAdminAuth, requirePermission('places'), logAdminActivity('create', 'place'), async (req, res) => {
   try {
-    const doc = await Place.create(req.body);
+    const { workIds, ...rest } = req.body;
+    const placeData = { ...rest };
+    if (!placeData.id) {
+      placeData.id = `place_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    const doc = await Place.create(placeData);
+
+    // 선택된 작품들과 연결 (placeIds에 추가)
+    if (Array.isArray(workIds) && workIds.length > 0) {
+      await Promise.all(workIds.map(wid => {
+        const idStr = (wid && wid._id) ? String(wid._id) : String(wid);
+        return Work.findByIdAndUpdate(idStr, { $addToSet: { placeIds: doc._id } });
+      }));
+    }
+
     res.status(201).json({ success: true, place: doc });
   } catch (error) {
     res.status(400).json({ error: { code: 'PLACE_CREATE_ERROR', message: '장소 생성 실패', details: error.message } });
@@ -642,7 +656,11 @@ router.get('/places/:id', requireAdminAuth, requirePermission('places'), async (
   try {
     const place = await Place.findById(req.params.id);
     if (!place) return res.status(404).json({ error: { code: 'PLACE_NOT_FOUND', message: '장소 없음' } });
-    res.json({ success: true, place });
+
+    // 이 장소가 연결된 작품 요약 반환
+    const works = await Work.find({ placeIds: place._id }).select('_id title');
+
+    res.json({ success: true, place, works });
   } catch (error) {
     res.status(500).json({ error: { code: 'PLACE_FETCH_ERROR', message: '장소 조회 실패', details: error.message } });
   }
@@ -651,8 +669,32 @@ router.get('/places/:id', requireAdminAuth, requirePermission('places'), async (
 // 장소 수정
 router.put('/places/:id', requireAdminAuth, requirePermission('places'), logAdminActivity('update', 'place'), async (req, res) => {
   try {
-    const updated = await Place.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id, _id, workIds, ...updateData } = req.body; // id 불변, workIds 별도 처리
+
+    // 기본 정보 업데이트
+    const updated = await Place.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!updated) return res.status(404).json({ error: { code: 'PLACE_NOT_FOUND', message: '장소 없음' } });
+
+    // 작품 연결 업데이트 (양방향 동기화: Work.placeIds 기준)
+    if (Array.isArray(workIds)) {
+      const placeId = updated._id;
+      const incoming = new Set(workIds.map(wid => String((wid && wid._id) ? wid._id : wid)));
+
+      // 현재 이 장소를 포함한 작품들
+      const currentWorks = await Work.find({ placeIds: placeId }).select('_id');
+      const currentSet = new Set(currentWorks.map(w => String(w._id)));
+
+      // 제거 대상: 현재 포함하지만 요청에는 없는 작품
+      const toRemove = [...currentSet].filter(id => !incoming.has(id));
+      // 추가 대상: 요청에는 있지만 현재 포함하지 않는 작품
+      const toAdd = [...incoming].filter(id => !currentSet.has(id));
+
+      if (toRemove.length > 0) {
+        await Work.updateMany({ _id: { $in: toRemove } }, { $pull: { placeIds: placeId } });
+      }
+      await Promise.all(toAdd.map(id => Work.findByIdAndUpdate(id, { $addToSet: { placeIds: placeId } })));
+    }
+
     res.json({ success: true, place: updated });
   } catch (error) {
     res.status(400).json({ error: { code: 'PLACE_UPDATE_ERROR', message: '장소 수정 실패', details: error.message } });
