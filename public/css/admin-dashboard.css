@@ -763,6 +763,11 @@ body {
   z-index: 2000;
 }
 
+/* 크롭 모달은 항상 최상단에 표시 */
+#img-cropper-modal {
+  z-index: 4000;
+}
+
 .modal-content {
   background: var(--filo-white);
   border-radius: 12px;
@@ -1272,6 +1277,14 @@ body {
   background: var(--filo-white);
   transition: all 0.3s;
 }
+
+/* 이미지 업로드 라디오/컨트롤 */
+.image-input-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.image-input-toggle { display:flex; gap:16px; align-items:center; }
+.image-path-input { }
+.image-upload-controls { display:none; gap:8px; align-items:center; }
+.image-upload-controls.show { display:flex; }
+.image-upload-preview { width: 80px; height: 56px; border-radius: 6px; background:#f3f3f3; background-size:cover; background-position:center; border:1px solid var(--filo-border); }
 
 .form-row input:focus,
 .form-row textarea:focus,

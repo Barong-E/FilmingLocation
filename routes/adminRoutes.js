@@ -6,6 +6,10 @@ import Place from '../models/Place.js';
 import Work from '../models/Work.js';
 import Character from '../models/Character.js';
 import Comment from '../models/Comment.js';
+import multer from 'multer';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
 import otpService from '../services/otpService.js';
 import {
   requireAdminAuth,
@@ -29,6 +33,143 @@ router.use((req, res, next) => {
 // 간단한 헬스체크 (디버깅용)
 router.get('/health', (req, res) => {
   res.json({ ok: true, ts: Date.now() });
+});
+
+// ─── 이미지 업로드 공통 설정 ─────────────────────────────────────────────
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
+});
+
+function ensureDirSync(dirPath) {
+  try {
+    fs.mkdirSync(dirPath, { recursive: true });
+  } catch (e) {}
+}
+
+async function saveCompressedImage(buffer, destDir, baseName) {
+  ensureDirSync(destDir);
+  // 이전에 생성된 같은 엔티티(baseName) 이미지 정리
+  try {
+    const files = fs.readdirSync(destDir);
+    files.forEach(f => {
+      if (f.startsWith(`${baseName}-`) || f === `${baseName}.jpg`) {
+        try { fs.unlinkSync(path.join(destDir, f)); } catch (e) {}
+      }
+    });
+  } catch (e) {}
+  const fileName = `${baseName}.jpg`; // 동일 엔티티는 항상 같은 파일명으로 덮어쓰기
+  const destPath = path.join(destDir, fileName);
+  // 200kb 이하로 맞추기: 기본 품질 80, 크면 점감
+  let quality = 80;
+  let out = await sharp(buffer).jpeg({ quality, mozjpeg: true }).toBuffer();
+  while (out.length > 200 * 1024 && quality > 40) {
+    quality -= 10;
+    out = await sharp(buffer).jpeg({ quality, mozjpeg: true }).toBuffer();
+  }
+  fs.writeFileSync(destPath, out);
+  // public 하위 경로 반환
+  const publicPath = destPath.replace(/\\/g, '/').replace(/^.*public\//, '/');
+  return publicPath;
+}
+
+// 인물 이미지 업로드
+router.post('/characters/:id/image', requireAdminAuth, requirePermission('characters'), upload.single('image'), async (req, res) => {
+  try {
+    const char = await Character.findById(req.params.id);
+    if (!char) return res.status(404).json({ error: { code: 'NOT_FOUND', message: '인물 없음' } });
+    if (!req.file) return res.status(400).json({ error: { code: 'NO_FILE', message: '파일 없음' } });
+
+    const savedPath = await saveCompressedImage(req.file.buffer, path.join('public','images','characters'), char.id || String(char._id));
+    char.image = savedPath;
+    await char.save();
+    res.json({ success: true, path: savedPath });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { code: 'UPLOAD_FAIL', message: '인물 이미지 업로드 실패' } });
+  }
+});
+
+// 작품 이미지 업로드
+router.post('/works/:id/image', requireAdminAuth, requirePermission('works'), upload.single('image'), async (req, res) => {
+  try {
+    const work = await Work.findById(req.params.id);
+    if (!work) return res.status(404).json({ error: { code: 'NOT_FOUND', message: '작품 없음' } });
+    if (!req.file) return res.status(400).json({ error: { code: 'NO_FILE', message: '파일 없음' } });
+
+    const savedPath = await saveCompressedImage(req.file.buffer, path.join('public','images','works'), work.id || String(work._id));
+    work.image = savedPath;
+    await work.save();
+    res.json({ success: true, path: savedPath });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { code: 'UPLOAD_FAIL', message: '작품 이미지 업로드 실패' } });
+  }
+});
+
+// 장소 이미지 업로드
+router.post('/places/:id/image', requireAdminAuth, requirePermission('places'), upload.single('image'), async (req, res) => {
+  try {
+    const place = await Place.findById(req.params.id);
+    if (!place) return res.status(404).json({ error: { code: 'NOT_FOUND', message: '장소 없음' } });
+    if (!req.file) return res.status(400).json({ error: { code: 'NO_FILE', message: '파일 없음' } });
+
+    const savedPath = await saveCompressedImage(req.file.buffer, path.join('public','images','places'), place.id || String(place._id));
+    place.image = savedPath;
+    await place.save();
+    res.json({ success: true, path: savedPath });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { code: 'UPLOAD_FAIL', message: '장소 이미지 업로드 실패' } });
+  }
+});
+
+// 임시 파일 정리 함수
+async function cleanupTempFiles(type, currentImagePath) {
+  try {
+    const targetDir = path.join('public', 'images', type);
+    const files = fs.readdirSync(targetDir);
+    
+    // 현재 이미지 파일명 추출
+    const currentFileName = path.basename(currentImagePath);
+    
+    // tmp-로 시작하는 파일들 중 현재 파일이 아닌 것들 삭제
+    for (const file of files) {
+      if (file.startsWith('tmp-') && file !== currentFileName) {
+        const filePath = path.join(targetDir, file);
+        try {
+          fs.unlinkSync(filePath);
+          console.log(`임시 파일 삭제: ${filePath}`);
+        } catch (err) {
+          console.error(`임시 파일 삭제 실패: ${filePath}`, err);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('임시 파일 정리 중 오류:', err);
+  }
+}
+
+// 임시 업로드(추가 모드에서 사용) - type: characters|works|places
+router.post('/uploads/:type', requireAdminAuth, upload.single('image'), async (req, res) => {
+  try {
+    const { type } = req.params;
+    if (!req.file) return res.status(400).json({ error: { code: 'NO_FILE', message: '파일 없음' } });
+    const folderMap = { characters: 'characters', works: 'works', places: 'places' };
+    const target = folderMap[type];
+    if (!target) return res.status(400).json({ error: { code: 'INVALID_TYPE', message: '잘못된 업로드 대상' } });
+    const savedPath = await saveCompressedImage(
+      req.file.buffer,
+      path.join('public', 'images', target),
+      `tmp-${Date.now()}-${Math.random().toString(36).slice(2,8)}`
+    );
+    res.json({ success: true, path: savedPath });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: { code: 'UPLOAD_FAIL', message: '임시 업로드 실패' } });
+  }
 });
 
 // ─── 인증 관련 라우트 ──────────────────────────────────────────────────
@@ -645,6 +786,11 @@ router.post('/places', requireAdminAuth, requirePermission('places'), logAdminAc
       }));
     }
 
+    // 임시 업로드 파일 정리 (이미지 경로가 tmp-로 시작하는 경우)
+    if (placeData.image && placeData.image.includes('tmp-')) {
+      await cleanupTempFiles('places', placeData.image);
+    }
+
     res.status(201).json({ success: true, place: doc });
   } catch (error) {
     res.status(400).json({ error: { code: 'PLACE_CREATE_ERROR', message: '장소 생성 실패', details: error.message } });
@@ -773,6 +919,12 @@ router.post('/works', requireAdminAuth, requirePermission('works'), logAdminActi
     }
     
     const doc = await Work.create(workData);
+
+    // 임시 업로드 파일 정리 (이미지 경로가 tmp-로 시작하는 경우)
+    if (workData.image && workData.image.includes('tmp-')) {
+      await cleanupTempFiles('works', workData.image);
+    }
+
     res.status(201).json({ success: true, work: doc });
   } catch (error) {
     console.error('작품 생성 오류:', error);
@@ -975,6 +1127,11 @@ router.post('/characters', requireAdminAuth, requirePermission('characters'), lo
           { new: true }
         );
       }
+    }
+
+    // 임시 업로드 파일 정리 (이미지 경로가 tmp-로 시작하는 경우)
+    if (characterDataOnly.image && characterDataOnly.image.includes('tmp-')) {
+      await cleanupTempFiles('characters', characterDataOnly.image);
     }
     
     res.status(201).json({ success: true, character });

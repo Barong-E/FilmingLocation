@@ -507,7 +507,21 @@ class AdminDashboard {
       <div class="form-row"><label>실제명</label><input id="f-real" value="${safe(place?.real_name)}" placeholder="실제 장소명"></div>
       <div class="form-row"><label>가명</label><input id="f-fic" value="${safe(place?.fictional_name)}" placeholder="작품 속 장소명"></div>
       <div class="form-row"><label>주소</label><input id="f-addr" value="${safe(place?.address)}" placeholder="도로명 주소"></div>
-      <div class="form-row"><label>이미지 경로</label><input id="f-image" value="${safe(place?.image)}" placeholder="/images/places/sample.jpg"></div>
+      <div class="form-row image-input-row">
+        <label>이미지</label>
+        <div class="image-input-toggle">
+          <label><input type="radio" name="imgMode" value="path" checked> 이미지 경로 입력</label>
+          <label><input type="radio" name="imgMode" value="upload"> 이미지 직접 업로드</label>
+        </div>
+        <div class="image-path-input">
+          <input id="f-image" value="${safe(place?.image)}" placeholder="/images/places/sample.jpg">
+        </div>
+        <div class="image-upload-controls" id="place-upload-controls">
+          <input type="file" id="place-image-file" accept="image/*" style="display:none;" />
+          <button id="place-image-choose" class="btn-secondary">파일 선택</button>
+          <div class="image-upload-preview" id="place-image-preview" title="미리보기"></div>
+        </div>
+      </div>
       <div class="form-row"><label>지도 URL</label><input id="f-map" value="${safe(place?.mapUrl)}" placeholder="https://maps.google.com/..." ></div>
       <div class="form-row"><label>연결 작품</label>
         <div class="search-container"><input type="text" id="w-search" class="search-input" placeholder="작품명 검색"></div>
@@ -547,6 +561,70 @@ class AdminDashboard {
         }
       });
     });
+
+    // 이미지 모드 토글
+    const radioPath = body.querySelector('input[name="imgMode"][value="path"]');
+    const radioUpload = body.querySelector('input[name="imgMode"][value="upload"]');
+    const pathRow = body.querySelector('.image-path-input');
+    const uploadRow = body.querySelector('#place-upload-controls');
+    function syncImgMode() {
+      const isUpload = radioUpload.checked;
+      uploadRow.classList.toggle('show', isUpload);
+      pathRow.style.display = isUpload ? 'none' : 'block';
+    }
+    radioPath.addEventListener('change', syncImgMode);
+    radioUpload.addEventListener('change', syncImgMode);
+    syncImgMode(); // 초기 상태 설정
+
+    // 파일 선택 및 크롭
+    const chooseBtn = body.querySelector('#place-image-choose');
+    const fileInput = body.querySelector('#place-image-file');
+    const preview = body.querySelector('#place-image-preview');
+    let cropper = null;
+    if (chooseBtn) chooseBtn.onclick = (e) => { e.preventDefault(); if (fileInput) fileInput.click(); };
+    if (fileInput) fileInput.onchange = (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const modal = document.getElementById('img-cropper-modal');
+        const img = document.getElementById('img-cropper-image');
+        img.src = ev.target.result;
+        modal.style.display = 'flex';
+        if (cropper) { cropper.destroy(); cropper = null; }
+        cropper = new Cropper(img, { aspectRatio: 16/9, viewMode:1, autoCropArea:1 });
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // 크롭 모달 컨트롤
+    const closeCrop = () => { const m = document.getElementById('img-cropper-modal'); m.style.display = 'none'; if (cropper) { cropper.destroy(); cropper=null; } };
+    document.getElementById('img-cropper-close').onclick = closeCrop;
+    document.getElementById('img-cropper-cancel').onclick = closeCrop;
+    const okBtnPlace = document.getElementById('img-cropper-ok');
+    okBtnPlace.onclick = null; // 중복 핸들러 제거
+    okBtnPlace.onclick = async () => {
+      if (!cropper) return;
+      cropper.getCroppedCanvas().toBlob(async (blob) => {
+        // 업로드 → 서버 경로 반환 → 프리뷰/입력 반영
+        const form = new FormData();
+        form.append('image', blob, 'place.jpg');
+        let res;
+        if (place?._id) {
+          res = await fetch(`/api/admin/places/${place._id}/image`, { method:'POST', credentials:'include', body: form });
+        } else {
+          // 추가 모드: 임시 업로드로 경로 확보
+          res = await fetch(`/api/admin/uploads/places`, { method:'POST', credentials:'include', body: form });
+        }
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('f-image').value = data.path; // 경로 반영
+          preview.style.backgroundImage = `url('${data.path}?v=${Date.now()}')`;
+          closeCrop();
+        } else {
+          alert('이미지 업로드 실패');
+        }
+      }, 'image/jpeg', 0.9);
+    };
 
     document.getElementById('modalCancel').onclick = () => this.closeModal();
     document.getElementById('modalSave').onclick = async () => {
@@ -616,9 +694,20 @@ class AdminDashboard {
         <label>설명</label>
         <textarea id="w-description" rows="3">${work?.description || ''}</textarea>
       </div>
-      <div class="form-row">
-        <label>이미지 경로</label>
-        <input type="text" id="w-image" value="${work?.image || ''}">
+      <div class="form-row image-input-row">
+        <label>포스터 이미지</label>
+        <div class="image-input-toggle">
+          <label><input type="radio" name="wImgMode" value="path" checked> 이미지 경로 입력</label>
+          <label><input type="radio" name="wImgMode" value="upload"> 이미지 직접 업로드</label>
+        </div>
+        <div class="image-path-input">
+          <input type="text" id="w-image" value="${work?.image || ''}" placeholder="/images/works/sample.jpg">
+        </div>
+        <div class="image-upload-controls" id="work-upload-controls">
+          <input type="file" id="work-image-file" accept="image/*" style="display:none;" />
+          <button id="work-image-choose" class="btn-secondary">파일 선택</button>
+          <div class="image-upload-preview" id="work-image-preview"></div>
+        </div>
       </div>
       <div class="form-row">
         <label>등장인물</label>
@@ -668,6 +757,53 @@ class AdminDashboard {
     // 날짜 선택기 설정
     this.setupDatePicker('w-releaseDate', 'w-date-picker-icon', 'w-date-picker-popup');
     
+    // 이미지 모드 토글 (작품 2:3)
+    const wrPath = body.querySelector('input[name="wImgMode"][value="path"]');
+    const wrUpload = body.querySelector('input[name="wImgMode"][value="upload"]');
+    const wPathRow = body.querySelector('.image-path-input');
+    const wUploadRow = body.querySelector('#work-upload-controls');
+    function syncWMode(){ 
+      const isU = wrUpload.checked; 
+      wUploadRow.classList.toggle('show', isU); 
+      wPathRow.style.display = isU ? 'none' : 'block'; 
+    }
+    wrPath.addEventListener('change', syncWMode); 
+    wrUpload.addEventListener('change', syncWMode); 
+    syncWMode(); // 초기 상태 설정
+
+    let wCropper = null;
+    body.querySelector('#work-image-choose').addEventListener('click', (e)=>{ e.preventDefault(); body.querySelector('#work-image-file').click(); });
+    body.querySelector('#work-image-file').addEventListener('change', (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = (ev)=>{
+        const m = document.getElementById('img-cropper-modal');
+        const img = document.getElementById('img-cropper-image');
+        img.src = ev.target.result; m.style.display='flex';
+        if (wCropper) { wCropper.destroy(); wCropper=null; }
+        wCropper = new Cropper(img, { aspectRatio: 2/3, viewMode:1, autoCropArea:1 });
+      };
+      r.readAsDataURL(f);
+    });
+    const closeCropW = ()=>{ const m=document.getElementById('img-cropper-modal'); m.style.display='none'; if(wCropper){ wCropper.destroy(); wCropper=null; } };
+    document.getElementById('img-cropper-close').onclick = closeCropW;
+    document.getElementById('img-cropper-cancel').onclick = closeCropW;
+    document.getElementById('img-cropper-ok').onclick = async ()=>{
+      if (wCropper){
+        wCropper.getCroppedCanvas().toBlob(async (blob)=>{
+          const form=new FormData(); form.append('image', blob, 'work.jpg');
+          let res;
+          if (work?._id) {
+            res = await fetch(`/api/admin/works/${work._id}/image`, { method:'POST', credentials:'include', body:form });
+          } else {
+            res = await fetch(`/api/admin/uploads/works`, { method:'POST', credentials:'include', body:form });
+          }
+          if (res.ok){ const d=await res.json(); document.getElementById('w-image').value = d.path; body.querySelector('#work-image-preview').style.backgroundImage = `url('${d.path}?v=${Date.now()}')`; closeCropW(); }
+          else alert('이미지 업로드 실패');
+        }, 'image/jpeg', 0.9);
+      }
+    };
+
     // 이벤트 리스너 설정
     document.getElementById('modalSave').onclick = async () => {
       await this.saveWorkAddModal(work);
@@ -686,12 +822,75 @@ class AdminDashboard {
       <div class="form-row"><label>이름</label><input id="c-name" value="${character?.name || ''}"></div>
       <div class="form-row"><label>직업</label><input id="c-job" value="${character?.job || ''}"></div>
       <div class="form-row"><label>설명</label><textarea id="c-desc">${character?.description || ''}</textarea></div>
+      <div class="form-row image-input-row">
+        <label>프로필 이미지</label>
+        <div class="image-input-toggle">
+          <label><input type="radio" name="cImgMode" value="path" checked> 이미지 경로 입력</label>
+          <label><input type="radio" name="cImgMode" value="upload"> 이미지 직접 업로드</label>
+        </div>
+        <div class="image-path-input">
+          <input type="text" id="c-image" value="${character?.image || ''}" placeholder="/images/characters/sample.jpg">
+        </div>
+        <div class="image-upload-controls" id="char-upload-controls">
+          <input type="file" id="char-image-file" accept="image/*" style="display:none;" />
+          <button id="char-image-choose" class="btn-secondary">파일 선택</button>
+          <div class="image-upload-preview" id="char-image-preview"></div>
+        </div>
+      </div>
       <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
         <button id="modalSave" class="btn-primary">저장</button>
       </div>
     `;
+
+    // 이미지 모드 토글 (인물 4:5)
+    const crPath = body.querySelector('input[name="cImgMode"][value="path"]');
+    const crUpload = body.querySelector('input[name="cImgMode"][value="upload"]');
+    const cPathRow = body.querySelector('.image-path-input');
+    const cUploadRow = body.querySelector('#char-upload-controls');
+    function syncCMode(){ 
+      const isU = crUpload.checked; 
+      cUploadRow.classList.toggle('show', isU); 
+      cPathRow.style.display = isU ? 'none' : 'block'; 
+    }
+    crPath.addEventListener('change', syncCMode); 
+    crUpload.addEventListener('change', syncCMode); 
+    syncCMode(); // 초기 상태 설정
+
+    let cCropper = null;
+    body.querySelector('#char-image-choose').addEventListener('click', (e)=>{ e.preventDefault(); body.querySelector('#char-image-file').click(); });
+    body.querySelector('#char-image-file').addEventListener('change', (e)=>{
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = (ev)=>{
+        const m = document.getElementById('img-cropper-modal');
+        const img = document.getElementById('img-cropper-image');
+        img.src = ev.target.result; m.style.display='flex';
+        if (cCropper) { cCropper.destroy(); cCropper=null; }
+        cCropper = new Cropper(img, { aspectRatio: 4/5, viewMode:1, autoCropArea:1 });
+      };
+      r.readAsDataURL(f);
+    });
+    const closeCropC = ()=>{ const m=document.getElementById('img-cropper-modal'); m.style.display='none'; if(cCropper){ cCropper.destroy(); cCropper=null; } };
+    document.getElementById('img-cropper-close').onclick = closeCropC;
+    document.getElementById('img-cropper-cancel').onclick = closeCropC;
+    document.getElementById('img-cropper-ok').onclick = async ()=>{
+      if (cCropper){
+        cCropper.getCroppedCanvas().toBlob(async (blob)=>{
+          const form=new FormData(); form.append('image', blob, 'character.jpg');
+          let res;
+          if (character?._id) {
+            res = await fetch(`/api/admin/characters/${character._id}/image`, { method:'POST', credentials:'include', body:form });
+          } else {
+            res = await fetch(`/api/admin/uploads/characters`, { method:'POST', credentials:'include', body:form });
+          }
+          if (res.ok){ const d=await res.json(); document.getElementById('c-image').value = d.path; body.querySelector('#char-image-preview').style.backgroundImage = `url('${d.path}?v=${Date.now()}')`; closeCropC(); }
+          else alert('이미지 업로드 실패');
+        }, 'image/jpeg', 0.9);
+      }
+    };
+
     document.getElementById('modalSave').onclick = async () => {
-      const payload = { name: document.getElementById('c-name').value, job: document.getElementById('c-job').value, description: document.getElementById('c-desc').value };
+      const payload = { name: document.getElementById('c-name').value, job: document.getElementById('c-job').value, description: document.getElementById('c-desc').value, image: (document.getElementById('c-image')?.value || '').trim() };
       const url = character ? `/api/admin/characters/${character._id}` : '/api/admin/characters';
       const method = character ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
@@ -1177,6 +1376,53 @@ class AdminDashboard {
       // 날짜 선택기 설정
       this.setupDatePicker('work-releaseDate', 'work-date-picker-icon', 'work-date-picker-popup');
       
+      // 이미지 업로드 토글/이벤트 연결 (작품 수정: 2:3)
+      (function setupWorkEditImageUI(){
+        const body = document.getElementById('workEditModal');
+        const rPath = body.querySelector('input[name="workEditImgMode"][value="path"]');
+        const rUpload = body.querySelector('input[name="workEditImgMode"][value="upload"]');
+        const pathRow = body.querySelector('#work-image')?.closest('.image-path-input') || body.querySelector('.image-path-input');
+        const uploadRow = body.querySelector('#work-edit-upload-controls');
+        const fileBtn = body.querySelector('#work-edit-image-choose');
+        const fileInput = body.querySelector('#work-edit-image-file');
+        const preview = body.querySelector('#work-edit-image-preview');
+        const sync = ()=>{ const isU = rUpload && rUpload.checked; if(uploadRow) uploadRow.classList.toggle('show', !!isU); if(pathRow) pathRow.style.display = isU ? 'none' : 'block'; };
+        rPath && rPath.addEventListener('change', sync);
+        rUpload && rUpload.addEventListener('change', sync);
+        sync();
+
+        let cropper = null;
+        if (fileBtn) fileBtn.onclick = (e)=>{ e.preventDefault(); if (fileInput) fileInput.click(); };
+        if (fileInput) fileInput.onchange = (e)=>{
+          const f = e.target.files[0]; if(!f) return;
+          const r = new FileReader();
+          r.onload = (ev)=>{
+            const modal = document.getElementById('img-cropper-modal');
+            const img = document.getElementById('img-cropper-image');
+            img.src = ev.target.result; modal.style.display='flex';
+            if (cropper) { cropper.destroy(); cropper=null; }
+            cropper = new Cropper(img, { aspectRatio: 2/3, viewMode:1, autoCropArea:1 });
+          };
+          r.readAsDataURL(f);
+        };
+        const close = ()=>{ const m=document.getElementById('img-cropper-modal'); m.style.display='none'; if(cropper){ cropper.destroy(); cropper=null; } };
+        document.getElementById('img-cropper-close').onclick = close;
+        document.getElementById('img-cropper-cancel').onclick = close;
+        const okBtn = document.getElementById('img-cropper-ok');
+        okBtn.onclick = null; // 중복 바인딩 방지
+        okBtn.onclick = async ()=>{
+          if (!cropper) return;
+          cropper.getCroppedCanvas().toBlob(async (blob)=>{
+            const form = new FormData(); form.append('image', blob, 'work.jpg');
+            let res;
+            if (work && work._id) res = await fetch(`/api/admin/works/${work._id}/image`, { method:'POST', credentials:'include', body:form });
+            else res = await fetch(`/api/admin/uploads/works`, { method:'POST', credentials:'include', body:form });
+            if (res.ok){ const d = await res.json(); const input = document.getElementById('work-image'); if (input) input.value = d.path; if (preview) preview.style.backgroundImage = `url('${d.path}?v=${Date.now()}')`; close(); }
+            else alert('이미지 업로드 실패');
+          }, 'image/jpeg', 0.9);
+        };
+      })();
+
       // 모달 표시
       document.getElementById('workEditModal').style.display = 'flex';
       
@@ -1356,6 +1602,49 @@ class AdminDashboard {
       // 작품 드롭다운 채우기
       this.populateWorksDropdown(worksData.works);
       
+      // 이미지 업로드 토글/이벤트 연결 (인물 추가: 4:5)
+      (function setupCharAddImageUI(){
+        const body = document.getElementById('characterAddModal');
+        const rPath = body.querySelector('input[name="charAddImgMode"][value="path"]');
+        const rUpload = body.querySelector('input[name="charAddImgMode"][value="upload"]');
+        const pathRow = body.querySelector('#character-image')?.closest('.image-path-input') || body.querySelector('.image-path-input');
+        const uploadRow = body.querySelector('#char-add-upload-controls');
+        const fileBtn = body.querySelector('#char-add-image-choose');
+        const fileInput = body.querySelector('#char-add-image-file');
+        const preview = body.querySelector('#char-add-image-preview');
+        const sync = ()=>{ const isU = rUpload && rUpload.checked; if(uploadRow) uploadRow.classList.toggle('show', !!isU); if(pathRow) pathRow.style.display = isU ? 'none' : 'block'; };
+        rPath && rPath.addEventListener('change', sync);
+        rUpload && rUpload.addEventListener('change', sync);
+        sync();
+
+        let cropper = null;
+        fileBtn && fileBtn.addEventListener('click', (e)=>{ e.preventDefault(); fileInput && fileInput.click(); });
+        fileInput && fileInput.addEventListener('change', (e)=>{
+          const f = e.target.files[0]; if(!f) return;
+          const r = new FileReader();
+          r.onload = (ev)=>{
+            const modal = document.getElementById('img-cropper-modal');
+            const img = document.getElementById('img-cropper-image');
+            img.src = ev.target.result; modal.style.display='flex';
+            if (cropper) { cropper.destroy(); cropper=null; }
+            cropper = new Cropper(img, { aspectRatio: 4/5, viewMode:1, autoCropArea:1 });
+          };
+          r.readAsDataURL(f);
+        });
+        const close = ()=>{ const m=document.getElementById('img-cropper-modal'); m.style.display='none'; if(cropper){ cropper.destroy(); cropper=null; } };
+        document.getElementById('img-cropper-close').onclick = close;
+        document.getElementById('img-cropper-cancel').onclick = close;
+        document.getElementById('img-cropper-ok').onclick = async ()=>{
+          if (!cropper) return;
+          cropper.getCroppedCanvas().toBlob(async (blob)=>{
+            const form = new FormData(); form.append('image', blob, 'character.jpg');
+            const res = await fetch(`/api/admin/uploads/characters`, { method:'POST', credentials:'include', body:form });
+            if (res.ok){ const d = await res.json(); const input = document.getElementById('character-image'); if (input) input.value = d.path; if (preview) preview.style.backgroundImage = `url('${d.path}?v=${Date.now()}')`; close(); }
+            else alert('이미지 업로드 실패');
+          }, 'image/jpeg', 0.9);
+        };
+      })();
+
       // 모달 표시
       document.getElementById('characterAddModal').style.display = 'flex';
       
@@ -1694,6 +1983,53 @@ class AdminDashboard {
       const namesWrap = document.getElementById('edit-work-character-names');
       if (namesWrap) namesWrap.classList.remove('edit-mode');
       
+      // 이미지 업로드 토글/이벤트 연결 (인물 수정: 4:5)
+      (function setupCharEditImageUI(){
+        const body = document.getElementById('characterEditModal');
+        const rPath = body.querySelector('input[name="charEditImgMode"][value="path"]');
+        const rUpload = body.querySelector('input[name="charEditImgMode"][value="upload"]');
+        const pathRow = body.querySelector('#edit-character-image')?.closest('.image-path-input') || body.querySelector('.image-path-input');
+        const uploadRow = body.querySelector('#char-edit-upload-controls');
+        const fileBtn = body.querySelector('#char-edit-image-choose');
+        const fileInput = body.querySelector('#char-edit-image-file');
+        const preview = body.querySelector('#char-edit-image-preview');
+        const sync = ()=>{ const isU = rUpload && rUpload.checked; if(uploadRow) uploadRow.classList.toggle('show', !!isU); if(pathRow) pathRow.style.display = isU ? 'none' : 'block'; };
+        rPath && rPath.addEventListener('change', sync);
+        rUpload && rUpload.addEventListener('change', sync);
+        sync();
+
+        let cropper = null;
+        if (fileBtn) fileBtn.onclick = (e)=>{ e.preventDefault(); if (fileInput) fileInput.click(); };
+        if (fileInput) fileInput.onchange = (e)=>{
+          const f = e.target.files[0]; if(!f) return;
+          const r = new FileReader();
+          r.onload = (ev)=>{
+            const modal = document.getElementById('img-cropper-modal');
+            const img = document.getElementById('img-cropper-image');
+            img.src = ev.target.result; modal.style.display='flex';
+            if (cropper) { cropper.destroy(); cropper=null; }
+            cropper = new Cropper(img, { aspectRatio: 4/5, viewMode:1, autoCropArea:1 });
+          };
+          r.readAsDataURL(f);
+        };
+        const close = ()=>{ const m=document.getElementById('img-cropper-modal'); m.style.display='none'; if(cropper){ cropper.destroy(); cropper=null; } };
+        document.getElementById('img-cropper-close').onclick = close;
+        document.getElementById('img-cropper-cancel').onclick = close;
+        const okBtn = document.getElementById('img-cropper-ok');
+        okBtn.onclick = null; // 중복 바인딩 방지
+        okBtn.onclick = async ()=>{
+          if (!cropper) return;
+          cropper.getCroppedCanvas().toBlob(async (blob)=>{
+            const form = new FormData(); form.append('image', blob, 'character.jpg');
+            let res;
+            if (character && character._id) res = await fetch(`/api/admin/characters/${character._id}/image`, { method:'POST', credentials:'include', body:form });
+            else res = await fetch(`/api/admin/uploads/characters`, { method:'POST', credentials:'include', body:form });
+            if (res.ok){ const d = await res.json(); const input = document.getElementById('edit-character-image'); if (input) input.value = d.path; if (preview) preview.style.backgroundImage = `url('${d.path}?v=${Date.now()}')`; close(); }
+            else alert('이미지 업로드 실패');
+          }, 'image/jpeg', 0.9);
+        };
+      })();
+
       // 모달 표시
       document.getElementById('characterEditModal').style.display = 'flex';
       
@@ -1895,6 +2231,20 @@ class AdminDashboard {
         console.log('이미 선택된 작품입니다:', workTitle);
       }
     });
+
+    // 검색 필터링 (인물 수정 모달)
+    const searchInput = newDropdown.querySelector('.search-input');
+    const optionsContainer = newDropdown.querySelector('.options');
+    if (searchInput && optionsContainer) {
+      searchInput.oninput = () => {
+        const q = searchInput.value.trim().toLowerCase();
+        optionsContainer.querySelectorAll('.work-option').forEach(opt => {
+          const title = opt.querySelector('.work-title')?.textContent?.toLowerCase() || '';
+          const typeText = opt.querySelector('.work-type')?.textContent?.toLowerCase() || '';
+          opt.style.display = (title.includes(q) || typeText.includes(q)) ? '' : 'none';
+        });
+      };
+    }
     
     // 저장 버튼 이벤트
     const saveBtn = document.getElementById('edit-character-save-btn');

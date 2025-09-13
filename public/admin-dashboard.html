@@ -6,6 +6,9 @@
   <title>FiLo 관리자 대시보드</title>
   <link rel="stylesheet" href="/css/admin-dashboard.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Cropper.js for image cropping -->
+  <link href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -374,6 +377,23 @@
     </div>
   </div>
 
+  <!-- 이미지 크롭 공용 모달 -->
+  <div id="img-cropper-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-crop"></i> 이미지 크롭</h3>
+        <button class="modal-close" id="img-cropper-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="img-cropper-image" style="max-width:100%; max-height:60vh;" />
+      </div>
+      <div class="modal-actions">
+        <button id="img-cropper-ok" class="btn-primary">이렇게 자르기</button>
+        <button id="img-cropper-cancel" class="btn-secondary">취소</button>
+      </div>
+    </div>
+  </div>
+
   <!-- OTP 입력 모달 -->
   <div id="otpModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -428,9 +448,20 @@
           <label>설명</label>
           <textarea id="work-description" rows="3"></textarea>
         </div>
-        <div class="form-row">
-          <label>이미지 경로</label>
-          <input type="text" id="work-image" value="">
+        <div class="form-row image-input-row">
+          <label>포스터 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="workEditImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="workEditImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="work-image" value="">
+          </div>
+          <div class="image-upload-controls" id="work-edit-upload-controls">
+            <input type="file" id="work-edit-image-file" accept="image/*" style="display:none;" />
+            <button id="work-edit-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="work-edit-image-preview"></div>
+          </div>
         </div>
         <div class="form-row">
           <label>등장인물</label>
@@ -496,7 +527,7 @@
         </div>
         <div class="form-row">
           <label>출생지</label>
-          <input type="text" id="character-birthPlace" placeholder="서울, 부산 등">
+          <input type="text" id="character-birthPlace" placeholder="서울특별시, 부산광역시, 가평군, 성남시 등">
         </div>
         <div class="form-row">
           <label>학력</label>
@@ -514,9 +545,20 @@
           <label>설명</label>
           <textarea id="character-description" rows="3" placeholder="인물에 대한 상세 설명을 입력하세요"></textarea>
         </div>
-        <div class="form-row">
-          <label>이미지 경로</label>
-          <input type="text" id="character-image" placeholder="/images/characters/character-name.jpg">
+        <div class="form-row image-input-row">
+          <label>프로필 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="charAddImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="charAddImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="character-image" placeholder="/images/characters/character-name.jpg">
+          </div>
+          <div class="image-upload-controls" id="char-add-upload-controls">
+            <input type="file" id="char-add-image-file" accept="image/*" style="display:none;" />
+            <button id="char-add-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="char-add-image-preview"></div>
+          </div>
         </div>
         <div class="form-row">
           <label>관련 작품</label>
@@ -586,9 +628,20 @@
           <label>설명</label>
           <textarea id="edit-character-description" rows="3" placeholder="인물에 대한 상세 설명을 입력하세요"></textarea>
         </div>
-        <div class="form-row">
-          <label>이미지 경로</label>
-          <input type="text" id="edit-character-image" placeholder="/images/characters/character-name.jpg">
+        <div class="form-row image-input-row">
+          <label>프로필 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="charEditImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="charEditImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="edit-character-image" placeholder="/images/characters/character-name.jpg">
+          </div>
+          <div class="image-upload-controls" id="char-edit-upload-controls">
+            <input type="file" id="char-edit-image-file" accept="image/*" style="display:none;" />
+            <button id="char-edit-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="char-edit-image-preview"></div>
+          </div>
         </div>
         <div class="form-row">
           <label>관련 작품</label>
