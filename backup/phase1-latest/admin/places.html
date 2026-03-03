@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 장소 관리</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 공통 헤더 -->
+    <div id="admin-header"></div>
+    
+    <main class="dashboard-main">
+      <div class="page-header">
+        <h2><i class="fas fa-map-marker-alt"></i> 장소 관리</h2>
+        <div class="page-actions">
+          <button id="placeAddBtn" class="btn-primary">
+            <i class="fas fa-plus"></i> 장소 추가
+          </button>
+          <button id="placesExportBtn" class="btn-secondary">
+            <i class="fas fa-download"></i> CSV 내보내기
+          </button>
+        </div>
+      </div>
+
+      <!-- 검색 및 필터 -->
+      <div class="search-section">
+        <div class="search-box">
+          <input type="text" id="placeSearch" placeholder="장소명으로 검색...">
+          <button id="placeSearchBtn" class="btn-primary">
+            <i class="fas fa-search"></i> 검색
+          </button>
+        </div>
+      </div>
+
+      <!-- 장소 테이블 -->
+      <div class="table-section">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>장소명</th>
+              <th>주소</th>
+              <th>등록일</th>
+              <th>작업</th>
+            </tr>
+          </thead>
+          <tbody id="placesTableBody">
+            <!-- 장소 목록 -->
+          </tbody>
+        </table>
+        
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="placesPagination">
+          <!-- 페이지 번호들 -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 공통 푸터 -->
+  <div id="admin-footer"></div>
+
+  <script>
+    // 헤더와 푸터 로드
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerResponse = await fetch('/partials/admin-header.html');
+        const headerHtml = await headerResponse.text();
+        document.getElementById('admin-header').innerHTML = headerHtml;
+        
+        const footerResponse = await fetch('/partials/admin-footer.html');
+        const footerHtml = await footerResponse.text();
+        document.getElementById('admin-footer').innerHTML = footerHtml;
+      } catch (error) {
+        console.error('헤더/푸터 로드 오류:', error);
+      }
+    });
+  </script>
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-places.js"></script>
+</body>
+</html>

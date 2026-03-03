@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 관리자 대시보드</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- 공통 헤더 -->
+    <div id="admin-header"></div>
+    
+    <main class="dashboard-main">
+      <!-- 통계 카드 -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <h3>총 사용자</h3>
+            <p id="totalUsers">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div class="stat-content">
+            <h3>총 장소</h3>
+            <p id="totalPlaces">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-film"></i>
+          </div>
+          <div class="stat-content">
+            <h3>총 작품</h3>
+            <p id="totalWorks">0</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-user-friends"></i>
+          </div>
+          <div class="stat-content">
+            <h3>총 인물</h3>
+            <p id="totalCharacters">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 차트 영역 -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <h3>활동 트렌드</h3>
+          <select id="trendPeriod">
+            <option value="7">최근 7일</option>
+            <option value="14">최근 14일</option>
+            <option value="30" selected>최근 30일</option>
+          </select>
+        </div>
+        <canvas id="trendChart" width="400" height="200"></canvas>
+      </div>
+
+      <!-- 최근 활동 -->
+      <div class="activity-section">
+        <div class="activity-header">
+          <h3>최근 활동</h3>
+          <div class="activity-tabs">
+            <button class="activity-tab active" data-activity="all">전체</button>
+            <button class="activity-tab" data-activity="users">사용자</button>
+            <button class="activity-tab" data-activity="comments">댓글</button>
+          </div>
+        </div>
+        <div class="activity-content">
+          <div class="activity-list" id="activityList">
+            <!-- 활동 목록 -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 공통 푸터 -->
+  <div id="admin-footer"></div>
+
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+  <script>
+    // 헤더와 푸터 로드
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const headerResponse = await fetch('/partials/admin-header.html');
+        const headerHtml = await headerResponse.text();
+        document.getElementById('admin-header').innerHTML = headerHtml;
+        
+        const footerResponse = await fetch('/partials/admin-footer.html');
+        const footerHtml = await footerResponse.text();
+        document.getElementById('admin-footer').innerHTML = footerHtml;
+
+        // 헤더/푸터 로드 후 공통 초기화 실행
+        if (window.adminCommon && typeof window.adminCommon.init === 'function') {
+          window.adminCommon.init();
+        }
+      } catch (error) {
+        console.error('헤더/푸터 로드 오류:', error);
+      }
+    });
+  </script>
+</body>
+</html>

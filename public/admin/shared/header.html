@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 관리자 대시보드</title>
+  <link rel="stylesheet" href="/admin/css/admin-common.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Cropper.js for image cropping -->
+  <link href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- 로딩 화면 -->
+  <div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>관리자 인증 확인 중...</p>
+  </div>
+
+  <!-- 메인 대시보드 -->
+  <div id="dashboard" class="dashboard" style="display: none;">
+    <!-- 헤더 -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>
+          <span class="logo-inline">
+            F<span class="mint">i</span>L<span class="mint">o</span>
+          </span>
+          <i class="fas fa-tachometer-alt"></i> 관리자 대시보드
+        </h1>
+      </div>
+      <div class="header-right">
+        <span class="admin-info">
+          <i class="fas fa-user-shield"></i>
+          <span id="adminName">관리자</span>
+        </span>
+        <button id="logoutBtn" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> 로그아웃
+        </button>
+      </div>
+    </header>
+
+    <!-- 네비게이션 -->
+    <nav class="dashboard-nav">
+      <a href="/admin" class="nav-item" data-tab="overview">
+        <i class="fas fa-chart-line"></i> 개요
+      </a>
+      <a href="/admin/users" class="nav-item" data-tab="users">
+        <i class="fas fa-users"></i> 사용자 관리
+      </a>
+      <a href="/admin/places" class="nav-item" data-tab="places">
+        <i class="fas fa-map-marker-alt"></i> 장소 관리
+      </a>
+      <a href="/admin/works" class="nav-item" data-tab="works">
+        <i class="fas fa-film"></i> 작품 관리
+      </a>
+      <a href="/admin/characters" class="nav-item" data-tab="characters">
+        <i class="fas fa-user-tie"></i> 인물 관리
+      </a>
+      <a href="/admin/logs" class="nav-item" data-tab="logs">
+        <i class="fas fa-history"></i> 활동 로그
+      </a>
+      <a href="/admin/backup" class="nav-item" data-tab="backup">
+        <i class="fas fa-download"></i> 백업
+      </a>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="dashboard-content">
+      <!-- 페이지별 콘텐츠가 여기에 삽입됩니다 -->
+      <div id="page-content">
+        <!-- 동적으로 로드됩니다 -->
+      </div>
+    </main>
+  </div>
+
+  <!-- 공통 모달들 -->
+  <div id="img-cropper-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content cropper-modal">
+      <div class="modal-header">
+        <h3>이미지 크롭</h3>
+        <button class="modal-close" onclick="closeCropperModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="cropper-container" style="max-width: 100%; max-height: 400px;">
+          <img id="cropper-image" style="max-width: 100%; max-height: 400px;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="img-cropper-ok" class="btn btn-primary">확인</button>
+        <button onclick="closeCropperModal()" class="btn btn-secondary">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 공통 JavaScript -->
+  <script src="/admin/js/admin-common.js"></script>
+</body>
+</html>
+
+
+
+
+

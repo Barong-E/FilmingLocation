@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiLo 관리자 대시보드</title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <!-- Cropper.js for image cropping -->
+  <link href="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/cropperjs@1.6.1/dist/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- 로딩 화면 -->
+  <div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>관리자 인증 확인 중...</p>
+  </div>
+
+  <!-- 메인 대시보드 -->
+  <div id="dashboard" class="dashboard" style="display: none;">
+    <!-- 헤더 -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <h1>
+          <span class="logo-inline">
+            F<span class="mint">i</span>L<span class="mint">o</span>
+          </span>
+          <i class="fas fa-tachometer-alt"></i> 관리자 대시보드
+        </h1>
+      </div>
+      <div class="header-right">
+        <span class="admin-info">
+          <i class="fas fa-user-shield"></i>
+          <span id="adminName">관리자</span>
+        </span>
+        <button id="logoutBtn" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> 로그아웃
+        </button>
+      </div>
+    </header>
+
+    <!-- 네비게이션 -->
+    <nav class="dashboard-nav">
+      <button class="nav-item active" data-tab="overview">
+        <i class="fas fa-chart-line"></i> 개요
+      </button>
+      <button class="nav-item" data-tab="users">
+        <i class="fas fa-users"></i> 사용자 관리
+      </button>
+      <button class="nav-item" data-tab="places">
+        <i class="fas fa-map-marker-alt"></i> 장소 관리
+      </button>
+      <button class="nav-item" data-tab="works">
+        <i class="fas fa-film"></i> 작품 관리
+      </button>
+      <button class="nav-item" data-tab="characters">
+        <i class="fas fa-user-tie"></i> 인물 관리
+      </button>
+      <button class="nav-item" data-tab="logs">
+        <i class="fas fa-history"></i> 활동 로그
+      </button>
+      <button class="nav-item" data-tab="backup">
+        <i class="fas fa-download"></i> 백업
+      </button>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="dashboard-content">
+      <!-- 개요 탭 -->
+      <div id="overview" class="tab-content active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="userCount">0</h3>
+              <p>전체 사용자</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="placeCount">0</h3>
+              <p>등록된 장소</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-film"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="workCount">0</h3>
+              <p>등록된 작품</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="characterCount">0</h3>
+              <p>등록된 인물</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="commentCount">0</h3>
+              <p>전체 댓글</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="recent-activity">
+          <h2><i class="fas fa-clock"></i> 최근 활동</h2>
+          <div class="toolbar-row" style="display:flex; align-items:center; gap:12px; margin:8px 0;">
+            <label for="trendDays">기간</label>
+            <select id="trendDays">
+              <option value="7" selected>7일</option>
+              <option value="14">14일</option>
+              <option value="30">30일</option>
+            </select>
+          </div>
+          <div class="chart-row">
+            <canvas id="trendChart" height="80"></canvas>
+          </div>
+          <div class="activity-tabs">
+            <button class="activity-tab active" data-activity="users">최근 가입</button>
+            <button class="activity-tab" data-activity="comments">최근 댓글</button>
+            <button class="activity-tab" data-activity="logs">관리자 활동</button>
+          </div>
+          
+          <div id="recentUsers" class="activity-content active">
+            <div class="activity-list" id="recentUsersList">
+              <!-- 최근 가입 사용자 목록 -->
+            </div>
+          </div>
+          
+          <div id="recentComments" class="activity-content">
+            <div class="activity-list" id="recentCommentsList">
+              <!-- 최근 댓글 목록 -->
+            </div>
+          </div>
+          
+          <div id="recentLogs" class="activity-content">
+            <div class="activity-list" id="recentLogsList">
+              <!-- 관리자 활동 로그 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 사용자 관리 탭 -->
+      <div id="users" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-users"></i> 사용자 관리</h2>
+          <div class="search-box">
+            <input type="text" id="userSearch" placeholder="사용자명, 이메일 검색...">
+            <button id="userSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="usersExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>사용자명</th>
+                <th>이메일</th>
+                <th>가입일</th>
+                <th>상태</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- 사용자 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="usersPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 장소 관리 탭 -->
+      <div id="places" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-map-marker-alt"></i> 장소 관리</h2>
+          <div class="search-box">
+            <input type="text" id="placeSearch" placeholder="장소명 검색...">
+            <button id="placeSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="placeAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="placesExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>장소명</th>
+                <th>주소</th>
+                <th>등록일</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="placesTableBody">
+              <!-- 장소 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="placesPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 작품 관리 탭 -->
+      <div id="works" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-film"></i> 작품 관리</h2>
+          <div class="search-box">
+            <input type="text" id="workSearch" placeholder="작품명 검색...">
+            <button id="workSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="workAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="worksExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>작품명</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="worksTableBody">
+              <!-- 작품 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="worksPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 인물 관리 탭 -->
+      <div id="characters" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-user-tie"></i> 인물 관리</h2>
+          <div class="search-box">
+            <input type="text" id="characterSearch" placeholder="인물명 검색...">
+            <button id="characterSearchBtn"><i class="fas fa-search"></i></button>
+            <button id="characterAddBtn" class="btn-primary"><i class="fas fa-plus"></i> 추가</button>
+            <button id="charactersExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>인물명</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="charactersTableBody">
+              <!-- 인물 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="charactersPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 활동 로그 탭 -->
+      <div id="logs" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-history"></i> 활동 로그</h2>
+          <div class="log-filters">
+            <select id="logAction">
+              <option value="">모든 활동</option>
+              <option value="login">로그인</option>
+              <option value="logout">로그아웃</option>
+              <option value="create">생성</option>
+              <option value="update">수정</option>
+              <option value="delete">삭제</option>
+            </select>
+            <input type="date" id="logStartDate">
+            <input type="date" id="logEndDate">
+            <button id="logFilterBtn">필터</button>
+            <button id="logsExportBtn" title="CSV 내보내기"><i class="fas fa-file-csv"></i></button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>시간</th>
+                <th>관리자</th>
+                <th>활동</th>
+                <th>대상</th>
+                <th>상세</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="logsTableBody">
+              <!-- 로그 목록 -->
+            </tbody>
+          </table>
+          
+          <div class="pagination" id="logsPagination">
+            <!-- 페이지네이션 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 백업 탭 -->
+      <div id="backup" class="tab-content">
+        <div class="content-header">
+          <h2><i class="fas fa-download"></i> 데이터 백업</h2>
+        </div>
+        
+        <div class="backup-section">
+          <div class="backup-card">
+            <h3><i class="fas fa-database"></i> 전체 데이터 백업</h3>
+            <p>모든 사용자, 장소, 작품, 인물, 댓글 데이터를 JSON 형태로 백업합니다.</p>
+            <button id="backupBtn" class="btn-backup">
+              <i class="fas fa-download"></i> 백업 다운로드
+            </button>
+            <div class="backup-note">
+              <p><i class="fas fa-info-circle"></i> OTP 인증이 필요합니다.</p>
+            </div>
+          </div>
+          
+          <div class="backup-info">
+            <h3>백업 정보</h3>
+            <ul>
+              <li>백업 파일은 JSON 형태로 다운로드됩니다.</li>
+              <li>백업 시점의 모든 데이터가 포함됩니다.</li>
+              <li>보안을 위해 OTP 인증이 필요합니다.</li>
+              <li>백업 활동은 로그에 기록됩니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 모달 -->
+  <div id="modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">제목</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- 모달 내용 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 이미지 크롭 공용 모달 -->
+  <div id="img-cropper-modal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-crop"></i> 이미지 크롭</h3>
+        <button class="modal-close" id="img-cropper-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="img-cropper-image" style="max-width:100%; max-height:60vh;" />
+      </div>
+      <div class="modal-actions">
+        <button id="img-cropper-ok" class="btn-primary">이렇게 자르기</button>
+        <button id="img-cropper-cancel" class="btn-secondary">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTP 입력 모달 -->
+  <div id="otpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-shield-alt"></i> OTP 인증</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Google Authenticator에서 생성된 6자리 코드를 입력하세요.</p>
+        <input type="text" id="otpInput" placeholder="000000" maxlength="6">
+        <div class="modal-actions">
+          <button id="otpConfirmBtn" class="btn-primary">확인</button>
+          <button id="otpCancelBtn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 작품 수정 모달 -->
+  <div id="workEditModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-edit"></i> 작품 수정</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>제목</label>
+          <input type="text" id="work-title" value="">
+        </div>
+        <div class="form-row">
+          <label>타입</label>
+          <select id="work-type">
+            <option value="">타입을 선택하세요</option>
+            <option value="드라마">드라마</option>
+            <option value="영화">영화</option>
+            <option value="앨범">앨범</option>
+            <option value="MV">MV</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>공개일</label>
+          <div class="date-input-container">
+            <input type="text" id="work-releaseDate" class="date-input" value="" placeholder="YYYY-MM-DD 또는 클릭하여 선택">
+            <i class="fas fa-calendar-alt date-picker-icon" id="work-date-picker-icon"></i>
+            <div class="date-picker-popup" id="work-date-picker-popup">
+              <!-- 달력이 여기에 동적으로 생성됩니다 -->
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>설명</label>
+          <textarea id="work-description" rows="3"></textarea>
+        </div>
+        <div class="form-row image-input-row">
+          <label>포스터 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="workEditImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="workEditImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="work-image" value="">
+          </div>
+          <div class="image-upload-controls" id="work-edit-upload-controls">
+            <input type="file" id="work-edit-image-file" accept="image/*" style="display:none;" />
+            <button id="work-edit-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="work-edit-image-preview"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>등장인물</label>
+          <div class="integrated-character-container">
+            <div class="character-cards" id="character-cards">
+              <div class="empty-state">
+                <span class="placeholder">인물을 선택하세요</span>
+              </div>
+            </div>
+            <div class="characters-dropdown" id="characters-dropdown" style="display: none;">
+              <!-- 인물 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+            <button type="button" id="add-character-btn" class="btn-add-item">
+              <i class="fas fa-plus"></i> 인물 추가
+            </button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>촬영 장소</label>
+          <div class="multi-select-container">
+            <div class="selected-places" id="selected-places">
+              <span class="placeholder">장소를 선택하세요</span>
+            </div>
+            <div class="places-dropdown" id="places-dropdown" style="display: none;">
+              <!-- 장소 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+            <button type="button" id="add-place-btn" class="btn-add-item">
+              <i class="fas fa-plus"></i> 장소 추가
+            </button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="work-save-btn" class="btn-primary">저장</button>
+          <button id="work-cancel-btn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 인물 추가 모달 -->
+  <div id="characterAddModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-plus"></i> 인물 추가</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>인물명 *</label>
+          <input type="text" id="character-name" placeholder="인물명을 입력하세요" required>
+        </div>
+        <div class="form-row">
+          <label>직업</label>
+          <input type="text" id="character-job" placeholder="배우, 가수, 감독 등">
+        </div>
+        <div class="form-row">
+          <label>국적</label>
+          <input type="text" id="character-nationality" placeholder="대한민국, 미국 등">
+        </div>
+        <div class="form-row">
+          <label>생년월일</label>
+          <input type="date" id="character-birthDate">
+        </div>
+        <div class="form-row">
+          <label>출생지</label>
+          <input type="text" id="character-birthPlace" placeholder="서울특별시, 부산광역시, 가평군, 성남시 등">
+        </div>
+        <div class="form-row">
+          <label>학력</label>
+          <input type="text" id="character-education" placeholder="서울대학교 연극영화과 등">
+        </div>
+        <div class="form-row">
+          <label>키 (cm)</label>
+          <input type="number" id="character-heightCm" placeholder="175" min="100" max="250">
+        </div>
+        <div class="form-row">
+          <label>몸무게 (kg)</label>
+          <input type="number" id="character-weightKg" placeholder="70" min="30" max="200">
+        </div>
+        <div class="form-row">
+          <label>설명</label>
+          <textarea id="character-description" rows="3" placeholder="인물에 대한 상세 설명을 입력하세요"></textarea>
+        </div>
+        <div class="form-row image-input-row">
+          <label>프로필 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="charAddImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="charAddImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="character-image" placeholder="/images/characters/character-name.jpg">
+          </div>
+          <div class="image-upload-controls" id="char-add-upload-controls">
+            <input type="file" id="char-add-image-file" accept="image/*" style="display:none;" />
+            <button id="char-add-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="char-add-image-preview"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>관련 작품</label>
+          <div class="multi-select-container">
+            <div class="selected-works" id="selected-works">
+              <span class="placeholder">작품을 선택하세요</span>
+            </div>
+            <div class="works-dropdown" id="works-dropdown" style="display: none;">
+              <!-- 작품 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+          </div>
+        </div>
+        <div class="form-row" id="work-character-names-row" style="display: none;">
+          <label>작중이름</label>
+          <div id="work-character-names"></div>
+          <small class="form-help">작품을 선택하면 해당 작품별 작중이름 입력 칸이 나타납니다.</small>
+        </div>
+        <div class="modal-actions">
+          <button id="character-save-btn" class="btn-primary">저장</button>
+          <button id="character-cancel-btn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 인물 수정 모달 -->
+  <div id="characterEditModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-user-edit"></i> 인물 수정</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>인물명 *</label>
+          <input type="text" id="edit-character-name" placeholder="인물명을 입력하세요" required>
+        </div>
+        <div class="form-row">
+          <label>직업</label>
+          <input type="text" id="edit-character-job" placeholder="배우, 가수, 감독 등">
+        </div>
+        <div class="form-row">
+          <label>국적</label>
+          <input type="text" id="edit-character-nationality" placeholder="대한민국, 미국 등">
+        </div>
+        <div class="form-row">
+          <label>생년월일</label>
+          <input type="date" id="edit-character-birthDate">
+        </div>
+        <div class="form-row">
+          <label>출생지</label>
+          <input type="text" id="edit-character-birthPlace" placeholder="서울, 부산 등">
+        </div>
+        <div class="form-row">
+          <label>학력</label>
+          <input type="text" id="edit-character-education" placeholder="서울대학교 연극영화과 등">
+        </div>
+        <div class="form-row">
+          <label>키 (cm)</label>
+          <input type="number" id="edit-character-heightCm" placeholder="175" min="100" max="250">
+        </div>
+        <div class="form-row">
+          <label>몸무게 (kg)</label>
+          <input type="number" id="edit-character-weightKg" placeholder="70" min="30" max="200">
+        </div>
+        <div class="form-row">
+          <label>설명</label>
+          <textarea id="edit-character-description" rows="3" placeholder="인물에 대한 상세 설명을 입력하세요"></textarea>
+        </div>
+        <div class="form-row image-input-row">
+          <label>프로필 이미지</label>
+          <div class="image-input-toggle">
+            <label><input type="radio" name="charEditImgMode" value="path" checked> 이미지 경로 입력</label>
+            <label><input type="radio" name="charEditImgMode" value="upload"> 이미지 직접 업로드</label>
+          </div>
+          <div class="image-path-input">
+            <input type="text" id="edit-character-image" placeholder="/images/characters/character-name.jpg">
+          </div>
+          <div class="image-upload-controls" id="char-edit-upload-controls">
+            <input type="file" id="char-edit-image-file" accept="image/*" style="display:none;" />
+            <button id="char-edit-image-choose" class="btn-secondary">파일 선택</button>
+            <div class="image-upload-preview" id="char-edit-image-preview"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>관련 작품</label>
+          <div class="multi-select-container">
+            <div class="selected-works" id="edit-selected-works">
+              <span class="placeholder">작품을 선택하세요</span>
+            </div>
+            <div class="works-dropdown" id="edit-works-dropdown" style="display: none;">
+              <!-- 작품 목록이 여기에 동적으로 추가됩니다 -->
+            </div>
+          </div>
+        </div>
+        <div class="form-row" id="edit-work-character-names-row" style="display: none;">
+          <label>작중이름</label>
+          <div id="edit-work-character-names"></div>
+          <small class="form-help">작품을 선택하면 해당 작품별 작중이름 입력 칸이 나타납니다.</small>
+        </div>
+        <div class="modal-actions">
+          <button id="edit-character-save-btn" class="btn-primary">수정</button>
+          <button id="edit-character-cancel-btn" class="btn-secondary">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin-common.js"></script>
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>
+
