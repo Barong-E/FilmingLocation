@@ -13,6 +13,11 @@ body {
   box-sizing: border-box;
 }
 
+/* 리스트 3페이지(장소·작품·인물) 전용: 넓은 화면에서 컨테이너 확장 */
+.container--wide {
+  max-width: 1200px;
+}
+
 /* ── 로고 스타일 수정 ── */
 .logo {
   height: 24px;
@@ -34,6 +39,14 @@ body {
 }
 
 /* ── 리스트 페이지 스타일 ── */
+/* 장소 그리드: 화면 넓이에 따라 가로로 여러 카드 배치 */
+.place-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 20px 0;
+}
+
 .place-card {
   display: flex;
   align-items: center;
@@ -45,6 +58,10 @@ body {
   padding: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   overflow: hidden;
+}
+
+.place-grid .place-card {
+  margin-bottom: 0;
 }
 .place-img {
   flex-shrink: 0;

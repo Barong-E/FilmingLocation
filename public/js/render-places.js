@@ -28,7 +28,9 @@ export function renderPlaces(places, searchQuery = '') {
   }
   
   container.innerHTML = '';
-  
+  const grid = document.createElement('div');
+  grid.className = 'place-grid';
+
   places.forEach(place => {
     // const work = allWorks.find(w => w.id === place.workId) || {}; // 더 이상 필요 없음
     // 모든 연결 작품을 쉼표로 구분하여 표시
@@ -56,8 +58,10 @@ export function renderPlaces(places, searchQuery = '') {
         <div class="place-address" title="${place.address || ''}">${highlightedAddress}</div>
       </div>
     `;
-    container.appendChild(card);
+    grid.appendChild(card);
   });
+
+  container.appendChild(grid);
   
   // 전역 함수로도 등록 (하위 호환성)
   window.renderPlaces = renderPlaces;

@@ -1,7 +1,7 @@
-/* 작품 목록 페이지 스타일 */
+/* 작품 목록 페이지 스타일 - 그리드로 가로 배치 */
 .work-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   padding: 20px 0;
 }
@@ -92,12 +92,12 @@
   color: #666;
   line-height: 1.4;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
-  max-height: calc(1.4em * 2); /* 2줄 높이 명시적 지정 */
+  max-height: calc(1.4em * 4); /* 데스크톱(포스터 큰 구간): 4줄 */
 }
 
 /* 모바일 반응형 */

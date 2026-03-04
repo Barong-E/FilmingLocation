@@ -145,12 +145,14 @@
   }
 }
 
-/* 태블릿 이상에서는 GNB 숨김 */
+/* 태블릿 이상에서는 GNB 숨김 (데스크톱에서도 표시하려면 아래 블록 주석 해제) */
+/*
 @media (min-width: 768px) {
   #app-gnb-container {
     display: none;
   }
 }
+*/
 
 /* 작은 화면에서 GNB 최적화 */
 @media (max-width: 360px) {
