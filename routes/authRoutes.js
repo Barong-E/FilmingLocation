@@ -9,16 +9,6 @@ const router = express.Router();
 router.get(
   '/google',
   (req, res, next) => {
-    // #region agent log
-    const protocol = req.protocol || 'unknown';
-    const host = req.get('host') || 'unknown';
-    const xProto = req.get('x-forwarded-proto') || '';
-    const xHost = req.get('x-forwarded-host') || '';
-    const builtRedirectUri = `${protocol}://${host}/auth/google/callback`;
-    const payload = { sessionId: '08a2a4', runId: 'oauth-redirect', hypothesisId: 'A,B,C', location: 'authRoutes.js:GET /google', message: 'redirect_uri sent to Google', data: { protocol, host, xForwardedProto: xProto, xForwardedHost: xHost, builtRedirectUri }, timestamp: Date.now() };
-    fetch('http://127.0.0.1:7712/ingest/fb9409fa-19ed-4f8b-9eaf-7f24a343e882', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '08a2a4' }, body: JSON.stringify(payload) }).catch(() => {});
-    console.log('[DEBUG-08a2a4] OAuth redirect_uri built:', builtRedirectUri, '| protocol=', protocol, 'host=', host, 'x-forwarded-proto=', xProto, 'x-forwarded-host=', xHost);
-    // #endregion
     // redirect_uri를 state 옵션을 통해 전달
     const redirectUri = req.query.redirect_uri || '/';
     const authenticator = passport.authenticate('google', {
