@@ -42,6 +42,9 @@ const __dirname  = path.dirname(__filename);
 // ─── Express 앱 생성 ──────────────────────────────────────────────────
 const app = express();
 
+// 리버스 프록시(Render 등) 뒤에서 req.protocol / req.secure 를 올바르게 사용
+app.set('trust proxy', 1);
+
 // ─── 1) 핵심 미들웨어 설정 ──────────────────────────────────────────
 // CORS 설정
 app.use(cors({
