@@ -1,46 +1,13 @@
 import express from 'express';
-import fs from 'fs';
-import mongoose from 'mongoose';
 import Character from '../models/Character.js';
 import Work from '../models/Work.js'; // Work 모델 추가
 
 const router = express.Router();
-const DEBUG_LOG = 'debug-08a2a4.log';
-function debugIngest(payload) {
-  const p = { sessionId: '08a2a4', ...payload, timestamp: payload.timestamp || Date.now() };
-  fetch('http://127.0.0.1:7712/ingest/fb9409fa-19ed-4f8b-9eaf-7f24a343e882', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '08a2a4' }, body: JSON.stringify(p) }).catch(() => {});
-  try { fs.appendFileSync(DEBUG_LOG, JSON.stringify(p) + '\n'); } catch (_) {}
-}
 
 // 전체 등장인물 리스트
 router.get('/', async (req, res) => {
-  // #region agent log
-  const ts = Date.now();
-  const dbName = mongoose.connection?.db?.databaseName ?? 'unknown';
-  let uriDb = 'unknown';
-  try {
-    const u = process.env.MONGO_URI || '';
-    const path = (u.match(/\/\/(?:[^/]+@)?[^/]+\/([^?]*)/) || [])[1];
-    uriDb = (path && path.trim()) || 'empty';
-  } catch (_) {}
-  debugIngest({ runId: 'list-entry', hypothesisId: 'A,B,D', location: 'characterRoutes.js:GET/', message: '/api/characters entry', data: { dbName, uriDb }, timestamp: ts });
-  console.log('[DEBUG-08a2a4] /api/characters entry dbName=', dbName, 'uriDb=', uriDb);
-  // #endregion
-  try {
-    const list = await Character.find();
-    // #region agent log
-    const ts2 = Date.now();
-    debugIngest({ runId: 'list-result', hypothesisId: 'A,B,E', location: 'characterRoutes.js:GET/', message: 'Character.find() result', data: { count: list.length, dbName, firstId: list[0]?.id ?? null }, timestamp: ts2 });
-    console.log('[DEBUG-08a2a4] Character.find() count=', list.length, 'dbName=', dbName);
-    // #endregion
-    res.json(list);
-  } catch (err) {
-    // #region agent log
-    debugIngest({ runId: 'list-error', hypothesisId: 'C', location: 'characterRoutes.js:GET/', message: 'Character.find() error', data: { message: err?.message, stack: (err?.stack || '').slice(0, 200) }, timestamp: Date.now() });
-    console.error('[DEBUG-08a2a4] /api/characters error', err?.message);
-    // #endregion
-    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: err?.message || '인물 목록 조회 실패' } });
-  }
+  const list = await Character.find();
+  res.json(list);
 });
 
 // 단일 등장인물 상세
