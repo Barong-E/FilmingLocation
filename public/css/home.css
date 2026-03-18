@@ -13,10 +13,160 @@
   text-align: center;
 }
 
+/* 웹 접근성: 화면에서만 숨김(스크린리더용) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 홈 히어로 */
+.home-hero {
+  padding: 16px 0 28px;
+}
+
+.home-title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.home-subtitle {
+  margin: 0 0 18px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 큰 검색창 */
+.home-search-form {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.home-search-form input {
+  flex: 1;
+  min-width: 220px;
+  height: 44px;
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+}
+
+.home-search-form input:focus {
+  border-color: #00c896;
+  box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.15);
+}
+
+.home-search-form button {
+  height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #00c896;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.home-search-form button:hover {
+  background: #009f83;
+}
+
+/* 3개 카드 */
+.home-quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 10px 0 26px;
+}
+
+.quick-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 16px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.quick-card-title {
+  font-weight: 800;
+  font-size: 16px;
+  color: #222;
+}
+
+.quick-card-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 키워드 칩 */
+.home-keywords {
+  padding: 8px 0 10px;
+}
+
+.keywords-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.keyword-chip {
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  color: #333;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.keyword-chip:hover {
+  border-color: #00c896;
+  color: #00c896;
+}
+
 /* 데스크톱 여백 조정 */
 @media (min-width: 768px) {
   .home-main {
     padding: 40px;
     padding-top: 100px;
+  }
+
+  .home-title {
+    font-size: 34px;
+  }
+
+  .home-subtitle {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-quick-links {
+    grid-template-columns: 1fr;
+  }
+
+  .home-search-form {
+    padding: 0 10px;
   }
 }

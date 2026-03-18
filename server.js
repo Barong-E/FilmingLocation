@@ -222,7 +222,8 @@ app.use('/api/characters/:characterId/comments', commentRoutes);
 
 // ─── 5) 기본 라우트 (다른 모든 라우트 뒤에 위치) ─────────────────────────
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'places.html'));
+  // 홈은 index.html(정적 랜딩)로 제공
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
