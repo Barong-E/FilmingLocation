@@ -2,46 +2,77 @@
 import { loadHeader, setupHeaderSearch } from './header-loader.js';
 import { loadGNB } from './gnb-loader.js';
 
+const HOME_SEARCH_TRIGGER_ID = 'home-search-trigger';
+const HEADER_SEARCH_ICON_ID = 'search-icon';
+const KEYWORD_CHIP_SELECTOR = '.keyword-chip';
+const SEARCH_QUERY_PARAM = 'q';
+const HEADER_OPEN_DELAY_MS = 100;
+const SCROLL_TOP = 0;
+
+/**
+ * 키워드를 검색 페이지로 이동시킵니다.
+ * @param {string} keyword
+ */
+function navigateToSearch(keyword) {
+  const trimmedKeyword = (keyword || '').trim();
+  if (!trimmedKeyword) return;
+
+  window.location.href = `/search?${SEARCH_QUERY_PARAM}=${encodeURIComponent(trimmedKeyword)}`;
+}
+
+/**
+ * 홈 검색창 클릭 시 헤더 검색창을 엽니다.
+ * 기존 UX를 유지하기 위해 스크롤 후 아이콘 클릭 순서를 보장합니다.
+ */
+function openHeaderSearchFromHome() {
+  const headerSearchIcon = document.getElementById(HEADER_SEARCH_ICON_ID);
+  if (!headerSearchIcon) return;
+
+  window.scrollTo({ top: SCROLL_TOP, behavior: 'smooth' });
+  window.setTimeout(() => {
+    headerSearchIcon.click();
+  }, HEADER_OPEN_DELAY_MS);
+}
+
+/**
+ * 중앙 검색 영역 이벤트를 연결합니다.
+ */
+function bindHomeSearchTrigger() {
+  const homeSearchTriggerElement = document.getElementById(HOME_SEARCH_TRIGGER_ID);
+  if (!homeSearchTriggerElement) return;
+
+  homeSearchTriggerElement.addEventListener('click', (event) => {
+    event.preventDefault();
+    openHeaderSearchFromHome();
+  });
+}
+
+/**
+ * 추천 키워드 칩 클릭 이벤트를 연결합니다.
+ */
+function bindKeywordChipEvents() {
+  document.querySelectorAll(KEYWORD_CHIP_SELECTOR).forEach((keywordChipElement) => {
+    keywordChipElement.addEventListener('click', () => {
+      const keyword = keywordChipElement.getAttribute('data-keyword') || '';
+      navigateToSearch(keyword);
+    });
+  });
+}
+
+async function initializeHomePage() {
+  await loadHeader();
+  loadGNB();
+  setupHeaderSearch();
+  bindHomeSearchTrigger();
+  bindKeywordChipEvents();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // 헤더와 GNB 로드
-    await loadHeader();
-    loadGNB();
-    
-    // 헤더 검색 기능 초기화 (중요!)
-    setupHeaderSearch();
-
-    // 홈 검색 폼: 클릭 시 헤더 검색창 열기
-    const searchTrigger = document.getElementById('home-search-trigger');
-    if (searchTrigger) {
-      searchTrigger.addEventListener('click', (e) => {
-        e.preventDefault();
-        
-        // 헤더의 돋보기 아이콘을 찾아 클릭 이벤트를 발생시킴
-        const headerSearchIcon = document.getElementById('search-icon');
-        if (headerSearchIcon) {
-          // 스크롤을 맨 위로 올려서 헤더가 잘 보이게 함
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          
-          // 약간의 지연 후 클릭 이벤트 발생 (스크롤 완료 후 실행되도록)
-          setTimeout(() => {
-            headerSearchIcon.click();
-          }, 100);
-        }
-      });
-    }
-
-    // 추천 키워드 칩 클릭 시 검색
-    document.querySelectorAll('.keyword-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const q = btn.getAttribute('data-keyword') || '';
-        if (!q) return;
-        window.location.href = `/search?q=${encodeURIComponent(q)}`;
-      });
-    });
-    
+    await initializeHomePage();
     console.log('🏠 홈페이지 초기화 완료');
   } catch (error) {
     console.error('❌ 홈페이지 초기화 실패:', error);
+    window.alert('홈 화면을 불러오는 중 문제가 발생했습니다. 새로고침 후 다시 시도해 주세요.');
   }
 });
