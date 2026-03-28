@@ -3,7 +3,13 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
-dotenv.config();  // .env 파일 로드
+dotenv.config();
+const MONGO_URI_ENV_KEY = 'MONGO_URI';
+const DB_CONNECT_FAILURE_EXIT_CODE = 1;
+
+function getMongoUriFromEnv() {
+  return process.env[MONGO_URI_ENV_KEY];
+}
 
 /**
  * MongoDB 연결 함수
@@ -11,10 +17,15 @@ dotenv.config();  // .env 파일 로드
  */
 export async function connectDB() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    const mongoUri = getMongoUriFromEnv();
+    if (!mongoUri) {
+      throw new Error(`${MONGO_URI_ENV_KEY} 환경변수가 설정되지 않았습니다.`);
+    }
+
+    await mongoose.connect(mongoUri);
     console.log('✅ MongoDB 연결 성공');
   } catch (error) {
     console.error('❌ MongoDB 연결 실패:', error);
-    process.exit(1);  // 연결 실패 시 프로세스 종료
+    process.exit(DB_CONNECT_FAILURE_EXIT_CODE);
   }
 }

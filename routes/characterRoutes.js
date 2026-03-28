@@ -3,63 +3,108 @@ import Character from '../models/Character.js';
 import Work from '../models/Work.js'; // Work 모델 추가
 
 const router = express.Router();
+const WORKS_SELECT_FIELDS = 'id title type image releaseDate';
+const WORK_NAME_REGEX_OPTIONS = 'i';
+const ERROR_RESPONSE_CODES = {
+  MISSING_FIELDS: 'MISSING_FIELDS',
+  DUPLICATE_ID: 'DUPLICATE_ID',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  CHARACTER_NOT_FOUND: 'CHARACTER_NOT_FOUND',
+};
+
+function buildErrorResponse(code, message) {
+  return { error: { code, message } };
+}
+
+function sendInternalError(res, message, error, context) {
+  console.error(`${context}:`, error);
+  return res.status(500).json(buildErrorResponse(ERROR_RESPONSE_CODES.INTERNAL_ERROR, message));
+}
+
+function hasRequiredCharacterFields(characterData) {
+  return Boolean(characterData?.id && characterData?.name);
+}
+
+async function findCharacterByPublicId(characterId) {
+  return Character.findOne({ id: characterId });
+}
+
+async function findWorksByCharacterObjectId(characterObjectId) {
+  return Work.find({ characterIds: characterObjectId }).select(WORKS_SELECT_FIELDS);
+}
+
+async function findWorksByCharacterName(characterName) {
+  return Work.find({
+    characters: { $regex: characterName, $options: WORK_NAME_REGEX_OPTIONS },
+  }).select(WORKS_SELECT_FIELDS);
+}
+
+async function findWorksWithFlexibleQuery(character) {
+  return Work.find({
+    $or: [
+      { characterIds: character._id },
+      { characters: { $regex: character.name, $options: WORK_NAME_REGEX_OPTIONS } },
+      { characters: { $regex: `.*${character.name}.*`, $options: WORK_NAME_REGEX_OPTIONS } },
+    ],
+  }).select(WORKS_SELECT_FIELDS);
+}
+
+async function findCharacterWorks(character) {
+  let works = await findWorksByCharacterObjectId(character._id);
+  if (works?.length > 0) return works;
+
+  works = await findWorksByCharacterName(character.name);
+  if (works?.length > 0) return works;
+
+  return findWorksWithFlexibleQuery(character);
+}
 
 // 전체 등장인물 리스트
 router.get('/', async (req, res) => {
-  const list = await Character.find();
-  res.json(list);
+  try {
+    const list = await Character.find();
+    return res.json(list);
+  } catch (error) {
+    return sendInternalError(res, '등장인물 목록 조회 중 오류가 발생했습니다.', error, 'Error fetching character list');
+  }
 });
 
 // 단일 등장인물 상세
 router.get('/:id', async (req, res) => {
-  const c = await Character.findOne({ id: req.params.id });
-  if (!c) return res.status(404).json({ message: '등장인물을 찾을 수 없습니다.' });
-  res.json(c);
+  try {
+    const character = await findCharacterByPublicId(req.params.id);
+    if (!character) {
+      return res.status(404).json({ message: '등장인물을 찾을 수 없습니다.' });
+    }
+    return res.json(character);
+  } catch (error) {
+    return sendInternalError(res, '등장인물 조회 중 오류가 발생했습니다.', error, 'Error fetching character detail');
+  }
 });
 
 // 새로운 등장인물 추가
 router.post('/', async (req, res) => {
   try {
     const characterData = req.body;
-    
-    // 필수 필드 검증
-    if (!characterData.id || !characterData.name) {
-      return res.status(400).json({ 
-        error: { 
-          code: 'MISSING_FIELDS', 
-          message: 'id와 name은 필수입니다.' 
-        } 
-      });
+
+    if (!hasRequiredCharacterFields(characterData)) {
+      return res.status(400).json(buildErrorResponse(ERROR_RESPONSE_CODES.MISSING_FIELDS, 'id와 name은 필수입니다.'));
     }
-    
-    // ID 중복 검사
+
     const existingCharacter = await Character.findOne({ id: characterData.id });
     if (existingCharacter) {
-      return res.status(409).json({ 
-        error: { 
-          code: 'DUPLICATE_ID', 
-          message: '이미 존재하는 ID입니다.' 
-        } 
-      });
+      return res.status(409).json(buildErrorResponse(ERROR_RESPONSE_CODES.DUPLICATE_ID, '이미 존재하는 ID입니다.'));
     }
-    
-    // 새 등장인물 생성
+
     const newCharacter = new Character(characterData);
     await newCharacter.save();
-    
+
     res.status(201).json({
       message: '등장인물이 성공적으로 추가되었습니다.',
-      character: newCharacter
+      character: newCharacter,
     });
-    
   } catch (error) {
-    console.error('Error creating character:', error);
-    res.status(500).json({ 
-      error: { 
-        code: 'INTERNAL_ERROR', 
-        message: '등장인물 추가 중 오류가 발생했습니다.' 
-      } 
-    });
+    return sendInternalError(res, '등장인물 추가 중 오류가 발생했습니다.', error, 'Error creating character');
   }
 });
 
@@ -67,54 +112,20 @@ router.post('/', async (req, res) => {
 router.get('/:id/works', async (req, res) => {
   try {
     const characterId = req.params.id;
-    
-    // 해당 인물 찾기
-    const character = await Character.findOne({ id: characterId });
+    const character = await findCharacterByPublicId(characterId);
+
     if (!character) {
-      return res.status(404).json({ 
-        error: { 
-          code: 'CHARACTER_NOT_FOUND', 
-          message: '등장인물을 찾을 수 없습니다.' 
-        } 
-      });
+      return res
+        .status(404)
+        .json(buildErrorResponse(ERROR_RESPONSE_CODES.CHARACTER_NOT_FOUND, '등장인물을 찾을 수 없습니다.'));
     }
-    
-    // 방법 1: characterIds로 직접 연결된 작품들 찾기
-    let works = await Work.find({
-      characterIds: character._id
-    }).select('id title type image releaseDate');
-    
-    // 방법 2: characters 배열에서 이름으로 검색 (characterIds가 비어있는 경우)
-    if (!works || works.length === 0) {
-      works = await Work.find({
-        characters: { $regex: character.name, $options: 'i' }
-      }).select('id title type image releaseDate');
-    }
-    
-    // 방법 3: 더 유연한 검색 (부분 일치)
-    if (!works || works.length === 0) {
-      works = await Work.find({
-        $or: [
-          { characterIds: character._id },
-          { characters: { $regex: character.name, $options: 'i' } },
-          { characters: { $regex: `.*${character.name}.*`, $options: 'i' } }
-        ]
-      }).select('id title type image releaseDate');
-    }
-    
-    // 디버깅 정보 추가
+
+    const works = await findCharacterWorks(character);
     console.log(`Character ${character.name} (${characterId}) found ${works.length} works`);
-    
-    res.json(works);
-    
+
+    return res.json(works);
   } catch (error) {
-    console.error('Error fetching character works:', error);
-    res.status(500).json({ 
-      error: { 
-        code: 'INTERNAL_ERROR', 
-        message: '작품 정보를 가져오는 중 오류가 발생했습니다.' 
-      } 
-    });
+    return sendInternalError(res, '작품 정보를 가져오는 중 오류가 발생했습니다.', error, 'Error fetching character works');
   }
 });
 
