@@ -13,6 +13,9 @@ const router = express.Router();
 // 캐시 설정
 const CACHE_NAMESPACE = 'search';
 const DEFAULT_TTL = 300; // 5분 (초 단위)
+const POPULAR_DEFAULT_LIMIT = 8;
+const POPULAR_MAX_LIMIT = 20;
+const POPULAR_FALLBACK_KEYWORDS = ['이태원', '박서준', '권나라', '유재명'];
 
 // 캐시 키 생성
 const generateCacheKey = (endpoint, query, page = 1, limit = 20) => {
@@ -367,6 +370,36 @@ function validatePaginationParams(page, limit) {
   return { page: validatedPage, limit: validatedLimit };
 }
 
+function parsePopularLimit(limit) {
+  const parsedLimit = Number.parseInt(limit, 10);
+  if (!Number.isFinite(parsedLimit)) return POPULAR_DEFAULT_LIMIT;
+  return Math.max(1, Math.min(POPULAR_MAX_LIMIT, parsedLimit));
+}
+
+async function calculateSearchCountsByRegex(regex) {
+  const [directPlaces, directCharacters, worksByTitle] = await Promise.all([
+    Place.find({ $or: [{ address: regex }, { fictional_name: regex }, { real_name: regex }] }).select('_id'),
+    Character.find({ name: regex }).select('_id'),
+    Work.find({ title: regex }).select('placeIds characterIds'),
+  ]);
+
+  const placeIdSet = new Set();
+  const characterIdSet = new Set();
+  worksByTitle.forEach((work) => {
+    (work.placeIds || []).forEach((placeId) => placeIdSet.add(String(placeId._id || placeId)));
+    (work.characterIds || []).forEach((characterId) => characterIdSet.add(String(characterId._id || characterId)));
+  });
+
+  directPlaces.forEach((place) => placeIdSet.add(String(place._id)));
+  directCharacters.forEach((character) => characterIdSet.add(String(character._id)));
+
+  return {
+    places: placeIdSet.size,
+    works: worksByTitle.length,
+    characters: characterIdSet.size,
+  };
+}
+
 // 사용하지 않는 통합 검색 API와 디버깅 API 제거됨
 // 이제 새로운 명세 기반 검색 API만 사용
 
@@ -471,29 +504,13 @@ router.get('/counts', async (req, res) => {
       return res.json({ ...cached, cached: true });
     }
 
-    // 1) 직접 매칭: 장소/작품/인물
-    const [directPlaces, directCharacters, worksByTitle] = await Promise.all([
-      Place.find({ $or: [{ address: regex }, { fictional_name: regex }, { real_name: regex }] }).select('_id'),
-      Character.find({ name: regex }).select('_id'),
-      Work.find({ title: regex }).select('placeIds characterIds')
-    ]);
-
-    // 2) 작품 확장: 장소/인물
-    const placeIdSet = new Set();
-    const charIdSet = new Set();
-    worksByTitle.forEach(w => {
-      (w.placeIds || []).forEach(pid => placeIdSet.add(String(pid._id || pid)));
-      (w.characterIds || []).forEach(cid => charIdSet.add(String(cid._id || cid)));
-    });
-
-    directPlaces.forEach(p => placeIdSet.add(String(p._id)));
-    directCharacters.forEach(c => charIdSet.add(String(c._id)));
+    const counts = await calculateSearchCountsByRegex(regex);
 
     const result = {
       query,
-      places: placeIdSet.size,
-      works: worksByTitle.length,
-      characters: charIdSet.size,
+      places: counts.places,
+      works: counts.works,
+      characters: counts.characters,
       cached: false
     };
 
@@ -502,6 +519,73 @@ router.get('/counts', async (req, res) => {
     res.json(result);
   } catch (e) {
     handleSearchError(e, req, res, requestInfo);
+  }
+});
+
+// GET /api/search/popular
+router.get('/popular', async (req, res) => {
+  try {
+    const limit = parsePopularLimit(req.query.limit);
+    const cacheKey = generateCacheKey('popular', 'global', 1, limit);
+    const cached = await searchCache.get(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const monitorStats = searchMonitor.getStats();
+    const monitorTopQueries = Array.isArray(monitorStats.topQueries) ? monitorStats.topQueries : [];
+    const candidateQueries = monitorTopQueries.length > 0
+      ? monitorTopQueries.map((item) => ({ query: item.query, count: item.count || 0 }))
+      : POPULAR_FALLBACK_KEYWORDS.map((query) => ({ query, count: 0 }));
+
+    const deduplicatedKeywords = new Set();
+    const validPopularKeywords = [];
+
+    for (const candidate of candidateQueries) {
+      const rawQuery = (candidate.query || '').trim();
+      if (!rawQuery || deduplicatedKeywords.has(rawQuery.toLowerCase())) continue;
+
+      try {
+        const validatedQuery = validateSearchQuery(rawQuery);
+        const { query, regex } = parseQuery(validatedQuery);
+        if (!regex) continue;
+
+        const counts = await calculateSearchCountsByRegex(regex);
+        const totalResults = counts.places + counts.works + counts.characters;
+        if (totalResults <= 0) continue;
+
+        deduplicatedKeywords.add(query.toLowerCase());
+        validPopularKeywords.push({
+          keyword: query,
+          count: candidate.count,
+          totalResults,
+        });
+      } catch (_) {
+        // 유효성 검사 실패 또는 조회 실패 후보는 인기 검색어에서 제외
+      }
+
+      if (validPopularKeywords.length >= limit) break;
+    }
+
+    validPopularKeywords.sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      if (b.totalResults !== a.totalResults) return b.totalResults - a.totalResults;
+      return a.keyword.localeCompare(b.keyword, 'ko');
+    });
+
+    const result = {
+      keywords: validPopularKeywords.slice(0, limit).map((item) => item.keyword),
+    };
+
+    await searchCache.set(cacheKey, result);
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: '인기 검색어 조회 중 오류가 발생했습니다.',
+      },
+    });
   }
 });
 

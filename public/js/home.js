@@ -5,9 +5,12 @@ import { loadGNB } from './gnb-loader.js';
 const HOME_SEARCH_TRIGGER_ID = 'home-search-trigger';
 const HEADER_SEARCH_ICON_ID = 'search-icon';
 const KEYWORD_CHIP_SELECTOR = '.keyword-chip';
+const KEYWORDS_ROW_SELECTOR = '.keywords-row';
 const SEARCH_QUERY_PARAM = 'q';
+const POPULAR_KEYWORDS_ENDPOINT = '/api/search/popular?limit=8';
 const HEADER_OPEN_DELAY_MS = 100;
 const SCROLL_TOP = 0;
+const FALLBACK_POPULAR_KEYWORDS = ['이태원', '박서준', '권나라', '유재명'];
 
 /**
  * 키워드를 검색 페이지로 이동시킵니다.
@@ -51,12 +54,61 @@ function bindHomeSearchTrigger() {
  * 추천 키워드 칩 클릭 이벤트를 연결합니다.
  */
 function bindKeywordChipEvents() {
-  document.querySelectorAll(KEYWORD_CHIP_SELECTOR).forEach((keywordChipElement) => {
-    keywordChipElement.addEventListener('click', () => {
-      const keyword = keywordChipElement.getAttribute('data-keyword') || '';
-      navigateToSearch(keyword);
-    });
+  const keywordsRowElement = document.querySelector(KEYWORDS_ROW_SELECTOR);
+  if (!keywordsRowElement) return;
+
+  keywordsRowElement.addEventListener('click', (event) => {
+    const keywordChipElement = event.target.closest(KEYWORD_CHIP_SELECTOR);
+    if (!keywordChipElement) return;
+
+    const keyword = keywordChipElement.getAttribute('data-keyword') || '';
+    navigateToSearch(keyword);
   });
+}
+
+/**
+ * 인기 검색어를 받아 칩으로 렌더링합니다.
+ * @param {string[]} keywords
+ */
+function renderKeywordChips(keywords) {
+  const keywordsRowElement = document.querySelector(KEYWORDS_ROW_SELECTOR);
+  if (!keywordsRowElement) return;
+
+  keywordsRowElement.innerHTML = '';
+  keywords.forEach((keyword) => {
+    const trimmedKeyword = (keyword || '').trim();
+    if (!trimmedKeyword) return;
+
+    const keywordChipElement = document.createElement('button');
+    keywordChipElement.type = 'button';
+    keywordChipElement.className = 'keyword-chip';
+    keywordChipElement.setAttribute('data-keyword', trimmedKeyword);
+    keywordChipElement.textContent = `#${trimmedKeyword}`;
+    keywordsRowElement.appendChild(keywordChipElement);
+  });
+}
+
+/**
+ * 백엔드에서 인기 검색어를 가져옵니다.
+ * @returns {Promise<string[]>}
+ */
+async function fetchPopularKeywords() {
+  try {
+    const response = await fetch(POPULAR_KEYWORDS_ENDPOINT);
+    if (!response.ok) {
+      throw new Error(`인기 검색어 조회 실패: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data.keywords) || data.keywords.length === 0) {
+      return FALLBACK_POPULAR_KEYWORDS;
+    }
+
+    return data.keywords;
+  } catch (error) {
+    console.warn('[home.js] 인기 검색어 조회 실패, fallback 사용:', error);
+    return FALLBACK_POPULAR_KEYWORDS;
+  }
 }
 
 async function initializeHomePage() {
@@ -64,6 +116,8 @@ async function initializeHomePage() {
   loadGNB();
   setupHeaderSearch();
   bindHomeSearchTrigger();
+  const popularKeywords = await fetchPopularKeywords();
+  renderKeywordChips(popularKeywords);
   bindKeywordChipEvents();
 }
 
